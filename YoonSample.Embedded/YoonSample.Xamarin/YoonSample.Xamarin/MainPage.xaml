@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YoonSample.Xamarin.MainPage">
+
+    <StackLayout>
+        <Frame BackgroundColor="#2196F3" Padding="24" CornerRadius="0">
+            <Label Text="YoonSample" HorizontalTextAlignment="Center" TextColor="White" FontSize="36"/>
+        </Frame>
+        <StackLayout>
+            <Label Text="Set-up and Simulator for Remote Control" FontSize="Body" Padding="30,0,30,0"/>
+            <Label Text="Setting" FontSize="Title" Padding="30,12,30,10"/>
+            <Grid Padding="0,10,0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="1. Address" FontSize="Large" Padding="30,12,30,10"/>
+                <Entry Grid.Row="0" Grid.Column="1" Placeholder="127.0.0.1" FontSize="Default" FontAttributes="Italic" Margin="0,0,30,0"/>
+                <Label Grid.Row="1" Grid.Column="0" Text="2. Port" FontSize="Large" Padding="30,12,30,10"/>
+                <Entry Grid.Row="1" Grid.Column="1" Placeholder="5000" FontSize="Default" FontAttributes="Italic" Margin="0,0,30,0"/>
+                <Label Grid.Row="2" Grid.Column="0" Text="3. As server" FontSize="Large" Padding="30,12,30,10"/>
+                <Switch Grid.Row="2" Grid.Column="1" IsToggled="false" Margin="0,12,30,10"/>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Column="0" Text="Send Message" FontSize="Title" Padding="30,0,30,0"/>
+                <Button Grid.Column="1" Text="Send" Padding="0,10,0,10"/>
+            </Grid>
+            <Entry Grid.Column="0" Placeholder="Message" FontSize="Default" ClearButtonVisibility="WhileEditing" Margin="30,0,30,10"/>
+            <Label Text="Receive Message" FontSize="Title" Padding="30,12,30,0"/>
+            <Editor Placeholder="String Received" FontSize="Default" Margin="30,0,30,10"/>
+        </StackLayout>
+        <Label FontSize="Caption" Padding="30,24,30,0" HorizontalTextAlignment="End">
+            <Label.FormattedText>
+                <FormattedString>
+                    <FormattedString.Spans>
+                        <Span Text="Provided by "/>
+                        <Span Text="cheoljoung.yoon@lge.com" FontAttributes="Bold"/>
+                    </FormattedString.Spans>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+    </StackLayout>
+
+</ContentPage>
