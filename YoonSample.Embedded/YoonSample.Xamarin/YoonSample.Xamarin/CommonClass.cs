@@ -10,6 +10,5 @@ namespace YoonSample.Xamarin
     public static class CommonClass
     {
         public static ConsoleLogManager pCLM = new ConsoleLogManager(90);
-        
     }
 }
