@@ -28,40 +28,6 @@ namespace YoonFactory.Comm.TCP
         }
     }
 
-    public class MessageArgs : EventArgs
-    {
-        public eYoonStatus Status { get; set; }
-        public string Message { get; set; }
-
-        public MessageArgs(eYoonStatus nAssort, string message)
-        {
-            this.Status = nAssort;
-            this.Message = message;
-        }
-    }
-
-    public class BufferArgs : EventArgs
-    {
-        public string StringData { get; set; }
-
-        public byte[] ArrayData { get; set; }
-
-        public BufferArgs(string data)
-        {
-            this.StringData = data;
-            this.ArrayData = Encoding.ASCII.GetBytes(data);
-        }
-
-        public BufferArgs(byte[] data)
-        {
-            this.StringData = Encoding.ASCII.GetString(data);
-            this.ArrayData = data;
-        }
-    }
-
-    public delegate void ShowMessageCallback(object sender, MessageArgs e);
-    public delegate void RecieveDataCallback(object sender, BufferArgs e);
-
     public static class TCPFactory
     {
         public static int[] GetIPAddressArray(string strIPAddress)
@@ -137,7 +103,7 @@ namespace YoonFactory.Comm.TCP
         }
     }
 
-    public class TCPClient : IDisposable
+    public class YoonClient : IYoonTcpIp, IDisposable
     {
 
         #region IDisposable Support
@@ -172,7 +138,7 @@ namespace YoonFactory.Comm.TCP
             }
         }
 
-        public TCPClient()
+        public YoonClient()
         {
             // 비동기 작업에 사용될 대리자를 초기화합니다.
             m_sendHandler = new AsyncCallback(OnSendEvent);
@@ -181,11 +147,11 @@ namespace YoonFactory.Comm.TCP
             // 관리 가능한 변수를 초기화합니다.
             sbReceiveMessage = new StringBuilder(string.Empty);
 
-            LoadConfig();
+            LoadParam();
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        ~TCPClient()
+        ~YoonClient()
         {
             Dispose(false);
         }
@@ -200,13 +166,29 @@ namespace YoonFactory.Comm.TCP
         }
         #endregion
 
-        #region Public Access Data
         public event ShowMessageCallback OnShowMessageEvent;
         public event RecieveDataCallback OnShowReceiveDataEvent;
-        public bool IsRetryConnect = false;
-        public bool IsSend = false;
-        public StringBuilder sbReceiveMessage = null;
-        #endregion
+        public bool IsRetryOpen { get; private set; } = false;
+        public bool IsSend { get; private set; } = false;
+        public StringBuilder sbReceiveMessage { get; private set; } = null;
+        public string Address
+        {
+            get => Param.fIP;
+            set
+            {
+                if (TCPFactory.VerifyIPAddress(value))
+                    Param.fIP = value;
+            }
+        }
+        public string Port
+        {
+            get => Param.fPort;
+            set
+            {
+                if (TCPFactory.VerifyPort(value))
+                    Param.fPort = value;
+            }
+        }
 
         private const int BUFFER_SIZE = 4096;
 
@@ -215,7 +197,7 @@ namespace YoonFactory.Comm.TCP
         private AsyncCallback m_sendHandler;
         private string m_filePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "IPClient.ini");
 
-        private class Param
+        private struct Param
         {
             public static string fIP = "127.0.0.1";
             public static string fPort = "1234";
@@ -223,6 +205,31 @@ namespace YoonFactory.Comm.TCP
             public static string fTimeout = "10000";
             public static string fRetryCount = "10";
             public static string fElapsedTime = "5000";
+        }
+
+        public void CopyFrom(IYoonTcpIp pTcpIp)
+        {
+            if (pTcpIp is YoonClient pClient)
+            {
+                Disconnect();
+                if (pClient.IsConnected)
+                    pClient.Disconnect();
+
+                LoadParam();
+                Address = pClient.Address;
+                Port = pClient.Port;
+            }
+        }
+
+        public IYoonTcpIp Clone()
+        {
+            Disconnect();
+
+            YoonClient pClient = new YoonClient();
+            pClient.LoadParam();
+            pClient.Address = Address;
+            pClient.Port = Port;
+            return pClient;
         }
 
         /// <summary>
@@ -254,13 +261,7 @@ namespace YoonFactory.Comm.TCP
             Param.fElapsedTime = elapsedTime.ToString();
         }
 
-        public void SetIPAddress(string ip, string port)
-        {
-            Param.fIP = ip;
-            Param.fPort = port;
-        }
-
-        public void LoadConfig()
+        public void LoadParam()
         {
             YoonIni ic = new YoonIni(m_filePath);
             ic.LoadFile();
@@ -272,7 +273,7 @@ namespace YoonFactory.Comm.TCP
             Param.fElapsedTime = ic["Client"]["ElapsedTime"].ToString("5000");
         }
 
-        public void SaveConfig()
+        public void SaveParam()
         {
             YoonIni ic = new YoonIni(m_filePath);
             ic["Client"]["IP"] = Param.fIP;
@@ -284,13 +285,18 @@ namespace YoonFactory.Comm.TCP
             ic.SaveFile();
         }
 
-        public bool Connected
+        public bool IsConnected
         {
             get
             {
                 if (m_clientSocket == null) return false;
                 return m_clientSocket.Connected;
             }
+        }
+
+        public bool Open()
+        {
+            return Connect();
         }
 
         public bool Connect()
@@ -306,7 +312,7 @@ namespace YoonFactory.Comm.TCP
                 m_clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
 
                 //IPHostEntry ipHostInfo = Dns.Resolve(Param.fIP);
-                if (!IsRetryConnect)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Connection Attempt : {0}/{1}", Param.fIP, Param.fPort)));
                 IPAddress ipAddress = IPAddress.Parse(Param.fIP);
                 IAsyncResult asyncResult = m_clientSocket.BeginConnect(new IPEndPoint(ipAddress, int.Parse(Param.fPort)), null, null);
@@ -316,8 +322,8 @@ namespace YoonFactory.Comm.TCP
                 }
                 else
                 {
-                    IsRetryConnect = true;
-                    if (!IsRetryConnect)
+                    IsRetryOpen = true;
+                    if (!IsRetryOpen)
                         OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Connection Failure : Client Connecting delay"));
                     if (m_clientSocket != null)
                     {
@@ -332,7 +338,7 @@ namespace YoonFactory.Comm.TCP
             {
                 Console.WriteLine(ex.ToString());
 
-                if (!IsRetryConnect)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Connection Failure : Socket Error"));
                 if (m_clientSocket != null)
                 {
@@ -362,9 +368,9 @@ namespace YoonFactory.Comm.TCP
 
             if (m_clientSocket.Connected == true)
             {
-                IsRetryConnect = false;
+                IsRetryOpen = false;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Success"));
-                SaveConfig();
+                SaveParam();
             }
             return m_clientSocket.Connected;
         }
@@ -384,7 +390,7 @@ namespace YoonFactory.Comm.TCP
                 Param.fIP = strIp;
                 Param.fPort = strPort;
 
-                if (!IsRetryConnect)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Connection Attempt : {0}/{1}", Param.fIP, Param.fPort)));
                 //IPHostEntry ipHostInfo = Dns.Resolve(Param.fIP);
                 IPAddress ipAddress = IPAddress.Parse(Param.fIP);
@@ -395,8 +401,8 @@ namespace YoonFactory.Comm.TCP
                 }
                 else
                 {
-                    IsRetryConnect = true;
-                    if (!IsRetryConnect)
+                    IsRetryOpen = true;
+                    if (!IsRetryOpen)
                         OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Connection Failure : Client Connecting delay"));
                     if (m_clientSocket != null)
                     {
@@ -411,7 +417,7 @@ namespace YoonFactory.Comm.TCP
             {
                 Console.WriteLine(ex.ToString());
 
-                if (!IsRetryConnect)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Connection Failure : Socket Error"));
                 if (m_clientSocket != null)
                 {
@@ -440,18 +446,23 @@ namespace YoonFactory.Comm.TCP
 
             if (m_clientSocket.Connected == true)
             {
-                IsRetryConnect = false;
+                IsRetryOpen = false;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Success"));
-                SaveConfig();
+                SaveParam();
             }
             return m_clientSocket.Connected;
         }
 
+        public void Close()
+        {
+            Disconnect();
+        }
+
         public void Disconnect()
         {
-            if(IsRetryConnect)
+            if(IsRetryOpen)
             {
-                IsRetryConnect = false;
+                IsRetryOpen = false;
                 Thread.Sleep(100);
             }
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Close Connection"));
@@ -506,7 +517,7 @@ namespace YoonFactory.Comm.TCP
                     break;
 
                 //// Error : IsRetryConnect is false suddenly
-                if (!IsRetryConnect)
+                if (!IsRetryOpen)
                     break;
 
                 ////  Success to connect
@@ -515,7 +526,7 @@ namespace YoonFactory.Comm.TCP
                     if (m_clientSocket.Connected == true)
                     {
                         OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, "Connection Retry Success"));
-                        IsRetryConnect = false;
+                        IsRetryOpen = false;
                         break;
                     }
                 }
@@ -538,17 +549,17 @@ namespace YoonFactory.Comm.TCP
         ///  Buffer 상의 내용을 보낸다.
         /// </summary>
         /// <param name="strBuff">전송할 내용</param>
-        public void Send(string strBuff)
+        public bool Send(string strBuff)
         {
             if (m_clientSocket == null)
-                return;
+                return false;
             if (m_clientSocket.Connected == false)
             {
                 Disconnect();
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
-                IsRetryConnect = true;
+                IsRetryOpen = true;
                 OnRetryThreadStart();
-                return;
+                return false;
             }
             IsSend = false;
 
@@ -562,29 +573,31 @@ namespace YoonFactory.Comm.TCP
             {
                 m_clientSocket.BeginSend(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, m_sendHandler, ao);
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Send, string.Format("Send Message To String : " + strBuff)));
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Socket Error"));
             }
+            return false;
         }
 
         /// <summary>
         /// Data의 내용을 보낸다.
         /// </summary>
         /// <param name="data">전송할 내용</param>
-        public void Send(byte[] data)
+        public bool Send(byte[] data)
         {
             if (m_clientSocket == null)
-                return;
+                return false;
             if (m_clientSocket.Connected == false)
             {
                 Disconnect();
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
-                IsRetryConnect = true;
+                IsRetryOpen = true;
                 OnRetryThreadStart();
-                return;
+                return false;
             }
             IsSend = false;
 
@@ -601,12 +614,14 @@ namespace YoonFactory.Comm.TCP
                 //strBuff.Replace("\0", "");
                 //strBuff = "[S] " + strBuff;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Send, string.Format("Send Message To String : " + strBuff)));
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Socket Error"));
             }
+            return false;
         }
 
         private void OnSendEvent(IAsyncResult ar)
@@ -689,7 +704,7 @@ namespace YoonFactory.Comm.TCP
                     //}
                     Disconnect();
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Receive Failure : Disconnection"));
-                    IsRetryConnect = true;
+                    IsRetryOpen = true;
                     OnRetryThreadStart();
                 }
             }
@@ -699,13 +714,13 @@ namespace YoonFactory.Comm.TCP
 
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Receive Failure : Socket Error"));
                 Disconnect();
-                IsRetryConnect = true;
+                IsRetryOpen = true;
                 OnRetryThreadStart();
             }
         }
     }
 
-    public class TCPServer : IDisposable
+    public class YoonServer : IYoonTcpIp, IDisposable
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -715,7 +730,7 @@ namespace YoonFactory.Comm.TCP
             if (!disposedValue)
             {
                 // Save Last setting
-                SaveConfig();
+                SaveParam();
                 SaveTarget();
 
                 if (disposing)
@@ -752,9 +767,9 @@ namespace YoonFactory.Comm.TCP
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        public TCPServer()
+        public YoonServer()
         {
-            LoadConfig();
+            LoadParam();
             LoadTarget();
 
             // 관리 가능한 변수를 초기화 합니다.
@@ -766,7 +781,7 @@ namespace YoonFactory.Comm.TCP
             m_sendHandler = new AsyncCallback(OnSendEvent);
         }
 
-        ~TCPServer()
+        ~YoonServer()
         {
             Dispose(false);
         }
@@ -781,13 +796,44 @@ namespace YoonFactory.Comm.TCP
         }
         #endregion
 
-        #region Public Access
         public event ShowMessageCallback OnShowMessageEvent;
         public event RecieveDataCallback OnShowReceiveDataEvent;
-        public bool IsRetryListen = false;
-        public bool IsSend = false;
-        public StringBuilder sbReceiveMessage = null;
-        #endregion
+        public bool IsRetryOpen { get; private set; } = false;
+        public bool IsSend { get; private set; } = false;
+        public StringBuilder sbReceiveMessage { get; private set; } = null;
+        public string Address { get; set; } = string.Empty;
+        public string Port
+        {
+            get => Param.fPort;
+            set
+            {
+                if (TCPFactory.VerifyPort(value))
+                    Param.fPort = value;
+            }
+        }
+
+        public void CopyFrom(IYoonTcpIp pTcpIp)
+        {
+            if (pTcpIp is YoonServer pServer)
+            {
+                Close();
+                if (pServer.IsConnected)
+                    pServer.Close();
+
+                LoadParam();
+                Port = pServer.Port;
+            }
+        }
+
+        public IYoonTcpIp Clone()
+        {
+            Close();
+
+            YoonServer pServer = new YoonServer();
+            pServer.LoadParam();
+            pServer.Port = Port;
+            return pServer;
+        }
 
         private const int BUFFER_SIZE = 4096;
 
@@ -800,7 +846,7 @@ namespace YoonFactory.Comm.TCP
         private string m_filePathTarget = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "IPTarget.xml");
         private List<string> m_listClientIP = null;
 
-        private class Param
+        private struct Param
         {
             public static string fPort = "1234";
             public static string fBacklog = "5";
@@ -835,12 +881,7 @@ namespace YoonFactory.Comm.TCP
             Param.fRetryCount = retryCount.ToString();
         }
 
-        public void SetPort(string port)
-        {
-            Param.fPort = port;
-        }
-
-        public void LoadConfig()
+        public void LoadParam()
         {
             YoonIni ic = new YoonIni(m_filePathParam);
             ic.LoadFile();
@@ -851,7 +892,7 @@ namespace YoonFactory.Comm.TCP
             Param.fTimeout = ic["Server"]["TimeOut"].ToString("10000");
         }
 
-        public void SaveConfig()
+        public void SaveParam()
         {
             YoonIni ic = new YoonIni(m_filePathParam);
             ic["Server"]["Port"] = Param.fPort;
@@ -909,13 +950,18 @@ namespace YoonFactory.Comm.TCP
             }
         }
 
-        public bool Connected
+        public bool IsConnected
         {
             get
             {
                 if (m_connectedClientSocket == null) return false;
                 return m_connectedClientSocket.Connected;
             }
+        }
+
+        public bool Open()
+        {
+            return Listen();
         }
 
         public bool Listen()
@@ -929,7 +975,7 @@ namespace YoonFactory.Comm.TCP
             try
             {
                 m_serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
                 //// Binding port and Listening per backlogging
                 m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
@@ -941,7 +987,7 @@ namespace YoonFactory.Comm.TCP
             {
                 Console.WriteLine(ex.ToString());
 
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listening Failure : Socket Error")));
                 if (m_serverSocket != null)
                 {
@@ -954,14 +1000,14 @@ namespace YoonFactory.Comm.TCP
             if (m_serverSocket.IsBound == true)
             {
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveConfig();
-                IsRetryListen = false;
+                SaveParam();
+                IsRetryOpen = false;
             }
             else
             {
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listen Failure : Bound Fail")));
-                IsRetryListen = true;
+                IsRetryOpen = true;
             }
             return m_serverSocket.IsBound;
         }
@@ -980,7 +1026,7 @@ namespace YoonFactory.Comm.TCP
 
                 Param.fPort = strPort;
 
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
                 //// Binding Port and Listening per backlogging
                 m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
@@ -992,7 +1038,7 @@ namespace YoonFactory.Comm.TCP
             {
                 Console.WriteLine(ex.ToString());
 
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listening Failure : Socket Error")));
                 if (m_serverSocket != null)
                 {
@@ -1004,24 +1050,24 @@ namespace YoonFactory.Comm.TCP
 
             if (m_serverSocket.IsBound == true)
             {
-                IsRetryListen = false;
+                IsRetryOpen = false;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveConfig();
+                SaveParam();
             }
             else
             {
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listen Failure : Bound Fail")));
-                IsRetryListen = true;
+                IsRetryOpen = true;
             }
             return true;
         }
 
         public void Close()
         {
-            if(IsRetryListen)
+            if(IsRetryOpen)
             {
-                IsRetryListen = false;
+                IsRetryOpen = false;
                 Thread.Sleep(100);
             }
 
@@ -1126,7 +1172,7 @@ namespace YoonFactory.Comm.TCP
                     break;
 
                 //// Error : Retry Listen is false suddenly
-                if (!IsRetryListen)
+                if (!IsRetryOpen)
                     break;
 
                 ////  Success to connect
@@ -1135,7 +1181,7 @@ namespace YoonFactory.Comm.TCP
                     if (m_serverSocket.IsBound == true)
                     {
                         OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Retry Success")));
-                        IsRetryListen = false;
+                        IsRetryOpen = false;
                         break;
                     }
                 }
@@ -1158,15 +1204,15 @@ namespace YoonFactory.Comm.TCP
         /// <summary>
         ///  Buffer 상의 내용을 보낸다.
         /// </summary>
-        /// <param name="strBuff">전송할 내용</param>
-        public void Send(string strBuff)
+        /// <param name="strBuffer">전송할 내용</param>
+        public bool Send(string strBuffer)
         {
             if (m_serverSocket == null || m_connectedClientSocket == null)
-                return;
+                return false;
             if (m_connectedClientSocket.Connected == false)
             {
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
-                return;
+                return false;
             }
             IsSend = false;
             // 추가 정보를 넘기기 위한 변수 선언
@@ -1176,40 +1222,41 @@ namespace YoonFactory.Comm.TCP
             AsyncObject ao = new AsyncObject(1);
 
             //// 문자열을 Byte 배열(ASCII)로 변환해서 Buffer에 삽입한다.
-            ao.Buffer = Encoding.ASCII.GetBytes(strBuff);
+            ao.Buffer = Encoding.ASCII.GetBytes(strBuffer);
             ao.WorkingSocket = m_connectedClientSocket;
 
             try
             {
                 m_connectedClientSocket.BeginSend(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, m_sendHandler, ao);
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Message To String : " + strBuff)));
+                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Message To String : " + strBuffer)));
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
             }
+            return false;
         }
 
         /// <summary>
         /// Data의 내용을 보낸다.
         /// </summary>
-        /// <param name="data">전송할 내용</param>
-        public void Send(byte[] data)
+        /// <param name="pBuffer">전송할 내용</param>
+        public bool Send(byte[] pBuffer)
         {
             if (m_serverSocket == null || m_connectedClientSocket == null)
-                return;
+                return false;
             if (m_connectedClientSocket.Connected == false)
             {
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
-                return;
+                return false;
             }
             IsSend = false;
 
             AsyncObject ao = new AsyncObject(1);
 
-            string strBuff = Encoding.ASCII.GetString(data);
+            string strBuff = Encoding.ASCII.GetString(pBuffer);
             //// 문자열을 Byte 배열(ASCII)로 변환해서 Buffer에 삽입한다.
             ao.Buffer = Encoding.ASCII.GetBytes(strBuff);
             ao.WorkingSocket = m_connectedClientSocket;
@@ -1220,13 +1267,14 @@ namespace YoonFactory.Comm.TCP
                 //strBuff.Replace("\0", "");
                 //strBuff = "[S] " + strBuff;
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Message To String : " + strBuff)));
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-
                 OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
             }
+            return false;
         }
 
         private void OnSendEvent(IAsyncResult ar)

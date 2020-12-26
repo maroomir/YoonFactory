@@ -3,7 +3,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Timers;
-using YoonFactory;
+using YoonFactory.Comm;
 using YoonFactory.Comm.TCP;
 
 namespace YoonFactory.Robot.Remote
@@ -77,11 +77,11 @@ namespace YoonFactory.Robot.Remote
         {
             m_nJobReservation = eStepRemote.Wait;
             // 서버용 구독
-            m_pTCPServer = new TCPServer();
+            m_pTCPServer = new YoonServer();
             m_pTCPServer.OnShowReceiveDataEvent += OnTcpReceiveDataEvent;
             m_pTCPServer.OnShowMessageEvent += OnShowTcpMessageEvent;
             // 클라이언트용 구독
-            m_pTCPClient = new TCPClient();
+            m_pTCPClient = new YoonClient();
             m_pTCPClient.OnShowReceiveDataEvent += OnTcpReceiveDataEvent;
             m_pTCPClient.OnShowMessageEvent += OnShowTcpMessageEvent;
             // Remote Info 가져오기
@@ -104,11 +104,11 @@ namespace YoonFactory.Robot.Remote
         {
             m_nJobReservation = eStepRemote.Wait;
             // 서버용 구독
-            m_pTCPServer = new TCPServer();
+            m_pTCPServer = new YoonServer();
             m_pTCPServer.OnShowReceiveDataEvent += OnTcpReceiveDataEvent;
             m_pTCPServer.OnShowMessageEvent += OnShowTcpMessageEvent;
             // 클라이언트용 구독
-            m_pTCPClient = new TCPClient();
+            m_pTCPClient = new YoonClient();
             m_pTCPClient.OnShowReceiveDataEvent += OnTcpReceiveDataEvent;
             m_pTCPClient.OnShowMessageEvent += OnShowTcpMessageEvent;
             // Remote_Info 가져오기
@@ -150,8 +150,8 @@ namespace YoonFactory.Robot.Remote
         private string m_strSendMessage = "";
         private string m_strReceiveMessage = "";
         private string m_strYoonFactoryDir = "";
-        private TCPServer m_pTCPServer = null;
-        private TCPClient m_pTCPClient = null;
+        private YoonServer m_pTCPServer = null;
+        private YoonClient m_pTCPClient = null;
         private ParamRobotReceive m_pParamDataReceive = new ParamRobotReceive();
         //private bool IsConnected; // 삭제사유 : WaitHandle(int ms)를 만들어서 Connect / Send / Receive 대체 (ex> Connect시 IsConnect = true => WaitHandle=true)
         //private bool IsSend;      // 개발효과 : Main 함수에서 Wait를 위한 쓰레드를 추가로 구성할 필요 없음 
@@ -262,7 +262,7 @@ namespace YoonFactory.Robot.Remote
             {
                 case eYoonTCPType.Server:
                     //// Setting TCP Server
-                    m_pTCPServer.SetPort(RemoteInfo.GetValue(CobotType, CommType).Port);
+                    m_pTCPServer.Port = RemoteInfo.GetValue(CobotType, CommType).Port;
                     //// Start TCP Server Threading
                     m_nJobReservation = eStepRemote.Listen;
                     if (m_fThreadServer == null || !m_fThreadServer.IsAlive)
@@ -284,7 +284,8 @@ namespace YoonFactory.Robot.Remote
                     break;
                 case eYoonTCPType.Client:
                     //// Setting TCP Client
-                    m_pTCPClient.SetIPAddress(RemoteInfo.GetValue(CobotType, CommType).IPAddress, RemoteInfo.GetValue(CobotType, CommType).Port);
+                    m_pTCPClient.Address = RemoteInfo.GetValue(CobotType, CommType).IPAddress;
+                    m_pTCPClient.Port = RemoteInfo.GetValue(CobotType, CommType).Port;
                     //// Start TCP Server Threading
                     m_nJobReservation = eStepRemote.Connect;
                     if (m_fThreadClient == null || !m_fThreadClient.IsAlive)
@@ -716,7 +717,7 @@ namespace YoonFactory.Robot.Remote
                 {
                     case eStepRemote.Wait:
                         //// 대기 상태에서 연결이 갑작스럽게 끊긴 경우 재연결을 시도함
-                        if(nJobStepBK == eStepRemote.Wait && !m_pTCPServer.Connected)
+                        if(nJobStepBK == eStepRemote.Wait && !m_pTCPServer.IsConnected)
                         {
                             nJobStep = eStepRemote.Listen;
                         }
@@ -731,7 +732,7 @@ namespace YoonFactory.Robot.Remote
                             nJobStep = m_nJobReservation;
                         }
                         //// Client 연결 확인상태에서 다른 Client와 연결되었을 경우 대기상태로 전환
-                        else if (nJobStepBK == eStepRemote.Listen && m_pTCPServer.Connected)
+                        else if (nJobStepBK == eStepRemote.Listen && m_pTCPServer.IsConnected)
                         {
                             nJobStepBK = nJobStep;
                             IsConnected = true;
@@ -815,7 +816,7 @@ namespace YoonFactory.Robot.Remote
                 {
                     case eStepRemote.Wait:
                         //// 대기 상태에서 연결이 갑작스럽게 끊긴 경우 재연결을 시도함
-                        if (nJobStepBK == eStepRemote.Wait && !m_pTCPClient.Connected)
+                        if (nJobStepBK == eStepRemote.Wait && !m_pTCPClient.IsConnected)
                         {
                             nJobStep = eStepRemote.Connect;
                         }
@@ -851,7 +852,7 @@ namespace YoonFactory.Robot.Remote
                         }
                         break;
                     case eStepRemote.Retry:
-                        if (m_pTCPClient.Connected)
+                        if (m_pTCPClient.IsConnected)
                         {
                             nJobStepBK = nJobStep;
                             nJobStep = eStepRemote.Wait;

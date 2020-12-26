@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using Gtk;
 using YoonSample.Mono;
 using YoonFactory;
-using YoonFactory.Core;
+using YoonFactory.Files.Core;
 using YoonFactory.Mono;
 using YoonFactory.Mono.Log;
+using YoonFactory.Comm;
 using YoonFactory.Comm.TCP;
 
 public partial class MainWindow : Gtk.Window
@@ -50,14 +51,15 @@ public partial class MainWindow : Gtk.Window
             switch (CommonClass.pParamConnect.Type)
             {
                 case eCommType.TCPServer:
-                    CommonClass.pTCPServer = new TCPServer();
-                    CommonClass.pTCPServer.SetPort(CommonClass.pParamConnect.Port.ToString());
+                    CommonClass.pTCPServer = new YoonServer();
+                    CommonClass.pTCPServer.Port = CommonClass.pParamConnect.Port.ToString();
                     CommonClass.pTCPServer.OnShowMessageEvent += OnDisplayTcpIpMessageEvent;
                     CommonClass.pTCPServer.OnShowReceiveDataEvent += OnReceiveTcpIpDataEvent;
                     break;
                 case eCommType.TCPClient:
-                    CommonClass.pTCPClient = new TCPClient();
-                    CommonClass.pTCPClient.SetIPAddress(CommonClass.pParamConnect.IPAddress, CommonClass.pParamConnect.Port.ToString());
+                    CommonClass.pTCPClient = new YoonClient();
+                    CommonClass.pTCPClient.Address = CommonClass.pParamConnect.IPAddress;
+                    CommonClass.pTCPClient.Port = CommonClass.pParamConnect.Port.ToString();
                     CommonClass.pTCPClient.OnShowMessageEvent += OnDisplayTcpIpMessageEvent;
                     CommonClass.pTCPClient.OnShowReceiveDataEvent += OnReceiveTcpIpDataEvent;
                     break;
@@ -172,12 +174,13 @@ public partial class MainWindow : Gtk.Window
         switch(buttonSelected.Label)
         {
             case "Connect":
-                if (CommonClass.pTCPClient.Connected) return;
-                CommonClass.pTCPClient.SetIPAddress(CommonClass.pParamConnect.IPAddress, CommonClass.pParamConnect.Port.ToString());
+                if (CommonClass.pTCPClient.IsConnected) return;
+                CommonClass.pTCPClient.Address = CommonClass.pParamConnect.IPAddress;
+                CommonClass.pTCPClient.Port = CommonClass.pParamConnect.Port.ToString();
                 CommonClass.pTCPClient.Connect();
                 break;
             case "Disconnect":
-                if (!CommonClass.pTCPClient.Connected) return;
+                if (!CommonClass.pTCPClient.IsConnected) return;
                 CommonClass.pTCPClient.Disconnect();
                 break;
         }
@@ -190,7 +193,7 @@ public partial class MainWindow : Gtk.Window
         {
             case "Listen":
                 if (CommonClass.pTCPServer.IsBound) return;
-                CommonClass.pTCPServer.SetPort(CommonClass.pParamConnect.Port.ToString());
+                CommonClass.pTCPServer.Port = CommonClass.pParamConnect.Port.ToString();
                 CommonClass.pTCPServer.Listen();
                 break;
             case "Close":

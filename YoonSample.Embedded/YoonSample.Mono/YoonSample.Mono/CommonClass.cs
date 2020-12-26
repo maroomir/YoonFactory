@@ -33,8 +33,8 @@ namespace YoonSample.Mono
         public static ConsoleLogManager pCLM = new ConsoleLogManager(90);
         public static DisplayLogManager pDLM = new DisplayLogManager();
         
-        public static TCPServer pTCPServer = null;
-        public static TCPClient pTCPClient = null;
+        public static YoonServer pTCPServer = null;
+        public static YoonClient pTCPClient = null;
         public static YoonParameter pConnectManager = new YoonParameter(pParamConnect, typeof(ParameterConnection));
         public static YoonParameter pActionManager = new YoonParameter(pParamAction, typeof(ParameterAction));
 

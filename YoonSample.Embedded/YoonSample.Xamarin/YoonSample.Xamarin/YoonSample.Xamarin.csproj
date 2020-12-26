@@ -26,5 +26,8 @@
     <Reference Include="YoonCommond">
       <HintPath>..\..\..\Build\Debug\AnyCPU\YoonCommond.dll</HintPath>
     </Reference>
+    <Reference Include="YoonFiled">
+      <HintPath>..\..\..\Build\Debug\AnyCPU\YoonFiled.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

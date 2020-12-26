@@ -158,8 +158,12 @@ namespace YoonFactory.Robot.Remote
         #endregion
 
         public Dictionary<string, RemoteParameter> ObjectDictionary { get; private set; } = new Dictionary<string, RemoteParameter>();
-
         public string RootDirectory { get; set; }
+        public RemoteParameter this[string strKey]
+        {
+            get => GetValue(strKey);
+            set => SetValue(strKey, value);
+        }
 
         public RemoteContainer()
         {

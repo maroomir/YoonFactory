@@ -4,7 +4,7 @@ using System.IO.Ports;
 
 namespace YoonFactory.Comm.Serial
 {
-    public class SerialComm : IDisposable
+    public class YoonSerial : IDisposable
     {
 
         #region IDisposable Support

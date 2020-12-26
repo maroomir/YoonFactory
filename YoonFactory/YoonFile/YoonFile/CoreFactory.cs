@@ -118,6 +118,11 @@ namespace YoonFactory.Files.Core
 
         public Dictionary<string, YoonParameter> ObjectDictionary { get; private set; } = new Dictionary<string, YoonParameter>();
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
+        public YoonParameter this[string strKey]
+        {
+            get => GetValue(strKey);
+            set => SetValue(strKey, value);
+        }
 
         public void CopyFrom(IYoonContainer pContainer)
         {

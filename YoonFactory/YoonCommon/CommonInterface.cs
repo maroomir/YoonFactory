@@ -119,7 +119,7 @@ namespace YoonFactory
         T RX { get; set; }
         T RY { get; set; }
         T RZ { get; set; }
-        T[] Array { get; set;  }
+        T[] Array { get; set; }
 
         void Zero();
         void Unit();
@@ -162,7 +162,7 @@ namespace YoonFactory
         T Height { get; set; }
         T Area();
     }
-    
+
     public interface IYoonObject
     {
         int LabelNo { get; set; }
@@ -170,6 +170,14 @@ namespace YoonFactory
 
         void CopyFrom(IYoonObject pObject);
         IYoonObject Clone();
+    }
+
+    public interface IYoonParameter
+    {
+        bool IsEqual(IYoonParameter pParam);
+
+        void CopyFrom(IYoonParameter pParam);
+        IYoonParameter Clone();
     }
 
     public interface IYoonResult
@@ -196,5 +204,45 @@ namespace YoonFactory
 
         IYoonVector ToPixel(IYoonVector vecRealPos);
         IYoonVector ToReal(IYoonVector vecPixelPos);
+    }
+
+    public interface IYoonContainer : IDisposable
+    {
+        string RootDirectory { get; set; }  // \\<CONTAINER> (Save On this Folder)
+
+        void CopyFrom(IYoonContainer pContainer);
+        IYoonContainer Clone();
+        void Clear();
+        bool LoadValue(string strKey);
+        bool SaveValue(string strKey);
+    }
+
+    public interface IYoonContainer<T> : IYoonContainer
+    {
+        Dictionary<string, T> ObjectDictionary { get; }
+        T this[string strKey] { get; set; }
+
+        bool Add(string strKey, T pValue);
+        bool Remove(string strKey);
+        string GetKey(T pValue);
+        T GetValue(string strKey);
+        void SetValue(string strKey, T pValue);
+    }
+
+    public interface IYoonTemplate : IDisposable
+    {
+        int No { get; set; }
+        string Name { get; set; }
+
+        void CopyFrom(IYoonTemplate pTemplate);
+        IYoonTemplate Clone();
+
+        bool SaveTemplate();
+        bool LoadTemplate();
+    }
+
+    public interface IYoonTemplate<T> : IYoonTemplate
+    {
+        IYoonContainer<T> Container { get; set; }
     }
 }

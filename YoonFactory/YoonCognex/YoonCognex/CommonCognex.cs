@@ -258,6 +258,11 @@ namespace YoonFactory.Cognex
 
         public Dictionary<string, ICogTool> ObjectDictionary { get; private set; } = new Dictionary<string, ICogTool>();
         public string RootDirectory { get; set; }
+        public ICogTool this[string strKey]
+        {
+            get => GetValue(strKey);
+            set => SetValue(strKey, value);
+        }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
@@ -494,6 +499,11 @@ namespace YoonFactory.Cognex
 
         public Dictionary<string, CognexResult> ObjectDictionary { get; private set; } = new Dictionary<string, CognexResult>();
         public string RootDirectory { get; set; }
+        public CognexResult this[string strKey]
+        {
+            get => GetValue(strKey);
+            set => SetValue(strKey, value);
+        }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
