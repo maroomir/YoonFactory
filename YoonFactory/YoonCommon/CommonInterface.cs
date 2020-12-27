@@ -220,7 +220,6 @@ namespace YoonFactory
     public interface IYoonContainer<T> : IYoonContainer
     {
         Dictionary<string, T> ObjectDictionary { get; }
-        T this[string strKey] { get; set; }
 
         bool Add(string strKey, T pValue);
         bool Remove(string strKey);
@@ -233,6 +232,7 @@ namespace YoonFactory
     {
         int No { get; set; }
         string Name { get; set; }
+        string RootDirectory { get; set; }
 
         void CopyFrom(IYoonTemplate pTemplate);
         IYoonTemplate Clone();
