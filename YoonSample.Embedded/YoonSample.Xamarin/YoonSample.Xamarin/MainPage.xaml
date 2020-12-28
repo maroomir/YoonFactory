@@ -14,8 +14,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" Text="Setting" FontSize="Title" Padding="30,12,30,10"/>
-                <Button x:Name="button_OpenConnection" Grid.Column="1" Text="Connect" Padding="0,10,0,10"
-                        Clicked="OnClickOpenConnectionButton"/>
+                <Button x:Name="button_ChangeConnection" Grid.Column="1" Text="Connect" Padding="0,10,0,10"
+                        Clicked="OnClickChangeConnectionButton"/>
             </Grid>
             <Grid Padding="0,10,0,10">
                 <Grid.RowDefinitions>
