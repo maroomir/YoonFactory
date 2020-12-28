@@ -45,7 +45,7 @@ namespace YoonFactory.Log
         }
         #endregion
 
-        private string m_strLogPath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
+        public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생
 
         public ConsoleLogManager()
@@ -60,17 +60,8 @@ namespace YoonFactory.Log
 
         public ConsoleLogManager(string strPath, int nDays)
         {
-            m_strLogPath = strPath;
+            RootDirectory = strPath;
             m_nDirectoryFileExistDays = nDays;
-        }
-
-        /// <summary>
-        /// Log Data 저장 위치를 지정한다.
-        /// </summary>insta
-        /// <param name="strPath"></param>
-        public void SetManagementDirectory(string strPath)
-        {
-            m_strLogPath = strPath;
         }
 
         /// <summary>
@@ -92,7 +83,7 @@ namespace YoonFactory.Log
             string strLine = "[" + nowTime + "] " + strMessage;
             Console.WriteLine(strLine);
 #if DEBUG
-            if (m_strLogPath != string.Empty && m_strLogPath != null && isSave == true)
+            if (RootDirectory != string.Empty && RootDirectory != null && isSave == true)
                 WriteConsoleLog(strLine);
 #endif
         }
@@ -149,7 +140,7 @@ namespace YoonFactory.Log
 
             try
             {
-                strDirPath = Path.Combine(m_strLogPath, now.Year.ToString(), now.Month.ToString(), now.Day.ToString(),
+                strDirPath = Path.Combine(RootDirectory, now.Year.ToString(), now.Month.ToString(), now.Day.ToString(),
                                           now.Hour.ToString() + ".txt");
 
                 FileManagement.VerifyFilePath(strDirPath);
@@ -215,7 +206,7 @@ namespace YoonFactory.Log
                 string strMonthPath;
                 DateTime now = DateTime.Now;
 
-                strMonthPath = Path.Combine(m_strLogPath, now.Year.ToString(), now.Month.ToString());
+                strMonthPath = Path.Combine(RootDirectory, now.Year.ToString(), now.Month.ToString());
                 DeleteDirectoryFileCheck(strMonthPath);
             }
             catch (System.Exception ex)

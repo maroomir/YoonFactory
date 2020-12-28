@@ -8,6 +8,7 @@ namespace YoonFactory.Comm
         event ShowMessageCallback OnShowMessageEvent;
         event RecieveDataCallback OnShowReceiveDataEvent;
 
+        string RootDirectory { get; set; }
         string Address { get; set; }
         string Port { get; set; }
         bool IsRetryOpen { get; }

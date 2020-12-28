@@ -146,7 +146,18 @@ namespace YoonFactory.Comm.TCP
 
             // 관리 가능한 변수를 초기화합니다.
             sbReceiveMessage = new StringBuilder(string.Empty);
+        }
 
+        public YoonClient(string strParamDirectory)
+        {
+            // 비동기 작업에 사용될 대리자를 초기화합니다.
+            m_sendHandler = new AsyncCallback(OnSendEvent);
+            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
+
+            // 관리 가능한 변수를 초기화합니다.
+            sbReceiveMessage = new StringBuilder(string.Empty);
+
+            RootDirectory = strParamDirectory;
             LoadParam();
         }
 
@@ -171,6 +182,7 @@ namespace YoonFactory.Comm.TCP
         public bool IsRetryOpen { get; private set; } = false;
         public bool IsSend { get; private set; } = false;
         public StringBuilder sbReceiveMessage { get; private set; } = null;
+        public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
         public string Address
         {
             get => Param.fIP;
@@ -195,7 +207,6 @@ namespace YoonFactory.Comm.TCP
         private Socket m_clientSocket = null;
         private AsyncCallback m_receiveHandler;
         private AsyncCallback m_sendHandler;
-        private string m_filePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "IPClient.ini");
 
         private struct Param
         {
@@ -263,7 +274,8 @@ namespace YoonFactory.Comm.TCP
 
         public void LoadParam()
         {
-            YoonIni ic = new YoonIni(m_filePath);
+            string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
+            YoonIni ic = new YoonIni(strFilePath);
             ic.LoadFile();
             Param.fIP = ic["Client"]["IP"].ToString("127.0.0.1");
             Param.fPort = ic["Client"]["Port"].ToString("1234");
@@ -275,7 +287,8 @@ namespace YoonFactory.Comm.TCP
 
         public void SaveParam()
         {
-            YoonIni ic = new YoonIni(m_filePath);
+            string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
+            YoonIni ic = new YoonIni(strFilePath);
             ic["Client"]["IP"] = Param.fIP;
             ic["Client"]["Port"] = Param.fPort;
             ic["Client"]["RetryConnect"] = Param.fRetryConnect;
@@ -769,6 +782,18 @@ namespace YoonFactory.Comm.TCP
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
         public YoonServer()
         {
+            // 관리 가능한 변수를 초기화 합니다.
+            sbReceiveMessage = new StringBuilder(string.Empty);
+
+            // 비동기 작업에 사용될 대리자를 초기화합니다.
+            m_acceptHandler = new AsyncCallback(OnAcceptClientEvent);
+            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
+            m_sendHandler = new AsyncCallback(OnSendEvent);
+        }
+
+        public YoonServer(string strParamDirectory)
+        {
+            RootDirectory = strParamDirectory;
             LoadParam();
             LoadTarget();
 
@@ -802,6 +827,7 @@ namespace YoonFactory.Comm.TCP
         public bool IsSend { get; private set; } = false;
         public StringBuilder sbReceiveMessage { get; private set; } = null;
         public string Address { get; set; } = string.Empty;
+        public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
         public string Port
         {
             get => Param.fPort;
@@ -842,8 +868,6 @@ namespace YoonFactory.Comm.TCP
         private AsyncCallback m_acceptHandler;
         private AsyncCallback m_receiveHandler;
         private AsyncCallback m_sendHandler;
-        private string m_filePathParam = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "IPServer.ini");
-        private string m_filePathTarget = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "IPTarget.xml");
         private List<string> m_listClientIP = null;
 
         private struct Param
@@ -883,7 +907,8 @@ namespace YoonFactory.Comm.TCP
 
         public void LoadParam()
         {
-            YoonIni ic = new YoonIni(m_filePathParam);
+            string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
+            YoonIni ic = new YoonIni(strParamFilePath);
             ic.LoadFile();
             Param.fPort = ic["Server"]["Port"].ToString("1234");
             Param.fBacklog = ic["Server"]["Backlog"].ToString("5");
@@ -894,7 +919,8 @@ namespace YoonFactory.Comm.TCP
 
         public void SaveParam()
         {
-            YoonIni ic = new YoonIni(m_filePathParam);
+            string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
+            YoonIni ic = new YoonIni(strParamFilePath);
             ic["Server"]["Port"] = Param.fPort;
             ic["Server"]["Backlog"] = Param.fBacklog;
             ic["Server"]["RetryListen"] = Param.fRetryListen;
@@ -907,7 +933,8 @@ namespace YoonFactory.Comm.TCP
         {
             try
             {
-                YoonXml xc = new YoonXml(m_filePathTarget);
+                string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
+                YoonXml xc = new YoonXml(strTargetPath);
                 object pTargetParam;
                 if (xc.LoadFile(out pTargetParam, typeof(List<string>)))
                     m_listClientIP = (List<string>)pTargetParam;
@@ -932,7 +959,8 @@ namespace YoonFactory.Comm.TCP
             }
             try
             {
-                YoonXml xc = new YoonXml(m_filePathTarget);
+                string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
+                YoonXml xc = new YoonXml(strTargetPath);
                 xc.SaveFile(m_listClientIP, typeof(List<string>));
             }
             catch(Exception ex)

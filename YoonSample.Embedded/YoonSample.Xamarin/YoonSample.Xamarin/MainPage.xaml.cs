@@ -18,6 +18,9 @@ namespace YoonSample.Xamarin
             InitializeComponent();
 
             int nStepInit = 0;
+            CommonClass.pCLM.RootDirectory = CommonClass.strYoonFactoryDirectory;
+            CommonClass.pConnectManager.RootDirectory = CommonClass.strYoonFactoryDirectory;
+            CommonClass.pCLM.Write(string.Format("Step {0} : Setting File Directory", nStepInit++));
             CommonClass.pCLM.Write(string.Format("Step {0} : Init Parameter to Form", nStepInit++));
             {
                 CommonClass.pConnectManager.LoadParameter(true);
@@ -32,13 +35,13 @@ namespace YoonSample.Xamarin
 
             CommonClass.pCLM.Write(string.Format("Step {0} : Init Tcp Connection", nStepInit++));
             {
-                switch(CommonClass.pParamConnect.Type)
+                switch (CommonClass.pParamConnect.Type)
                 {
                     case eYoonTCPType.Client:
-                        CommonClass.pTcpIp = new YoonClient();
+                        CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
                         break;
                     case eYoonTCPType.Server:
-                        CommonClass.pTcpIp = new YoonServer();
+                        CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
                         break;
                     default:
                         break;
@@ -75,14 +78,14 @@ namespace YoonSample.Xamarin
             if (e.Value)
             {
                 CommonClass.pParamConnect.Type = eYoonTCPType.Server;
-                CommonClass.pTcpIp = new YoonServer();
+                CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
                 CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
                 CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;
             }
             else
             {
                 CommonClass.pParamConnect.Type = eYoonTCPType.Client;
-                CommonClass.pTcpIp = new YoonClient();
+                CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
                 CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
                 CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;
             }
@@ -106,6 +109,10 @@ namespace YoonSample.Xamarin
                     CommonClass.pParamConnect.IPAddress = entry_SettingIPAddress.Text;
                 if (TCPFactory.VerifyPort(entry_SettingPort.Text))
                     CommonClass.pParamConnect.Port = Convert.ToInt32(entry_SettingPort.Text);
+                //// Save the parameter directly
+                CommonClass.pConnectManager.Parameter = CommonClass.pParamConnect;
+                if (CommonClass.pConnectManager.SaveParameter())
+                    CommonClass.pConnectManager.LoadParameter();
             }
             CommonClass.pCLM.Write("Reset the Connection");
             {
