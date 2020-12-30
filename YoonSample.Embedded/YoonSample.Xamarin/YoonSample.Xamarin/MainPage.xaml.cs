@@ -27,7 +27,7 @@ namespace YoonSample.Xamarin
                 CommonClass.pParamConnect = CommonClass.pConnectManager.Parameter as ParameterConnection;
                 entry_SettingIPAddress.Text = CommonClass.pParamConnect.IPAddress;
                 entry_SettingPort.Text = CommonClass.pParamConnect.Port.ToString();
-                if (CommonClass.pParamConnect.Type == eYoonTCPType.Server)
+                if (CommonClass.pParamConnect.Type == eYoonCommType.TCPServer)
                     switch_SettingTCPServer.IsToggled = true;
                 else
                     switch_SettingTCPServer.IsToggled = false;
@@ -37,10 +37,10 @@ namespace YoonSample.Xamarin
             {
                 switch (CommonClass.pParamConnect.Type)
                 {
-                    case eYoonTCPType.Client:
+                    case eYoonCommType.TCPClient:
                         CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
                         break;
-                    case eYoonTCPType.Server:
+                    case eYoonCommType.TCPServer:
                         CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
                         break;
                     default:
@@ -77,14 +77,14 @@ namespace YoonSample.Xamarin
             }
             if (e.Value)
             {
-                CommonClass.pParamConnect.Type = eYoonTCPType.Server;
+                CommonClass.pParamConnect.Type = eYoonCommType.TCPServer;
                 CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
                 CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
                 CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;
             }
             else
             {
-                CommonClass.pParamConnect.Type = eYoonTCPType.Client;
+                CommonClass.pParamConnect.Type = eYoonCommType.TCPClient;
                 CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
                 CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
                 CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;

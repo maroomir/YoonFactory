@@ -2,6 +2,15 @@
 using System.Text;
 namespace YoonFactory.Comm
 {
+    public enum eYoonCommType : int
+    {
+        None = -1,
+        RS232,
+        RS422,
+        TCPClient,
+        TCPServer,
+    }
+
     public class MessageArgs : EventArgs
     {
         public eYoonStatus Status { get; set; }

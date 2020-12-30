@@ -1,11 +1,11 @@
 ﻿using YoonFactory;
-using YoonFactory.Comm.TCP;
+using YoonFactory.Comm;
 
 namespace YoonSample.Xamarin
 {
     public class ParameterConnection : IYoonParameter
     {
-        public eYoonTCPType Type { get; set; } = eYoonTCPType.Client;
+        public eYoonCommType Type { get; set; } = eYoonCommType.TCPClient;
         public string IPAddress { get; set; } = "192.168.71.1";
         public int Port { get; set; } = 5000;
 

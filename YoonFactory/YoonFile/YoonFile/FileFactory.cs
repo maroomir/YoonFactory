@@ -13,7 +13,7 @@ using YoonFactory.Files.Ini;
 namespace YoonFactory.Files
 {
     /* 환경 파일을 관리하는 Class */
-    public static class EnvironmentManagement
+    public static class EnvironmentFactory
     {
         public enum eTypeEnvironment
         {
@@ -70,7 +70,7 @@ namespace YoonFactory.Files
     }
 
     /* 일반 파일을 관리하는 Class */
-    public static class FileManagement
+    public static class FileFactory
     {
         public static bool VerifyDirectory(string path)
         {
@@ -357,7 +357,7 @@ namespace YoonFactory.Files
 
         public YoonIni(string strPath) : this(DefaultComparer)
         {
-            if (FileManagement.VerifyFileExtension(ref strPath, ".csv", true, true))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".csv", true, true))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.ini");
@@ -372,7 +372,7 @@ namespace YoonFactory.Files
         public YoonIni(string strPath, IEqualityComparer<string> stringComparer)
         {
 
-            if (FileManagement.VerifyFileExtension(ref strPath, ".csv", true, true))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".csv", true, true))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.ini");
@@ -397,13 +397,13 @@ namespace YoonFactory.Files
 
         public bool IsFileExist()
         {
-            return FileManagement.VerifyFilePath(FilePath, false);
+            return FileFactory.VerifyFilePath(FilePath, false);
         }
 
         public bool SaveFile(FileMode fm = FileMode.Create)
         {
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".ini", true, true))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
                 return false;
 
             using (FileStream fs = new FileStream(strPath, fm, FileAccess.Write))
@@ -450,7 +450,7 @@ namespace YoonFactory.Files
         public bool LoadFile(bool ordered = false)
         {
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".ini"))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".ini"))
                 return false;
 
             using (FileStream fs = new FileStream(strPath, FileMode.Open, FileAccess.Read))
@@ -665,7 +665,7 @@ namespace YoonFactory.Files
         // Csv File 위치를 인자로 받는다.
         public YoonCsv(string path)
         {
-            if (FileManagement.VerifyFileExtension(ref path, ".csv", true, true))
+            if (FileFactory.VerifyFileExtension(ref path, ".csv", true, true))
                 FilePath = path;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.csv");
@@ -686,7 +686,7 @@ namespace YoonFactory.Files
 
         public bool IsFileExist()
         {
-            return FileManagement.VerifyFilePath(FilePath, false);
+            return FileFactory.VerifyFilePath(FilePath, false);
         }
 
         // Csv의 Data를 읽어온다.
@@ -823,7 +823,7 @@ namespace YoonFactory.Files
 
         public bool IsFileExist()
         {
-            return FileManagement.VerifyFilePath(FilePath, false);
+            return FileFactory.VerifyFilePath(FilePath, false);
         }
 
         // Load XML File
@@ -833,7 +833,7 @@ namespace YoonFactory.Files
             XmlSerializer xl;
 
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".xml"))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".xml"))
             {
                 Console.WriteLine("Load XML File Failure : " + FilePath + "\n");
                 pParamData = null;
@@ -871,7 +871,7 @@ namespace YoonFactory.Files
             XmlSerializer xs;
 
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".xml", false, true))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".xml", false, true))
             {
                 Console.WriteLine("Create XML File Failure : " + FilePath + "\n");
                 return false;
@@ -909,7 +909,7 @@ namespace YoonFactory.Files
         private string m_zipFilePath;
         public YoonZip(string strPath)
         {
-            if (FileManagement.VerifyFileExtension(ref strPath, ".zip"))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".zip"))
                 m_zipFilePath = strPath;
             else
                 m_zipFilePath = "YoonZip.zip";
@@ -925,17 +925,17 @@ namespace YoonFactory.Files
             }
             set
             {
-                if (FileManagement.VerifyFileExtension(ref value, ".zip"))
+                if (FileFactory.VerifyFileExtension(ref value, ".zip"))
                     m_zipFilePath = value;
             }
         }
 
         public void CompressZip()
         {
-            if (!FileManagement.VerifyDirectory(DirectoryPath))
+            if (!FileFactory.VerifyDirectory(DirectoryPath))
                 return;
 
-            List<string> fListFile = FileManagement.GetFileListInDir(DirectoryPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFileListInDir(DirectoryPath, new List<String>());
             using (FileStream fs = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive zipArchive = new ZipArchive(fs, ZipArchiveMode.Create))
@@ -951,10 +951,10 @@ namespace YoonFactory.Files
 
         public void CompressZip(string strDirPath)
         {
-            if (!FileManagement.VerifyDirectory(strDirPath))
+            if (!FileFactory.VerifyDirectory(strDirPath))
                 return;
 
-            List<string> fListFile = FileManagement.GetFileListInDir(strDirPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFileListInDir(strDirPath, new List<String>());
             using (FileStream fs = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive za = new ZipArchive(fs, ZipArchiveMode.Create))
@@ -1051,7 +1051,7 @@ namespace YoonFactory.Files
 
         public YoonJson(string strPath)
         {
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".json", false, false))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".json", false, false))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonJSON.json");
@@ -1072,13 +1072,13 @@ namespace YoonFactory.Files
 
         public bool IsFileExist()
         {
-            return FileManagement.IsFileExist(FilePath);
+            return FileFactory.IsFileExist(FilePath);
         }
 
         public bool LoadFile(out object pParamData, Type pType)
         {
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".xml"))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".xml"))
             {
                 Console.WriteLine("Load Json File Failure : " + FilePath + "\n");
                 pParamData = null;
@@ -1117,7 +1117,7 @@ namespace YoonFactory.Files
         public bool SaveFile(object pParamData, Type pType)
         {
             string strPath = FilePath;
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".xml", false, true))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".xml", false, true))
             {
                 Console.WriteLine("Create XML File Failure : " + FilePath + "\n");
                 return false;

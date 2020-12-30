@@ -343,23 +343,18 @@ namespace YoonFactory.Camera.Realsense
         }
     }
 
-    public class RSVideoArgs : EventArgs
+    public class RSFrameArgs : FrameArgs
     {
-        public int Width;
-        public int Height;
-        public int BufferSize;
-        public int Planes;
         public double Time;
-        public IntPtr pFrameAddress;
 
-        public RSVideoArgs(VideoFrame pFrame)
+        public RSFrameArgs(VideoFrame pFrame)
         {
             Width = pFrame.Width;
             Height = pFrame.Height;
             BufferSize = pFrame.DataSize;
-            Planes = pFrame.BitsPerPixel / 8; // 8BIT
+            Plane = pFrame.BitsPerPixel / 8; // 8BIT
             Time = pFrame.Timestamp;
-            pFrameAddress = pFrame.Data;
+            pAddressBuffer = pFrame.Data;
         }
     }
 
@@ -383,11 +378,10 @@ namespace YoonFactory.Camera.Realsense
         }
     }
 
-    public delegate void ImageUpdateCallback(object sender, RSVideoArgs e);
     public delegate void DepthUpdateCallback(object sender, RSDepthArgs e);
     public delegate void MetaDataUpdateCallback(object sender, RSMetaArgs e);
 
-    public class RealsenseFactory : IYoonCamera, IDisposable
+    public class YoonRealsense : IYoonCamera, IDisposable
     {
         public const int MAX_IMAGE_WIDTH = 1920;    // D435 기준
         public const int MAX_IMAGE_HEIGHT = 1080;
@@ -409,7 +403,7 @@ namespace YoonFactory.Camera.Realsense
         private bool m_bFlagUseDepthStream = false;
         private bool m_bFlagUseAlignStream = false;
 
-        public event ImageUpdateCallback OnColorImageUpdateEvent;
+        public event ImageUpdateCallback OnCameraImageUpdateEvent;
         public event ImageUpdateCallback OnDepthImageUpdateEvent;
         public event DepthUpdateCallback OnDepthDataUpdateEvent;
         public event MetaDataUpdateCallback OnMetaDataUpdateEvent;
@@ -464,7 +458,7 @@ namespace YoonFactory.Camera.Realsense
             }
         }
 
-        public RealsenseFactory(eYoonRSCaptureMode nModeCapture, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
+        public YoonRealsense(eYoonRSCaptureMode nModeCapture, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
         {
             m_pListCaptureMode = new List<eYoonRSCaptureMode>();
             m_pListCaptureMode.Add(nModeCapture);
@@ -475,7 +469,7 @@ namespace YoonFactory.Camera.Realsense
             ImageHeight = DepthHeight = 480;
         }
 
-        public RealsenseFactory(List<eYoonRSCaptureMode> pListMode, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
+        public YoonRealsense(List<eYoonRSCaptureMode> pListMode, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
         {
             m_pListCaptureMode = new List<eYoonRSCaptureMode>(pListMode);
 
@@ -485,7 +479,7 @@ namespace YoonFactory.Camera.Realsense
             ImageHeight = DepthHeight = 480;
         }
 
-        public RealsenseFactory(int nWidth, int nHeight, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
+        public YoonRealsense(int nWidth, int nHeight, eYoonRSAlignMode nModeAlign = eYoonRSAlignMode.None)
         {
             m_pListCaptureMode = new List<eYoonRSCaptureMode>();
             foreach (eYoonRSCaptureMode nModeCapture in Enum.GetValues(typeof(eYoonRSCaptureMode)))
@@ -501,7 +495,7 @@ namespace YoonFactory.Camera.Realsense
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        ~RealsenseFactory()
+        ~YoonRealsense()
         {
             // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
             Dispose(false);
@@ -655,7 +649,7 @@ namespace YoonFactory.Camera.Realsense
                             pFrameView = pFrameSet.ColorFrame.DisposeWith(pFrameSet);
                             if (pFrameView != null)
                             {
-                                OnColorImageUpdateEvent(this, new RSVideoArgs(pFrameView));
+                                OnCameraImageUpdateEvent(this, new RSFrameArgs(pFrameView));
                                 bResult = true;
                             }
                             break;
@@ -673,7 +667,7 @@ namespace YoonFactory.Camera.Realsense
                             }
                             if (pFrameView != null)
                             {
-                                OnDepthImageUpdateEvent(this, new RSVideoArgs(pFrameView));
+                                OnDepthImageUpdateEvent(this, new RSFrameArgs(pFrameView));
                                 bResult = true;
                             }
                             break;
@@ -793,14 +787,14 @@ namespace YoonFactory.Camera.Realsense
                         if (m_bFlagUseRGBStream)
                         {
                             VideoFrame pFrameColor = pFrameSet.ColorFrame.DisposeWith(pFrameSet);
-                            if (pFrameColor != null) Dispatcher.CurrentDispatcher.Invoke(OnColorImageUpdateEvent, DispatcherPriority.Render, this, new RSVideoArgs(pFrameColor));
+                            if (pFrameColor != null) Dispatcher.CurrentDispatcher.Invoke(OnCameraImageUpdateEvent, DispatcherPriority.Render, this, new RSFrameArgs(pFrameColor));
                         }
                         if (m_bFlagUseDepthStream && !m_bFlagUseAlignStream)
                         {
                             DepthFrame pDepth = pFrameSet.DepthFrame.DisposeWith(pFrameSet);
                             if (pDepth != null && pDepth.Sensor != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthDataUpdateEvent, DispatcherPriority.Render, this, new RSDepthArgs(pDepth));
                             VideoFrame pFrameDepth = m_pColorizer.Process<VideoFrame>(pDepth).DisposeWith(pFrameSet);
-                            if (pFrameDepth != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthImageUpdateEvent, DispatcherPriority.Render, this, new RSVideoArgs(pFrameDepth));
+                            if (pFrameDepth != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthImageUpdateEvent, DispatcherPriority.Render, this, new RSFrameArgs(pFrameDepth));
                         }
                         else if(m_bFlagUseDepthStream && m_bFlagUseDepthStream)
                         {
@@ -808,7 +802,7 @@ namespace YoonFactory.Camera.Realsense
                             DepthFrame pDepthAlign = pFrameSetAlign.DepthFrame.DisposeWith(pFrameSetAlign);
                             if (pDepthAlign != null && pDepthAlign.Sensor != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthDataUpdateEvent, DispatcherPriority.Render, this, new RSDepthArgs(pDepthAlign));
                             VideoFrame pFrameDepthAlign = m_pColorizer.Process<VideoFrame>(pDepthAlign).DisposeWith(pFrameSetAlign);
-                            if (pFrameDepthAlign != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthImageUpdateEvent, DispatcherPriority.Render, this, new RSVideoArgs(pFrameDepthAlign));
+                            if (pFrameDepthAlign != null) Dispatcher.CurrentDispatcher.Invoke(OnDepthImageUpdateEvent, DispatcherPriority.Render, this, new RSFrameArgs(pFrameDepthAlign));
                         }
                     }
                 }
@@ -821,7 +815,7 @@ namespace YoonFactory.Camera.Realsense
         }
     }
 
-    public static class RealsenseSupport
+    public static class RealsenseFactory
     {
         public static List<int[]> GetDepthScaleToList(RSDepth pDepthData, float dScaleSensor, int nPixelResolution)
         {
@@ -858,7 +852,7 @@ namespace YoonFactory.Camera.Realsense
             if (nPixelResolution == 0 || dScaleSensor == 0.0) return null;
             if (pDepthData.Width % nPixelResolution != 0 || pDepthData.Height % nPixelResolution != 0) return null;
 
-            float dEffectRange = RealsenseFactory.MAX_DEPTH_DIST / dScaleSensor;
+            float dEffectRange = YoonRealsense.MAX_DEPTH_DIST / dScaleSensor;
             dValueResolution = dEffectRange / byte.MaxValue;
             if (dValueResolution == 0) return null;
 

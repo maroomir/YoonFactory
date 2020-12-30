@@ -10,13 +10,6 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Comm.TCP
 {
-    public enum eYoonTCPType : int
-    {
-        None = -1,
-        Client,
-        Server,
-    }
-
     public class AsyncObject
     {
         public byte[] Buffer;

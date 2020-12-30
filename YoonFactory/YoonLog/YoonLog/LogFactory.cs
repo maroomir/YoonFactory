@@ -100,7 +100,7 @@ namespace YoonFactory.Log
             }));
 
             string strPath = CreateDirectoryFile();
-            if (!FileManagement.VerifyFileExtension(ref strPath, ".txt"))
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".txt"))
             {
                 Console.WriteLine("LogManagement WriteConsoleLog: path fail");
                 return;
@@ -143,7 +143,7 @@ namespace YoonFactory.Log
                 strDirPath = Path.Combine(RootDirectory, now.Year.ToString(), now.Month.ToString(), now.Day.ToString(),
                                           now.Hour.ToString() + ".txt");
 
-                FileManagement.VerifyFilePath(strDirPath);
+                FileFactory.VerifyFilePath(strDirPath);
             }
             catch (System.Exception ex)
             {

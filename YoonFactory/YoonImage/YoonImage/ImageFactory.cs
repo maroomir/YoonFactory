@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.IO;
 using System.Windows.Forms;
 using YoonFactory;
@@ -30,12 +31,214 @@ namespace YoonFactory.Image
                 pArea.Height = limitHeight - pArea.Top;
         }
 
+        // 이미지(Bitmap) Converter
+        public static class Converter
+        {
+            #region Buffer에서 Bitmap 만들기
+            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
+                return ToBitmap8Bit(pBuffer, nWidth, nHeight);
+            }
+
+            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format8bppIndexed);
+                BitmapFactory.Memory.Print8bitImage(pBuffer, ref pResultBitmap);
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight, YoonRect2N cropArea)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
+                return ToBitmap8Bit(pBuffer, nWidth, nHeight, cropArea);
+            }
+
+            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nImageWidth, int nImageHeight, YoonRect2N cropArea)
+            {
+                if (pBuffer.Length != nImageWidth * nImageHeight) return null;
+                if (Convert.ToInt32(cropArea.Width) > nImageWidth || Convert.ToInt32(cropArea.Height) > nImageHeight)
+                    return null;
+
+                int x, y;
+                byte[] pByte;
+                Bitmap pResultBitmap = new Bitmap(cropArea.Width, cropArea.Height, PixelFormat.Format8bppIndexed);
+                ////  pBuffer를 pByte에 채운다.
+                for (int j = 0; j < cropArea.Height; j++)
+                {
+                    y = cropArea.Top + j;
+                    if (y >= nImageHeight) continue;
+                    pByte = new byte[cropArea.Width];
+                    for (int i = 0; i < cropArea.Height; i++)
+                    {
+                        x = cropArea.Left + i;
+                        if (x >= nImageWidth) continue;
+                        pByte[i] = Math.Max((byte)0, Math.Min(Convert.ToByte(pBuffer[j * nImageWidth + i]), (byte)255));
+                    }
+                    BitmapFactory.Memory.Print8bitLine(pByte, ref pResultBitmap, j);
+                }
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight, byte offset)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
+                return ToBitmap8Bit(pBuffer, nWidth, nHeight, offset);
+            }
+
+            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nWidth, int nHeight, byte offset)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte;
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format8bppIndexed);
+                ////  pBuffer를 pByte에 채운다.
+                for (int j = 0; j < nHeight; j++)
+                {
+                    pByte = new byte[nWidth];
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        pByte[i] = (byte)Math.Max(0, Math.Min(pBuffer[j * nWidth + i] + offset, 255));
+                    }
+                    BitmapFactory.Memory.Print8bitLine(pByte, ref pResultBitmap, j);
+                }
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap24BitWithColorMixed(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
+            {
+                if (pBuffer == null || pBuffer.Length != nWidth * nHeight * 3) return null;
+
+                int nRed, nGreen, nBlue;
+                if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
+                else { nRed = 2; nGreen = 1; nBlue = 0; }
+                int[] pPixel;
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                //// pBuffer를 pByte에 채운다.
+                for (int j = 0; j < nHeight; j++)
+                {
+                    pPixel = new int[nWidth];
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = new byte[4];
+                        pBytePixel[0] = pBuffer[j * nWidth * 3 + i * 3 + nBlue]; // Blue
+                        pBytePixel[1] = pBuffer[j * nWidth * 3 + i * 3 + nGreen]; // Green
+                        pBytePixel[2] = pBuffer[j * nWidth * 3 + i * 3 + nRed]; // Red
+                        pBytePixel[3] = (byte)0; // Alpha = null
+                        pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
+                    }
+                    BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
+                }
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap24BitWithColorParallel(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
+            {
+                if (pBuffer == null || pBuffer.Length != nWidth * nHeight * 3) return null;
+
+                int nRed, nGreen, nBlue;
+                if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
+                else { nRed = 2; nGreen = 1; nBlue = 0; }
+                int[] pPixel;
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                //// pBuffer를 pByte에 채운다.
+                for (int iPlane = 0; iPlane < 3; iPlane++)
+                {
+                    pPixel = new int[nWidth];
+                    for (int j = 0; j < nHeight; j++)
+                    {
+                        for (int i = 0; i < nWidth; i++)
+                        {
+                            byte[] pBytePixel = new byte[4];
+                            pBytePixel[0] = pBuffer[(nBlue * nWidth * nHeight) + j * nWidth + i]; // Blue
+                            pBytePixel[1] = pBuffer[(nGreen * nWidth * nHeight) + j * nWidth + i]; // Green
+                            pBytePixel[2] = pBuffer[(nRed * nWidth * nHeight) + j * nWidth + i]; // Red
+                            pBytePixel[3] = (byte)0; // Alpha = null
+                            pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
+                        }
+                        BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
+                    }
+                }
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap24Bit(int[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                BitmapFactory.Memory.Print24bitImage(pBuffer, ref pResultBitmap);
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap24Bit(byte[] pRed, byte[] pGreen, byte[] pBlue, int nWidth, int nHeight)
+            {
+                if (pRed == null || pRed.Length != nWidth * nHeight ||
+                    pGreen == null || pGreen.Length != nWidth * nHeight ||
+                    pBlue == null || pBlue.Length != nWidth * nHeight)
+                    return null;
+
+                int[] pPixel;
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                ////  pBuffer를 pByte에 채운다.
+                for (int j = 0; j < nHeight; j++)
+                {
+                    pPixel = new int[nWidth];
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = new byte[4];
+                        pBytePixel[0] = pBlue[j * nWidth + i];
+                        pBytePixel[1] = pGreen[j * nWidth + i];
+                        pBytePixel[2] = pRed[j * nWidth + i];
+                        pBytePixel[3] = (byte)0;
+                        pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
+                    }
+                    BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
+                }
+                return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static byte[] ToRedBuffer(int[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte = new byte[pBuffer.Length];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
+                        pByte[j * nWidth] = pBytePixel[2];
+                    }
+                }
+                return pByte;
+            }
+
+            public static byte[] ToRedBuffer(Bitmap pBitmapColor)
+            {
+                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 0); // 0 : Red
+            }
+            #endregion
+        }
+
         // Pattern Match
         public static class PatternMatch
         {
             #region Pattern 찾기
             //  Pattern 찾기
-            public static IYoonRect FindPattern_Binary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, YoonRect2N scanArea, ref double pCoeffWhite, ref double pCoeffBlack)
+            public static IYoonRect FindPatternAsBinary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, YoonRect2N scanArea, ref double pCoeffWhite, ref double pCoeffBlack)
             {
                 int findPosX, findPosY;
                 int startX, startY, jumpX, jumpY;
@@ -117,7 +320,7 @@ namespace YoonFactory.Image
                 return new YoonRect2N(findPoint.X, findPoint.Y, patternWidth, patternHeight);
             }
 
-            public static IYoonRect FindPattern_Binary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, ref double pCoeffWhite, ref double pCoeffBlack)
+            public static IYoonRect FindPatternAsBinary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, ref double pCoeffWhite, ref double pCoeffBlack)
             {
                 int findPosX, findPosY;
                 int startX, startY, jumpX, jumpY;
@@ -4405,6 +4608,29 @@ namespace YoonFactory.Image
                 return startX;
             }
 
+            public static int ScanLeft(byte[] pBuffer, int width, int height, int startX, int startY, byte threshold, bool isWhite)
+            {
+                byte value;
+                value = pBuffer[startY * width + startX];
+                if (isWhite)
+                {
+                    while (value > threshold && startX < width)
+                    {
+                        startX--;
+                        value = pBuffer[startY * width + startX];
+                    }
+                }
+                else
+                {
+                    while (value <= threshold && startX < width)
+                    {
+                        startX--;
+                        value = pBuffer[startY * width + startX];
+                    }
+                }
+                return startX;
+            }
+
             public static int ScanLeft(ushort[] pBuffer, int width, int height, int startX, int startY, ushort threshold, bool isWhite)
             {
                 ushort value;
@@ -4432,6 +4658,29 @@ namespace YoonFactory.Image
             public static int ScanRight(int[] pBuffer, int width, int height, int startX, int startY, int threshold, bool isWhite)
             {
                 int value;
+                value = pBuffer[startY * width + startX];
+                if (isWhite)
+                {
+                    while (value > threshold && startX < width)
+                    {
+                        startX++;
+                        value = pBuffer[startY * width + startX];
+                    }
+                }
+                else
+                {
+                    while (value <= threshold && startX < width)
+                    {
+                        startX++;
+                        value = pBuffer[startY * width + startX];
+                    }
+                }
+                return startX;
+            }
+
+            public static int ScanRight(byte[] pBuffer, int width, int height, int startX, int startY, byte threshold, bool isWhite)
+            {
+                byte value;
                 value = pBuffer[startY * width + startX];
                 if (isWhite)
                 {
@@ -4861,7 +5110,7 @@ namespace YoonFactory.Image
         {
             #region 각종 그리기
             //  삼각형 칠하기.
-            public static void PaintTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDirCompass direction, Color fillColor, double zoom)
+            public static void FillTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDirCompass direction, Color fillColor, double zoom)
             {
                 PointF[] pPoint = new PointF[3];
                 pPoint[0].X = (float)(x * zoom);
@@ -4901,7 +5150,7 @@ namespace YoonFactory.Image
             }
 
             //  사각형 칠하기.
-            public static void PaintRect(ref Bitmap pImage, int centerX, int centerY, int width, int height, Color fillColor, double zoom)
+            public static void FillRect(ref Bitmap pImage, int centerX, int centerY, int width, int height, Color fillColor, double zoom)
             {
                 float startX = (float)(centerX - width / 2) * (float)zoom;
                 float startY = (float)(centerY - height / 2) * (float)zoom;
@@ -4913,7 +5162,7 @@ namespace YoonFactory.Image
             }
 
             //  다각형 칠하기.
-            public static void PaintPolygon(ref Bitmap pImage, YoonVector2N[] pArrayPoint, Color fillColor, double zoom)
+            public static void FillPoligon(ref Bitmap pImage, YoonVector2N[] pArrayPoint, Color fillColor, double zoom)
             {
                 PointF[] pArrayDraw = new PointF[pArrayPoint.Length];
                 for(int iPoint = 0; iPoint<pArrayPoint.Length; iPoint++)
@@ -4930,7 +5179,7 @@ namespace YoonFactory.Image
             }
 
             //  전부 칠하기.
-            public static void PaintCanvas(ref Bitmap pImage, Color fillColor)
+            public static void FillCanvas(ref Bitmap pImage, Color fillColor)
             {
                 Rectangle pRectCanvas = new Rectangle(0, 0, pImage.Width, pImage.Height);
                 using(Graphics graph = Graphics.FromImage(pImage))
@@ -5067,7 +5316,7 @@ namespace YoonFactory.Image
         {
             #region Image 확대, 축소, 회전, 기울이기
             //  Image 확대, 축소하기.
-            public static void ZoomImage(out int[] pDestination, int destWidth, int destHeight, ref int[] pSource, int sourceWidth, int sourceHeight)
+            public static void Zoom(out int[] pDestination, int destWidth, int destHeight, ref int[] pSource, int sourceWidth, int sourceHeight)
             {
                 int i, j, x, y;
                 float x1, y1, x2, y2;                               // 좌표
@@ -5108,7 +5357,7 @@ namespace YoonFactory.Image
             }
 
             //  회전.
-            public static void RotateImage(ref byte[] pBuffer, int bufferWidth, int bufferHeight, int centerX, int centerY, double angle)
+            public static void Rotate(ref byte[] pBuffer, int bufferWidth, int bufferHeight, int centerX, int centerY, double angle)
             {
                 int i, j;
                 int x1, y1, x2, y2;
@@ -5198,7 +5447,7 @@ namespace YoonFactory.Image
             }
 
             //  Image 반전.
-            public static void ReverseImage(ref byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static void Reverse(ref byte[] pBuffer, int bufferWidth, int bufferHeight)
             {
                 int i, j;
 
@@ -5212,7 +5461,7 @@ namespace YoonFactory.Image
             }
 
             //  직사각형 Image를 평행사변형꼴로 기울인다.
-            public static void WarpImage(ref byte[] pSource, int sourceWidth, int sourceHeight, YoonVector2N[] pEdgePos, ref byte[] pDestination, int destWidth, int destHeight)
+            public static void Warp(ref byte[] pSource, int sourceWidth, int sourceHeight, YoonVector2N[] pEdgePos, ref byte[] pDestination, int destWidth, int destHeight)
             {
                 int iX, iY;
                 int x1, y1, x2, y2;

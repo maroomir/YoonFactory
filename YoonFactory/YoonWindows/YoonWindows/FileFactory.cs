@@ -24,7 +24,7 @@ namespace YoonFactory.Windows.File
         /// <param name="path"></param>
         public Win32IniControl(string path)
         {
-            if (FileManagement.VerifyFileExtension(ref path, ".ini", true, true))
+            if (FileFactory.VerifyFileExtension(ref path, ".ini", true, true))
                 m_iniPath = path;
             else
                 m_iniPath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFacotry", @"YoonFactory.ini");

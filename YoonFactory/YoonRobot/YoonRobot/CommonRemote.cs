@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using YoonFactory.Comm.TCP;
+using YoonFactory.Comm;
 using YoonFactory.Files;
 
 namespace YoonFactory.Robot.Remote
@@ -10,7 +10,6 @@ namespace YoonFactory.Robot.Remote
     public enum eYoonRobotType : int
     {
         None = -1,
-        LG,
         UR,
         TM,
     }
@@ -23,7 +22,7 @@ namespace YoonFactory.Robot.Remote
         Dashboard,
     }
 
-    public enum eYoonRobotRemoteHeadSend : int   // REMOTE MODE = UR : DASHBOARD, LG : DASHBOARD
+    public enum eYoonRobotRemoteHeadSend : int   // REMOTE MODE = UR : DASHBOARD
     {
         None = -1,
         StatusServo = 0,
@@ -43,7 +42,7 @@ namespace YoonFactory.Robot.Remote
         BreakRelease,
     }
 
-    public enum eYoonRobotRemoteHeadReceive : int    // REMOTE MODE = UR : DASHBOARD, LG : SOCKET
+    public enum eYoonRobotRemoteHeadReceive : int    // REMOTE MODE = UR : DASHBOARD
     {
         None = -1,
         StatusServoOK = 0,
@@ -73,28 +72,28 @@ namespace YoonFactory.Robot.Remote
 
     public struct ParamRobotSend
     {
-        public string ProjectName;  // LG
-        public string ProgramName;  // LG, UR
+        public string ProjectName;  //
+        public string ProgramName;  // UR
 
-        public YoonJointD JointPos;  // LG, UR, TM (J1 ~ J6)
-        public YoonCartD CartPos;    // LG, UR, TM (X, Y, Z, RX, R
+        public YoonJointD JointPos;  // UR, TM (J1 ~ J6)
+        public YoonCartD CartPos;    // UR, TM (X, Y, Z, RX, R
 
         public int VelocityPercent;
 
-        public string[] ArraySocketParam;   // LG, UR, TM
+        public string[] ArraySocketParam;   // UR, TM
     }
 
     public struct ParamRobotReceive
     {
-        public YoonJointD JointPos;   // LG, UR, TM
-        public YoonCartD CartPos;     // LG, UR, TM
+        public YoonJointD JointPos;   // UR, TM
+        public YoonCartD CartPos;     // UR, TM
     }
 
     public class RemoteParameter : IYoonParameter
     {
         public string IPAddress { get; set; } = "127.0.0.1";
         public string Port { get; set; } = "30000";
-        public eYoonTCPType TCPMode { get; set; } = eYoonTCPType.Server;
+        public eYoonCommType TCPMode { get; set; } = eYoonCommType.TCPServer;
 
         public bool IsEqual(IYoonParameter pParam)
         {
@@ -355,7 +354,7 @@ namespace YoonFactory.Robot.Remote
             ic.LoadFile();
             pRemote.IPAddress = ic[strKey]["IP"].ToString("127.0.0.1");
             pRemote.Port = ic[strKey]["Port"].ToString("1234");
-            pRemote.TCPMode = (eYoonTCPType)Enum.Parse(typeof(eYoonTCPType), ic[strKey]["Mode"].ToString("None"));
+            pRemote.TCPMode = (eYoonCommType)Enum.Parse(typeof(eYoonCommType), ic[strKey]["Mode"].ToString("None"));
             return pRemote;
         }
 
@@ -430,36 +429,36 @@ namespace YoonFactory.Robot.Remote
                         case "LG_Socket":
                             pRemote.IPAddress = "192.168.101.100";
                             pRemote.Port = "30000";
-                            pRemote.TCPMode = eYoonTCPType.Server;
+                            pRemote.TCPMode = eYoonCommType.TCPServer;
                             break;
                         case "UR_Dashboard":
                             pRemote.IPAddress = "192.168.101.101";
                             pRemote.Port = "29999";
-                            pRemote.TCPMode = eYoonTCPType.Client;
+                            pRemote.TCPMode = eYoonCommType.TCPClient;
                             break;
                         case "UR_Script":
                             pRemote.IPAddress = "192.168.101.101";
                             pRemote.Port = "30001";
-                            pRemote.TCPMode = eYoonTCPType.Client;
+                            pRemote.TCPMode = eYoonCommType.TCPClient;
                             break;
                         case "UR_Socket":
                             pRemote.IPAddress = "192.168.101.101";
                             pRemote.Port = "50000";
-                            pRemote.TCPMode = eYoonTCPType.Client;
+                            pRemote.TCPMode = eYoonCommType.TCPClient;
                             break;
                         case "TM_Script":
                             pRemote.IPAddress = "192.168.101.102";
                             pRemote.Port = "5890";
-                            pRemote.TCPMode = eYoonTCPType.Client;
+                            pRemote.TCPMode = eYoonCommType.TCPClient;
                             break;
                         case "TM_Socket":
                             pRemote.IPAddress = "192.168.101.102";
                             pRemote.Port = "30000";
-                            pRemote.TCPMode = eYoonTCPType.Server;
+                            pRemote.TCPMode = eYoonCommType.TCPServer;
                             break;
                         default:
                             pRemote.Port = "11111";
-                            pRemote.TCPMode = eYoonTCPType.Server;
+                            pRemote.TCPMode = eYoonCommType.TCPServer;
                             break;
                     }
 

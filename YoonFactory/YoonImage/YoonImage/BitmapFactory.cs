@@ -234,121 +234,249 @@ namespace YoonFactory.Image
             }
             return resultBitmap;
         }
+
+        /* Bitmap Image의 Memory 영역 관리를 담당하는 Class */
+        public static class Memory
+        {
+            // Bitmap Data를 보관하는 Dictionary
+            private static Dictionary<Bitmap, BitmapData> BitmapDataDictionary = new Dictionary<Bitmap, BitmapData>();
+
+            // Image로부터 Read/Write가 가능한 Memory Pointer를 가져온다.
+            private static IntPtr GetMemory(ref Bitmap pImage)
+            {
+                return GetMemory(ref pImage, new Rectangle(Point.Empty, pImage.Size), ImageLockMode.ReadWrite);
+            }
+
+            // Image로부터 Mode에 맞는 작업을 수행 할 수 있는 Memory Pointer를 가져온다.
+            private static IntPtr GetMemory(ref Bitmap pImage, ImageLockMode mode)
+            {
+                return GetMemory(ref pImage, new Rectangle(Point.Empty, pImage.Size), mode);
+            }
+
+            // Image로부터 Rect영역을 Read/Write 할 수 있는 Memory Pointer를 가져온다.
+            private static IntPtr GetMemory(ref Bitmap pImage, Rectangle rect)
+            {
+                return GetMemory(ref pImage, rect, ImageLockMode.ReadWrite);
+            }
+
+            // Image로부터 Rect영역을 Mode에 맞게 작업을 수행 할 수 있는 Memory Pointer를 가져온다.
+            private static IntPtr GetMemory(ref Bitmap pImage, Rectangle rect, ImageLockMode mode)
+            {
+                BitmapData pImageData = null;
+                if (BitmapDataDictionary.ContainsKey(pImage))
+                    pImageData = BitmapDataDictionary[pImage];
+                else
+                {
+                    pImageData = pImage.LockBits(rect, mode, pImage.PixelFormat);
+                    BitmapDataDictionary.Add(pImage, pImageData);
+                }
+                return pImageData.Scan0;
+            }
+
+            // Lock Memory 메소드로 취득한 Memory 주소를 반환한다.
+            private static void ReleaseMemory(ref Bitmap pImage)
+            {
+                try
+                {
+                    BitmapData pImageData = BitmapDataDictionary[pImage];
+                    pImage.UnlockBits(pImageData);
+                }
+                catch (Exception)
+                {
+                    //
+                }
+            }
+
+            #region Image 입출력
+            // Image 전체의 Memory 배열을 복사해온다.
+            public static byte[] Scan8bitImage(ref Bitmap pImage)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format8bppIndexed) return null;
+                return Scan8bitImage(ref pImage, new Rectangle(Point.Empty, pImage.Size));
+            }
+
+            // Image에서 단행의 Memory 배열을 복사해온다.
+            public static byte[] Scan8bitLine(ref Bitmap pImage, int pixelY)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format8bppIndexed) return null;
+                return Scan8bitImage(ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
+            }
+
+            // Image에서 1개 Point의 Gray Level을 복사해온다.
+            public static byte Scan8bitPoint(ref Bitmap pImage, int pixelX, int pixelY)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format8bppIndexed) return 0;
+                return Scan8bitImage(ref pImage, new Rectangle(pixelX, pixelY, 1, 1))[0];
+            }
+
+            // Image에서 Rect영역에 있는 Memroy를 복사해온다.
+            private static byte[] Scan8bitImage(ref Bitmap pImage, Rectangle rect)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format8bppIndexed ||
+                    rect.X > pImage.Width || rect.Y > pImage.Height)
+                    return null;
+
+                byte[] pByte = new byte[rect.Width * rect.Height];
+                IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.ReadOnly);
+                Marshal.Copy(pImagePointer, pByte, 0, pByte.Length);
+                ReleaseMemory(ref pImage);
+                return pByte;
+            }
+
+            // Image 전체의 Memory 배열을 복사해온다.
+            public static byte[] Scan24bitImageByPlane(ref Bitmap pImage, int nPlane)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return Scan24bitImageByPlane(ref pImage, nPlane, new Rectangle(Point.Empty, pImage.Size));
+            }
+
+            // Image 전체의 Memory 배열을 복사해온다.
+            public static int[] Scan24bitImage(ref Bitmap pImage)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return Scan24bitImage(ref pImage, new Rectangle(Point.Empty, pImage.Size));
+            }
+
+            // Image에서 단행의 Memory 배열을 복사해온다.
+            public static int[] Scan24bitLine(ref Bitmap pImage, int pixelY)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return Scan24bitImage(ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
+            }
+
+            // Image에서 1개 Point의 Gray Level을 복사해온다.
+            public static int Scan24bitPoint(ref Bitmap pImage, int pixelX, int pixelY)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb) return 0;
+                return Scan24bitImage(ref pImage, new Rectangle(pixelX, pixelY, 1, 1))[0];
+            }
+
+            // Image에서 Rect영역에 있는 Memroy를 복사해온다.
+            // MSDN을 참고하면 int 15를 BitConvert에 통과시킬 때 {0xFF, 0x00, 0x00, 0x00}로 나옴
+            // 즉 byte[]에서 int 값으로 컨버팅할 때 B / G / R / A 순서로 넣어야함
+            private static int[] Scan24bitImage(ref Bitmap pImage, Rectangle rect)
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb ||
+                        rect.X > pImage.Width || rect.Y > pImage.Height)
+                    return null;
+
+                int[] pPixel = new int[rect.Width * rect.Height];
+                IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.ReadOnly);
+                Marshal.Copy(pImagePointer, pPixel, 0, pPixel.Length);
+                /*
+                for (int j = 0; j < rect.Height; j++)
+                {
+                    for (int i = 0; i < rect.Width; i++)
+                    {
+                        byte[] pBytePixel = new byte[4]; // Order by { A(=null), R, G, B }
+                        Marshal.Copy(pImagePointer + (j * rect.Width * 3 + i * 3), pBytePixel, 1, 3);
+                        Array.Reverse(pBytePixel); // Reverse this array to order { B, G, R, A }
+                        pPixel[j * rect.Width + i] = BitConverter.ToInt32(pBytePixel, 0);
+                    }
+                }
+                */
+                ReleaseMemory(ref pImage);
+                return pPixel;
+            }
+
+            // Image에서 Rect영역에 있는 Memroy를 복사해온다.
+            // MSDN을 참고하면 int 15를 BitConvert에 통과시킬 때 {0xFF, 0x00, 0x00, 0x00}로 나옴
+            // 즉 byte[]에서 int 값으로 컨버팅할 때 B / G / R / A 순서로 넣어야함
+            private static byte[] Scan24bitImageByPlane(ref Bitmap pImage, int nPlane, Rectangle rect)    // Plane 0 : R, 1 : G, 2 : B
+            {
+                if (pImage.PixelFormat != PixelFormat.Format24bppRgb ||
+                        rect.X > pImage.Width || rect.Y > pImage.Height)
+                    return null;
+
+                byte[] pPixelPlanes = new byte[rect.Width * rect.Height];
+                IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.ReadOnly);
+                for (int j = 0; j < rect.Height; j++)
+                {
+                    for (int i = 0; i < rect.Width; i++)
+                    {
+                        byte[] pBytePixel = new byte[3]; // Order by { R, G, B }
+                        Marshal.Copy(pImagePointer + (j * rect.Width * 3 + i * 3), pBytePixel, 0, pBytePixel.Length);
+                        pPixelPlanes[j * rect.Width + i] = pBytePixel[nPlane];
+                    }
+                }
+                ReleaseMemory(ref pImage);
+                return pPixelPlanes;
+            }
+
+            // Image 전체에 Memory 배열을 출력한다.
+            public static bool Print8bitImage(byte[] pByte, ref Bitmap pImage)
+            {
+                return Print8bitImage(pByte, ref pImage, new Rectangle(Point.Empty, pImage.Size));
+            }
+
+            // Image의 단행 위치에 Memory 배열을 출력한다.
+            public static bool Print8bitLine(byte[] pByte, ref Bitmap pImage, int pixelY)
+            {
+                return Print8bitImage(pByte, ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
+            }
+
+            // Image의 1개 Point에 Gray Level을 출력한다.
+            public static bool Print8bitPoint(byte grayLevel, ref Bitmap pImage, int pixelX, int pixelY)
+            {
+                byte[] pByte = new byte[1] { grayLevel };
+                return Print8bitImage(pByte, ref pImage, new Rectangle(pixelX, pixelY, 1, 1));
+            }
+
+            // Image에서 Rect 영역에 있는 Memory 배열을 출력한다.
+            public static bool Print8bitImage(byte[] pByte, ref Bitmap pImage, Rectangle rect)
+            {
+                if (pByte.Length != rect.Width * rect.Height)
+                    return false;
+                IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.WriteOnly);
+                Marshal.Copy(pByte, 0, pImagePointer, pByte.Length);
+                ReleaseMemory(ref pImage);
+                return true;
+            }
+
+            // Image 전체에 Memory 배열을 출력한다.
+            public static bool Print24bitImage(int[] pPixel, ref Bitmap pImage)
+            {
+                return Print24bitImage(pPixel, ref pImage, new Rectangle(Point.Empty, pImage.Size));
+            }
+
+            // Image의 단행 위치에 Memory 배열을 출력한다.
+            public static bool Print24bitLine(int[] pPixel, ref Bitmap pImage, int pixelY)
+            {
+                return Print24bitImage(pPixel, ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
+            }
+
+            // Image의 1개 Point에 Gray Level을 출력한다.
+            public static bool Print24bitPoint(int colorLevel, ref Bitmap pImage, int pixelX, int pixelY)
+            {
+                int[] pPixel = new int[1] { colorLevel };
+                return Print24bitImage(pPixel, ref pImage, new Rectangle(pixelX, pixelY, 1, 1));
+            }
+
+            // Image에서 Rect 영역에 있는 Memory 배열을 출력한다.
+            // MSDN을 참고하면 int 15를 BitConvert에 통과시킬 때 {0xFF, 0x00, 0x00, 0x00}로 나옴
+            // 즉 byte[]에서 int 값으로 컨버팅할 때 B / G / R / A 순서로 넣어야함
+            public static bool Print24bitImage(int[] pPixel, ref Bitmap pImage, Rectangle rect)
+            {
+                if (pPixel.Length != rect.Width * rect.Height)
+                    return false;
+                IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.WriteOnly);
+                Marshal.Copy(pPixel, 0, pImagePointer, pPixel.Length);
+                /*
+                for (int j = 0; j < rect.Height; j++)
+                {
+                    for (int i = 0; i < rect.Width; i++)
+                    {
+                        byte[] pBytePixel = BitConverter.GetBytes(pPixel[j * rect.Width + i]); // Order by { B, G, R, A }, Const Length : 4
+                        Array.Reverse(pBytePixel); // Reverse this array to order { A=null, R, G, B }, Only copy 3 component : R, G, B
+                        Marshal.Copy(pBytePixel, 1, pImagePointer + (j * rect.Width * 3 + i * 3), 3);
+                    }
+                }
+                */
+                ReleaseMemory(ref pImage);
+                return true;
+            }
+            #endregion
+
+        }
     }
-
-
-    /* Bitmap Image의 Memory 영역 관리를 담당하는 Class */
-    public static class MemoryControl
-    {
-        // Bitmap Data를 보관하는 Dictionary
-        public static Dictionary<Bitmap, BitmapData> BitmapDataDictionary = new Dictionary<Bitmap, BitmapData>();
-
-        // Image로부터 Read/Write가 가능한 Memory Pointer를 가져온다.
-        private static IntPtr GetMemory(ref Bitmap pImage)
-        {
-            return GetMemory(ref pImage, new Rectangle(Point.Empty, pImage.Size), ImageLockMode.ReadWrite);
-        }
-
-        // Image로부터 Mode에 맞는 작업을 수행 할 수 있는 Memory Pointer를 가져온다.
-        private static IntPtr GetMemory(ref Bitmap pImage, ImageLockMode mode)
-        {
-            return GetMemory(ref pImage, new Rectangle(Point.Empty, pImage.Size), mode);
-        }
-
-        // Image로부터 Rect영역을 Read/Write 할 수 있는 Memory Pointer를 가져온다.
-        private static IntPtr GetMemory(ref Bitmap pImage, Rectangle rect)
-        {
-            return GetMemory(ref pImage, rect, ImageLockMode.ReadWrite);
-        }
-
-        // Image로부터 Rect영역을 Mode에 맞게 작업을 수행 할 수 있는 Memory Pointer를 가져온다.
-        private static IntPtr GetMemory(ref Bitmap pImage, Rectangle rect, ImageLockMode mode)
-        {
-            BitmapData pImageData = null;
-            if (BitmapDataDictionary.ContainsKey(pImage))
-                pImageData = BitmapDataDictionary[pImage];
-            else
-            {
-                pImageData = pImage.LockBits(rect, mode, pImage.PixelFormat);
-                BitmapDataDictionary.Add(pImage, pImageData);
-            }
-            return pImageData.Scan0;
-        }
-
-        // Lock Memory 메소드로 취득한 Memory 주소를 반환한다.
-        private static void ReleaseMemory(ref Bitmap pImage)
-        {
-            try
-            {
-                BitmapData pImageData = BitmapDataDictionary[pImage];
-                pImage.UnlockBits(pImageData);
-            }
-            catch (Exception)
-            {
-                //
-            }
-        }
-
-        #region Image 입출력
-        // Image 전체의 Memory 배열을 복사해온다.
-        public static byte[] ScanImage(ref Bitmap pImage)
-        {
-            return ScanImage(ref pImage, new Rectangle(Point.Empty, pImage.Size));
-        }
-
-        // Image에서 단행의 Memory 배열을 복사해온다.
-        public static byte[] ScanLine(ref Bitmap pImage, int pixelY)
-        {
-            return ScanImage(ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
-        }
-
-        // Image에서 1개 Point의 Gray Level을 복사해온다.
-        public static byte ScanPoint(ref Bitmap pImage, int pixelX, int pixelY)
-        {
-            return ScanImage(ref pImage, new Rectangle(pixelX, pixelY, 1, 1))[0];
-        }
-
-        // Image에서 Rect영역에 있는 Memroy를 복사해온다.
-        public static byte[] ScanImage(ref Bitmap pImage, Rectangle rect)
-        {
-            byte[] pByte = new byte[rect.Width * rect.Height];
-            IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.ReadOnly);
-            Marshal.Copy(pImagePointer, pByte, 0, pByte.Length);
-            ReleaseMemory(ref pImage);
-            return pByte;
-        }
-
-        // Image 전체에 Memory 배열을 출력한다.
-        public static bool PrintImage(byte[] pByte, ref Bitmap pImage)
-        {
-            return PrintImage(pByte, ref pImage, new Rectangle(Point.Empty, pImage.Size));
-        }
-
-        // Image의 단행 위치에 Memory 배열을 출력한다.
-        public static bool PrintLine(byte[] pByte, ref Bitmap pImage, int pixelY)
-        {
-            return PrintImage(pByte, ref pImage, new Rectangle(0, pixelY, pImage.Width, 1));
-        }
-
-        // Image의 1개 Point에 Gray Level을 출력한다.
-        public static bool PrintPoint(byte grayLevel, ref Bitmap pImage, int pixelX, int pixelY)
-        {
-            byte[] pByte = new byte[1] { grayLevel };
-            return PrintImage(pByte, ref pImage, new Rectangle(pixelX, pixelY, 1, 1));
-        }
-
-        // Image에서 Rect 영역에 있는 Memory 배열을 출력한다.
-        public static bool PrintImage(byte[] pByte, ref Bitmap pImage, Rectangle rect)
-        {
-            if (pByte.Length != rect.Width * rect.Height)
-                return false;
-            IntPtr pImagePointer = GetMemory(ref pImage, rect, ImageLockMode.WriteOnly);
-            Marshal.Copy(pByte, 0, pImagePointer, pByte.Length);
-            ReleaseMemory(ref pImage);
-            return true;
-        }
-        #endregion
-
-    }
-
 }

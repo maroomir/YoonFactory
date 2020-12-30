@@ -19,7 +19,7 @@ namespace YoonFactory.Viewer
         public delegate void OnGuidePointCallback(object sender, PointArgs e);            //해당 위치정보를 알려줄 대리자   
         public event OnGuidePointCallback OnGetGuidePoint;                                //해당 위치정보를 알려줄 이벤트
 
-        private int fImageWidth = 0;                                               //Draw Image Width
+        private int fImageWidth = 0;                                                //Draw Image Width
         private int fImageHeight = 0;                                               //Draw Image Height
         private Image fDummyImage = null;                                           //Double Buffering Image
         private Graphics fDummyGrphics;                                             //Double Buffering Graphics
@@ -36,7 +36,6 @@ namespace YoonFactory.Viewer
         private bool m_bMouseLeft = false;
         private bool m_bMouseRight = false;
 
-        #region property
         private Image fImage = null;                                              //Viewer에 Setting 된 Image
         private bool fEnabledDraw = false;                                        //Draw 여부
         private double fZoom = 0.0;                                               //Zoom (0.0:Fix to Scrren, 0.5, 1, 2, 4, 8)
@@ -58,6 +57,7 @@ namespace YoonFactory.Viewer
         private bool fDrawing;
         private int fKindView = 0;
 
+        #region property
         public int KindView
         {
             get { return fKindView; }
@@ -315,7 +315,7 @@ namespace YoonFactory.Viewer
 
             //-- Test 용 Source
 #if DEBUG
-            OnTestProcess();
+            //OnTestProcess();
 #endif
         }
 

@@ -38,9 +38,12 @@ namespace YoonFactory.Camera
 
     public interface IYoonCamera
     {
+        event ImageUpdateCallback OnCameraImageUpdateEvent;
+
         bool IsOpenCamera { get; }
         bool IsStartCamera { get; }
         bool IsLiveOn { get; }
+
         int OpenCamera(int nNo);
         bool StartCamera();
         void LiveOn();

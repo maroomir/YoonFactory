@@ -13,14 +13,9 @@ using System.Windows.Threading;
 
 namespace YoonFactory.Camera.Basler
 {
-    public class PylonFrameArgs : EventArgs
+    public class PylonFrameArgs : FrameArgs
     {
-        public long Width;
-        public long Height;
-        public long BufferSize;
-        public int Plane;
         public bool IsReverseY;
-        public IntPtr pAddressBuffer;
         public PylonFrameArgs(PylonBuffer<Byte> buffer, long nWidth, long nHeight, bool bReverseY)
         {
             Width = nWidth;
@@ -32,14 +27,12 @@ namespace YoonFactory.Camera.Basler
         }
     }
 
-    public delegate void ImageUpdateCallback(object sender, PylonFrameArgs e);
-
     /// <summary>
     /// C#의 OpenCV 등 비상용 라이브러리에서 Basler Camera를 사용하기 위한 기본 Class
     /// 해당 Class를 사용하려면 다음 namespace가 선언되며, 개체 브라우저에 다음 참조가 추가되어야 한다.
     ///    => PylonC.Net
     /// </summary>
-    public class BaslerFactory : IYoonCamera, IDisposable
+    public class YoonBasler : IYoonCamera, IDisposable
     {
         public const uint MAX_CAM = 1;
         public const uint MAX_BUFFER = 5;
@@ -60,7 +53,7 @@ namespace YoonFactory.Camera.Basler
         protected uint m_payloadSize;
         protected int m_imageBand;
 
-        public event ImageUpdateCallback OnImageUpdateEvent;
+        public event ImageUpdateCallback OnCameraImageUpdateEvent;
 
         public bool IsOpenCamera { get; private set; }
         public bool IsStartCamera { get; private set; }
@@ -103,7 +96,7 @@ namespace YoonFactory.Camera.Basler
             }
         }
 
-        public BaslerFactory()
+        public YoonBasler()
         {
             m_device = new PYLON_DEVICE_HANDLE();
             m_grabber = new PYLON_STREAMGRABBER_HANDLE();
@@ -129,7 +122,7 @@ namespace YoonFactory.Camera.Basler
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        ~BaslerFactory()
+        ~YoonBasler()
         {
             // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
             Dispose(false);
@@ -469,7 +462,7 @@ namespace YoonFactory.Camera.Basler
                     counter = Pylon.DeviceGetIntegerFeature(m_device, "ChunkFramecounter");
                 }
                 //// 현재 Image를 Image Buffer에 저장한다.
-                OnImageUpdateEvent(this, new PylonFrameArgs(buffer, ImageWidth, ImageHeight, IsReverseY));
+                OnCameraImageUpdateEvent(this, new PylonFrameArgs(buffer, ImageWidth, ImageHeight, IsReverseY));
                 /*
                 int block = (int)m_cameraWidth * (int)m_imageBand * sizeof(byte);
 

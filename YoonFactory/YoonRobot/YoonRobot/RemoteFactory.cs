@@ -251,8 +251,8 @@ namespace YoonFactory.Robot.Remote
             CommType = nComm;
             IsConnected = false;
             m_bJobPause = true; // WaitHandle + DoHandle에서 JobPause 해제시킴
-            eYoonTCPType nTCPType = RemoteInfo.GetValue(CobotType, CommType).TCPMode;
-            if ((int)nTCPType > Enum.GetValues(typeof(eYoonTCPType)).Length - 1)
+            eYoonCommType nTCPType = RemoteInfo.GetValue(CobotType, CommType).TCPMode;
+            if ((int)nTCPType > Enum.GetValues(typeof(eYoonCommType)).Length - 1)
             {
                 OnDisplayLogEvent(this, new RemoteLogArgs(eYoonStatus.Error, string.Format("Unable to Start Threading")));
                 return false;
@@ -260,7 +260,7 @@ namespace YoonFactory.Robot.Remote
 
             switch (nTCPType)
             {
-                case eYoonTCPType.Server:
+                case eYoonCommType.TCPServer:
                     //// Setting TCP Server
                     m_pTCPServer.Port = RemoteInfo.GetValue(CobotType, CommType).Port;
                     //// Start TCP Server Threading
@@ -282,7 +282,7 @@ namespace YoonFactory.Robot.Remote
                         Console.WriteLine(ex.ToString());
                     }
                     break;
-                case eYoonTCPType.Client:
+                case eYoonCommType.TCPClient:
                     //// Setting TCP Client
                     m_pTCPClient.Address = RemoteInfo.GetValue(CobotType, CommType).IPAddress;
                     m_pTCPClient.Port = RemoteInfo.GetValue(CobotType, CommType).Port;
@@ -315,16 +315,16 @@ namespace YoonFactory.Robot.Remote
 
         public void StopRemote()
         {
-            foreach (eYoonTCPType nTcpType in Enum.GetValues(typeof(eYoonTCPType)))
+            foreach (eYoonCommType nTcpType in Enum.GetValues(typeof(eYoonCommType)))
             {
-                if (nTcpType == eYoonTCPType.None) continue;
+                if (nTcpType == eYoonCommType.None) continue;
                 StopRemote(nTcpType);
             }
         }
 
-        public bool StopRemote(eYoonTCPType nCommType)
+        public bool StopRemote(eYoonCommType nCommType)
         {
-            if ((int)nCommType > Enum.GetValues(typeof(eYoonTCPType)).Length - 1)
+            if ((int)nCommType > Enum.GetValues(typeof(eYoonCommType)).Length - 1)
             {
                 OnDisplayLogEvent(this, new RemoteLogArgs(eYoonStatus.Error, "Unable to Stop Threading"));
                 return false;
@@ -335,14 +335,14 @@ namespace YoonFactory.Robot.Remote
 
             switch (nCommType)
             {
-                case eYoonTCPType.Server:
+                case eYoonCommType.TCPServer:
                     if (m_fThreadServer == null) return false;
                     while (m_fThreadServer.ThreadState == ThreadState.Running)
                         Thread.Sleep(100);
                     m_fThreadServer.Abort();
                     m_fThreadServer.Join();
                     break;
-                case eYoonTCPType.Client:
+                case eYoonCommType.TCPClient:
                     if (m_fThreadClient == null) return false;
                     while (m_fThreadClient.ThreadState == ThreadState.Running)
                         Thread.Sleep(100);
@@ -353,7 +353,7 @@ namespace YoonFactory.Robot.Remote
                     return false;
             }
 
-            string strThreadName = Enum.GetName(typeof(eYoonTCPType), nCommType);
+            string strThreadName = Enum.GetName(typeof(eYoonCommType), nCommType);
             OnDisplayLogEvent(this, new RemoteLogArgs(eYoonStatus.Error, string.Format("Stop Thread {0} Success", strThreadName)));
 
             return true;
@@ -394,13 +394,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    //// 1. Start Robot Directly
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Play, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     //// 1. Power On
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.PowerOn, new ParamRobotSend());
@@ -439,12 +432,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Pause, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Pause, new ParamRobotSend());
                     m_nJobReservation = eStepRemote.Send;
@@ -482,17 +469,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    //// 1. Load Project
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.LoadProject, pParamSend);
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    //// 2. Load Job
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.LoadJob, pParamSend);
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     //// 1. Load Job Path (//____//____.urp)
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.LoadJob, pParamSend);
@@ -523,12 +499,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Reset, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 default:
                     break;
             }
@@ -552,12 +522,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Stop, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.Stop, new ParamRobotSend());
                     m_nJobReservation = eStepRemote.Send;
@@ -587,17 +551,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    //// 1. Confirm Run Status
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.StatusRun, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    //// 2. Confirm Error Status
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.StatusError, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.StatusRun, new ParamRobotSend());
                     m_nJobReservation = eStepRemote.Send;
@@ -624,12 +577,6 @@ namespace YoonFactory.Robot.Remote
             bool bResultJob = false;
             switch (nCobot)
             {
-                case eYoonRobotType.LG:
-                    m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.StatusSafety, new ParamRobotSend());
-                    m_nJobReservation = eStepRemote.Send;
-                    if (!WaitHandle()) break;
-                    bResultJob = true;
-                    break;
                 case eYoonRobotType.UR:
                     m_strSendMessage = RemoteSupport.GetRemoteForcedMessage(nCobot, eYoonRobotRemoteHeadSend.StatusSafety, new ParamRobotSend());
                     m_nJobReservation = eStepRemote.Send;
@@ -910,8 +857,6 @@ namespace YoonFactory.Robot.Remote
                 case eYoonRobotRemoteHeadSend.BreakRelease:
                     switch (nTypeCobot)
                     {
-                        case eYoonRobotType.LG:
-                            return eYoonRobotRemote.Socket;
                         case eYoonRobotType.UR:
                             return eYoonRobotRemote.Dashboard;
                     }
@@ -932,9 +877,7 @@ namespace YoonFactory.Robot.Remote
 
         public static eYoonRobotType GetRobotTypeFromString(string strLabelName)
         {
-            if (strLabelName.Contains("LG"))
-                return eYoonRobotType.LG;
-            else if (strLabelName.Contains("UR"))
+            if (strLabelName.Contains("UR"))
                 return eYoonRobotType.UR;
             else if (strLabelName.Contains("TM"))
                 return eYoonRobotType.TM;
@@ -960,9 +903,6 @@ namespace YoonFactory.Robot.Remote
 
             switch (nType)
             {
-                case eYoonRobotType.LG:
-                    strMessage = LGRemote.EncodingMessage(nHeader, pParamData);
-                    break;
                 case eYoonRobotType.UR:
                     strMessage = URRemote.EncodingMessage(nHeader, pParamData);
                     break;
@@ -978,9 +918,6 @@ namespace YoonFactory.Robot.Remote
 
             switch (nType)
             {
-                case eYoonRobotType.LG:
-                    nHeader = LGRemote.DecodingMessage(strMessage, ref pParamData);
-                    break;
                 case eYoonRobotType.UR:
                     nHeader = URRemote.DecodingMessage(strMessage, ref pParamData);
                     break;
