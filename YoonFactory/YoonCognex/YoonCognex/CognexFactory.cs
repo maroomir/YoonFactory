@@ -14,8 +14,8 @@ namespace YoonFactory.Cognex
 {
     public static class CognexFactory
     {
-        #region CogImage 읽어오기
-        public static CogImage8Grey LoadMonoImageFromBitmap(string strPath)
+        #region Read CogImage from File
+        public static CogImage8Grey LoadCogImage8GreyFromBitmap(string strPath)
         {
             CogImage8Grey cogImage = null;
             int nLength = strPath.LastIndexOf(".");
@@ -68,7 +68,7 @@ namespace YoonFactory.Cognex
             return cogImage;
         }
 
-        public static CogImage24PlanarColor LoadColorImageFromBitmap(string strPath)
+        public static CogImage24PlanarColor LoadCogImage24PlanarColorFromBitmap(string strPath)
         {
             CogImage24PlanarColor cogImage = null;
             int nLength = strPath.LastIndexOf(".");
@@ -120,7 +120,7 @@ namespace YoonFactory.Cognex
             return cogImage;
         }
 
-        public static CogImage8Grey LoadMonoImageFromJPEG(string strPath)
+        public static CogImage8Grey LoadCogImage8GreyFromJPEG(string strPath)
         {
             CogImage8Grey cogImage = null;
             int nLength = strPath.LastIndexOf(".");
@@ -149,7 +149,7 @@ namespace YoonFactory.Cognex
             return cogImage;
         }
 
-        public static CogImage24PlanarColor LoadColorImageFromJPEG(string strPath)
+        public static CogImage24PlanarColor LoadCogImage24PlanarFromJPEG(string strPath)
         {
             CogImage24PlanarColor cogImage = null;
             int nLength = strPath.LastIndexOf(".");
@@ -179,7 +179,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        #region CogImage 저장하기
+        #region Write CogImage from File
         public static void SaveMonoImageToBitmap(CogImage8Grey cogImage, string strPath)
         {
             string strExtension = Path.GetExtension(strPath);
@@ -265,7 +265,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        #region Display 이벤트 처리에 도움되는 함수
+        #region Display Event Handling Function
         public static void GetMousePositionAtCogDisplay(CogDisplay pDisplay, int nX, int nY, out double dX, out double dY)
         {
             CogDisplayPanAnchorConstants fAnchor;
@@ -298,39 +298,6 @@ namespace YoonFactory.Cognex
 
         public static class Converter
         {
-
-            #region Buffer에서 CogImage 만들기
-            public static CogImage8Grey ToImage8Grey(IntPtr pBufferAddress, int nWidth, int nHeight)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
-                return ToImage8Grey(pBuffer, nWidth, nHeight);
-            }
-
-            public static CogImage8Grey ToImage8Grey(byte[] pBuffer, int nWidth, int nHeight)
-            {
-                if (pBuffer == null || pBuffer.Length != nWidth * nHeight) return null;
-
-                CogImage8Grey cogImage = new CogImage8Grey();
-                try
-                {
-                    cogImage.Allocate(nWidth, nHeight);
-                    ICogImage8PixelMemory cogMemory = cogImage.Get8GreyPixelMemory(CogImageDataModeConstants.ReadWrite, 0, 0, nWidth, nHeight);
-                    Marshal.Copy(pBuffer, 0, cogMemory.Scan0, cogMemory.Width * cogMemory.Height);
-
-                    cogImage.Copy(CogImageCopyModeConstants.CopyPixels);
-                    cogMemory.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                    return null;
-                }
-                return cogImage;
-            }
-
             /// <summary>
             /// Image Convert 사용해 24bit Image를 8bit Image로 변환하는 Process
             /// </summary>
@@ -404,6 +371,38 @@ namespace YoonFactory.Cognex
                 }
                 if (cogIPTool.RunStatus.Result == CogToolResultConstants.Accept) return cogIPTool.OutputImage as CogImage8Grey;
                 else return null;
+            }
+
+            #region Buffer에서 CogImage 만들기
+            public static CogImage8Grey ToImage8Grey(IntPtr pBufferAddress, int nWidth, int nHeight)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
+                return ToImage8Grey(pBuffer, nWidth, nHeight);
+            }
+
+            public static CogImage8Grey ToImage8Grey(byte[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer == null || pBuffer.Length != nWidth * nHeight) return null;
+
+                CogImage8Grey cogImage = new CogImage8Grey();
+                try
+                {
+                    cogImage.Allocate(nWidth, nHeight);
+                    ICogImage8PixelMemory cogMemory = cogImage.Get8GreyPixelMemory(CogImageDataModeConstants.ReadWrite, 0, 0, nWidth, nHeight);
+                    Marshal.Copy(pBuffer, 0, cogMemory.Scan0, cogMemory.Width * cogMemory.Height);
+
+                    cogImage.Copy(CogImageCopyModeConstants.CopyPixels);
+                    cogMemory.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                    return null;
+                }
+                return cogImage;
             }
 
             public static CogImage24PlanarColor ToImage24PlanarColorWithMixed(IntPtr pBufferAddress, int nWidth, int nHeight, bool bRGBOrder = true)

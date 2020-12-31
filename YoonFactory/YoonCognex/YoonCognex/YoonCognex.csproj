@@ -71,7 +71,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Basler.Pylon, Version=1.1.0.0, Culture=neutral, PublicKeyToken=e389355f398382ab, processorArchitecture=x86" />
     <Reference Include="Cognex.VisionPro, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
     <Reference Include="Cognex.VisionPro.Blob, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
     <Reference Include="Cognex.VisionPro.CalibFix, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
@@ -97,7 +96,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaslerToCognex.cs" />
     <Compile Include="CognexFactory.cs" />
     <Compile Include="CogToolFactory.cs" />
     <Compile Include="CommonCognex.cs" />

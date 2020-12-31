@@ -10,7 +10,9 @@ using YoonFactory.Core;
 
 namespace YoonFactory.Image
 {
-    /* Image 처리 Class */
+    /// <summary>
+    /// Self-made Image Processing Class by .Net Framework
+    /// </summary>
     public static class ImageFactory
     {
         private const uint MAX_LABEL = 10000;
@@ -18,7 +20,12 @@ namespace YoonFactory.Image
         private const uint MAX_PICK_NUM = 100;
         private const uint MAX_FILL_NUM = 1000;
 
-        //  영역(pArea)이 사용 적합하도록 수정.
+        /// <summary>
+        /// Modify the area(pArea) to be available
+        /// </summary>
+        /// <param name="pArea"></param>
+        /// <param name="limitWidth"></param>
+        /// <param name="limitHeight"></param>
         private static void SetVerifyArea(ref YoonRect2N pArea, int limitWidth, int limitHeight)
         {
             if (pArea.Left < 0)
@@ -31,10 +38,12 @@ namespace YoonFactory.Image
                 pArea.Height = limitHeight - pArea.Top;
         }
 
-        // 이미지(Bitmap) Converter
+        /// <summary>
+        /// Convert the buffer to bitmap (System.Drawing.Bitmap)
+        /// </summary>
         public static class Converter
         {
-            #region Buffer에서 Bitmap 만들기
+            #region Make Bitmap by Buffers
             public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight)
             {
                 if (pBufferAddress == IntPtr.Zero) return null;
@@ -71,7 +80,6 @@ namespace YoonFactory.Image
                 int x, y;
                 byte[] pByte;
                 Bitmap pResultBitmap = new Bitmap(cropArea.Width, cropArea.Height, PixelFormat.Format8bppIndexed);
-                ////  pBuffer를 pByte에 채운다.
                 for (int j = 0; j < cropArea.Height; j++)
                 {
                     y = cropArea.Top + j;
@@ -103,7 +111,6 @@ namespace YoonFactory.Image
 
                 byte[] pByte;
                 Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format8bppIndexed);
-                ////  pBuffer를 pByte에 채운다.
                 for (int j = 0; j < nHeight; j++)
                 {
                     pByte = new byte[nWidth];
@@ -125,7 +132,6 @@ namespace YoonFactory.Image
                 else { nRed = 2; nGreen = 1; nBlue = 0; }
                 int[] pPixel;
                 Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
-                //// pBuffer를 pByte에 채운다.
                 for (int j = 0; j < nHeight; j++)
                 {
                     pPixel = new int[nWidth];
@@ -152,7 +158,6 @@ namespace YoonFactory.Image
                 else { nRed = 2; nGreen = 1; nBlue = 0; }
                 int[] pPixel;
                 Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
-                //// pBuffer를 pByte에 채운다.
                 for (int iPlane = 0; iPlane < 3; iPlane++)
                 {
                     pPixel = new int[nWidth];
@@ -191,7 +196,6 @@ namespace YoonFactory.Image
 
                 int[] pPixel;
                 Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
-                ////  pBuffer를 pByte에 채운다.
                 for (int j = 0; j < nHeight; j++)
                 {
                     pPixel = new int[nWidth];
@@ -209,7 +213,102 @@ namespace YoonFactory.Image
                 return BitmapFactory.CopyBitmap(pResultBitmap);
             }
 
-            public static byte[] ToRedBuffer(int[] pBuffer, int nWidth, int nHeight)
+            public static byte[] To8BitGrayBuffer(Bitmap pBitmapGray)
+            {
+                if (pBitmapGray.PixelFormat != PixelFormat.Format8bppIndexed) return null;
+                return BitmapFactory.Memory.Scan8bitImage(ref pBitmapGray);
+            }
+
+            public static byte[] To8BitGrayBuffer(int[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte = new byte[pBuffer.Length];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
+                        pByte[j * nWidth + i] = (byte)(0.299f * pBytePixel[2] + 0.587f * pBytePixel[1] + 0.114f * pBytePixel[0]); // ITU-RBT.709, YPrPb
+                    }
+                }
+                return pByte;
+            }
+
+            public static byte[] To8BitGrayBufferWithRescaling<T>(T[] pBuffer, int nWidth, int nHeight) where T : IComparable, IComparable<T>
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte = new byte[pBuffer.Length];
+                double nValueMax = 0;
+                double nValueMin = 65536;
+                double dRatio = 1.0;
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        double value = Convert.ToDouble(pBuffer[j * nWidth + i]);
+                        if (value > nValueMax) nValueMax = value;
+                        if (value < nValueMin) nValueMin = value;
+                    }
+                }
+                ////  최대 Gray Level값이 255를 넘는 경우, 이에 맞게 Image 전체 Gray Level을 조정함.
+                if (nValueMax > 255) dRatio = 255.0 / nValueMax;
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        pByte[j * nWidth + i] = Convert.ToByte(Convert.ToDouble(pBuffer[j * nWidth + i]) * dRatio);
+                    }
+                }
+                return pByte;
+            }
+
+            public static int[] To24BitColorBuffer(Bitmap pBitmapColor)
+            {
+                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return BitmapFactory.Memory.Scan24bitImage(ref pBitmapColor);
+            }
+
+            public static int[] To24BitColorBuffer(byte[] pRed, byte[] pGreen, byte[] pBlue, int nWidth, int nHeight)
+            {
+                if (pRed == null || pRed.Length != nWidth * nHeight ||
+                    pGreen == null || pGreen.Length != nWidth * nHeight ||
+                    pBlue == null || pBlue.Length != nWidth * nHeight)
+                    return null;
+
+                int[] pPixel = new int[nWidth * nHeight];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = new byte[4];
+                        pBytePixel[0] = pBlue[j * nWidth + i];
+                        pBytePixel[1] = pGreen[j * nWidth + i];
+                        pBytePixel[2] = pRed[j * nWidth + i];
+                        pBytePixel[3] = (byte)0;
+                        pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
+                    }
+                }
+                return pPixel;
+            }
+
+            public static int[] To24BitColorBufferWithUpscaling<T>(T[] pBuffer, int nWidth, int nHeight) where T : IComparable, IComparable<T>
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                int[] pPixel = new int[pBuffer.Length];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        pPixel[j * nWidth + i] = 3 * Math.Max((byte)0, Math.Min(Convert.ToByte(pBuffer[j * nWidth + i]), (byte)255));
+                    }
+                }
+                return pPixel;
+            }
+
+            public static byte[] To8BitRedBuffer(int[] pBuffer, int nWidth, int nHeight)
             {
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
@@ -225,10 +324,54 @@ namespace YoonFactory.Image
                 return pByte;
             }
 
-            public static byte[] ToRedBuffer(Bitmap pBitmapColor)
+            public static byte[] To8BitRedBuffer(Bitmap pBitmapColor)
             {
                 if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
                 return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 0); // 0 : Red
+            }
+
+            public static byte[] To8BitGreenBuffer(int[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte = new byte[pBuffer.Length];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
+                        pByte[j * nWidth] = pBytePixel[1];
+                    }
+                }
+                return pByte;
+            }
+
+            public static byte[] To8BitGreenBuffer(Bitmap pBitmapColor)
+            {
+                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 1); // 1 : Green
+            }
+
+            public static byte[] To8BitBlueBuffer(int[] pBuffer, int nWidth, int nHeight)
+            {
+                if (pBuffer.Length != nWidth * nHeight) return null;
+
+                byte[] pByte = new byte[pBuffer.Length];
+                for (int j = 0; j < nHeight; j++)
+                {
+                    for (int i = 0; i < nWidth; i++)
+                    {
+                        byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
+                        pByte[j * nWidth] = pBytePixel[0];
+                    }
+                }
+                return pByte;
+            }
+
+            public static byte[] To8BitBlueBuffer(Bitmap pBitmapColor)
+            {
+                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
+                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 0); // 3 : Blue
             }
             #endregion
         }
@@ -236,8 +379,7 @@ namespace YoonFactory.Image
         // Pattern Match
         public static class PatternMatch
         {
-            #region Pattern 찾기
-            //  Pattern 찾기
+            #region Find Pattern Buffer in Source Buffer
             public static IYoonRect FindPatternAsBinary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, YoonRect2N scanArea, ref double pCoeffWhite, ref double pCoeffBlack)
             {
                 int findPosX, findPosY;
@@ -693,11 +835,10 @@ namespace YoonFactory.Image
             #endregion
         }
 
-        // 주요 필터링
+        // Main Filtering in Image Processing
         public static class Filter
         {
-            #region 주요 필터링
-            //  Sobel Filtering
+            #region Main Filtering
             public static void Sobel(ref byte[] pBuffer, int width, int height, int intensity, bool isSum)
             {
                 int x, y, i, j;
@@ -812,7 +953,6 @@ namespace YoonFactory.Image
                 }
             }
 
-            //  Laplacian Filtering
             public static void Laplacian(ref int[] pBuffer, int width, int height, int Intensity, bool isSum)
             {
                 if (width < 1 || height < 1)
@@ -849,8 +989,8 @@ namespace YoonFactory.Image
                             value = pTempBuffer[j * width + i] + pBuffer[j * width + i];
                             pBuffer[j * width + i] = value;
                             //////  합해진 Buffer(pBuffer)의 최대 Gray Level 값과 최소 Gray Level 값을 산출함.
-                            if (width > maxValue) maxValue = value;
-                            if (width < minValue) minValue = value;
+                            if (value > maxValue) maxValue = value;
+                            if (value < minValue) minValue = value;
                         }
                     }
                     ////  최대 Gray Level값이 255를 넘는 경우, 이에 맞게 Image 전체 Gray Level을 조정함.
@@ -868,7 +1008,6 @@ namespace YoonFactory.Image
                 }
             }
 
-            //  RC Filtering
             public static void RC1D(ref double[] pBuffer, int size, double frequency)
             {
                 int width, height;
@@ -961,7 +1100,6 @@ namespace YoonFactory.Image
                 }
             }
 
-            //  Level 필터
             public static float Level2D(ref float[] pBuffer, int width, int height)
             {
                 float diffDx, diffDy;
@@ -1045,7 +1183,6 @@ namespace YoonFactory.Image
                 return sum;
             }
 
-            //  Margin 줄이기 필터
             public static void DeMargin2D(ref float[] pBuffer, int width, int height)
             {
                 int centerX, centerY;
@@ -1101,7 +1238,6 @@ namespace YoonFactory.Image
                         pBuffer[j * width + i] = pWidth[i] * pBuffer[j * width + i];
             }
 
-            //  Smooth 필터의 한종류로 "평균값 필터"를 씌운다.
             public static void Smooth1D(ref int[] pBuffer, int bufferSize, int margin, int step)
             {
                 int x, i, ii;
@@ -1128,7 +1264,7 @@ namespace YoonFactory.Image
                     }
                     if (count < 1)
                         count = 1;
-                    //////  Sampling한 주변 Pixel들의 Gray Level을 Buffer에 넣는다.
+                    //////  Sampling한 주변 Pixel들의 Gray Level을 Buffer에 넣는다. (평균값 필터)
                     pBuffer[i] = sum / count;
                 }
             }
@@ -1161,11 +1297,11 @@ namespace YoonFactory.Image
                     }
                     if (count < 1)
                         count = 1;
+                    //////  Sampling한 주변 Pixel들의 Gray Level을 Buffer에 넣는다. (평균값 필터)
                     pBuffer[i] = (float)sum / (float)count;
                 }
             }
 
-            //  2차원 이상의 Image에서 Smooth를 위해 "평균값 필터"를 씌운다.
             public static void Smooth2D(ref byte[] pBuffer, int width, int height, int blurSize)
             {
                 if (width < 1 || height < 1 || pBuffer == null)
