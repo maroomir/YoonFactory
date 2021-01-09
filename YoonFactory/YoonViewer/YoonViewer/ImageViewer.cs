@@ -13,173 +13,173 @@ namespace YoonFactory.Viewer
         const double _PI = 1.57079632679489661923;
 
         public delegate void OnPixelCallback(object sender, PixelArgs e);                 //해당 픽셀정보를 알려줄 대리자   
-        public event OnPixelCallback OnGetPixel;                                          //해당 픽셀정보를 알려줄 이벤트   
         public delegate void OnMeasureCallback(object sender, MeasureArgs e);             //영상 측정정보를 알려줄 대리자
-        public event OnMeasureCallback OnMeasurement;                                     //영상 측정정보를 알려줄 이벤트   
         public delegate void OnGuidePointCallback(object sender, PointArgs e);            //해당 위치정보를 알려줄 대리자   
+        public event OnMeasureCallback OnMeasurement;                                     //영상 측정정보를 알려줄 이벤트   
+        public event OnPixelCallback OnGetPixel;                                          //해당 픽셀정보를 알려줄 이벤트   
         public event OnGuidePointCallback OnGetGuidePoint;                                //해당 위치정보를 알려줄 이벤트
 
-        private int fImageWidth = 0;                                                //Draw Image Width
-        private int fImageHeight = 0;                                               //Draw Image Height
-        private Image fDummyImage = null;                                           //Double Buffering Image
-        private Graphics fDummyGrphics;                                             //Double Buffering Graphics
-        private byte[] fDummyProfile = null;                                      //Profile 정보 담기
-        private Point fMousePos = new Point(0, 0);                                //Mouse Click 위치
-        private Point fMouseCenterZoom = new Point(0, 0);                         //Zoom시 Mouse 중심으로 이동
-        private Point fMeasureStartPos = new Point(0, 0);                         //Measure 시작점
-        private Point fMeasureEndPos = new Point(0, 0);                           //Measure 끝점
-        private Point fMouseDragStartPos = new Point(0, 0);                       //Mouse Drag Start Position
-        private Point fMouseDragEndPos = new Point(0, 0);                         //Mouse Drag End Position
+        private int m_nImageWidth = 0;                                                //Draw Image Width
+        private int m_nImageHeight = 0;                                               //Draw Image Height
+        private Image m_pDummyImage = null;                                           //Double Buffering Image
+        private Graphics m_pDummyGrphics;                                             //Double Buffering Graphics
+        private byte[] m_pDummyProfile = null;                                      //Profile 정보 담기
+        private Point m_posMouse = new Point(0, 0);                                //Mouse Click 위치
+        private Point m_posMouseCenterZoom = new Point(0, 0);                      //Zoom시 Mouse 중심으로 이동
+        private Point m_posMeasureStart = new Point(0, 0);                         //Measure 시작점
+        private Point m_posMeasureEnd = new Point(0, 0);                           //Measure 끝점
+        private Point m_posMouseDragStart = new Point(0, 0);                       //Mouse Drag Start Position
+        private Point m_posMouseDragEnd = new Point(0, 0);                         //Mouse Drag End Position
 
         private bool m_bMeasureHorz = true;
         private bool m_bMeasureVert = false;
         private bool m_bMouseLeft = false;
         private bool m_bMouseRight = false;
 
-        private Image fImage = null;                                              //Viewer에 Setting 된 Image
-        private bool fEnabledDraw = false;                                        //Draw 여부
-        private double fZoom = 0.0;                                               //Zoom (0.0:Fix to Scrren, 0.5, 1, 2, 4, 8)
-        private double fZoomX = 0.0;                                              //Fix 옵션일 경우 X Zoom
-        private double fZoomY = 0.0;                                              //Fix 옵션일 경우 Y Zoom
-        private PixelFormat fPixelFormat = PixelFormat.Format8bppIndexed;         //Pixel Format
-        private int fBitCount = 8;                                                //BitCount 
-        private Point fScrollPosition;                                            //Scroll Position
-        private bool fDefectROI = false;                                          //Defect 그리기
-        private bool fEnbaledROI = false;                                           //ROI 그리기
-        private bool fMeasure = false;                                            //영상측정
-        private bool fProfile = false;                                            //Profile 그리기
-        private bool fGuideLine = false;                                          //Guide Line 그리기
-        private bool fObservationROI = false;                                     //휘도 영역 그리기 여부
-        private bool fRoiDraw = false;                                            // 수동 ROI 그리기 
-        private Rectangle fRectROI;                                               // ROI 영역
-        private Point fstartPos;
-        private Point fcurrentPos;
-        private bool fDrawing;
-        private int fKindView = 0;
+        private Image m_pImage = null;                                              //Viewer에 Setting 된 Image
+        private bool m_bEnabledDraw = false;                                        //Draw 여부
+        private double m_dZoom = 0.0;                                               //Zoom (0.0:Fix to Scrren, 0.5, 1, 2, 4, 8)
+        private double m_dZoomX = 0.0;                                              //Fix 옵션일 경우 X Zoom
+        private double m_dZoomY = 0.0;                                              //Fix 옵션일 경우 Y Zoom
+        private PixelFormat m_nPixelFormat = PixelFormat.Format8bppIndexed;         //Pixel Format
+        private int m_nBitCount = 8;                                                //BitCount 
+        private Point m_posScroll;                                            //Scroll Position
+        private bool m_bDefectROI = false;                                          //Defect 그리기
+        private bool m_bEnbaledROI = false;                                           //ROI 그리기
+        private bool m_bMeasure = false;                                            //영상측정
+        private bool m_bProfile = false;                                            //Profile 그리기
+        private bool m_bGuideLine = false;                                          //Guide Line 그리기
+        private bool m_bObservationROI = false;                                     //휘도 영역 그리기 여부
+        private bool m_bRoiDraw = false;                                            // 수동 ROI 그리기 
+        private Rectangle m_rectROI;                                               // ROI 영역
+        private Point m_posStart;
+        private Point m_posCurrent;
+        private bool m_bDrawing;
+        private int m_nKindView = 0;
 
         #region property
         public int KindView
         {
-            get { return fKindView; }
-            set { fKindView = value; }
+            get { return m_nKindView; }
+            set { m_nKindView = value; }
         }
 
         public Image InputImage
         {
-            set { fImage = value; }
+            set { m_pImage = value; }
         }
 
         public bool IsEnabledDraw
         {
-            get { return fEnabledDraw; }
-            set { fEnabledDraw = value; }
+            get { return m_bEnabledDraw; }
+            set { m_bEnabledDraw = value; }
         }
         public double Zoom
         {
-            get { return fZoom; }
+            get { return m_dZoom; }
             set
             {
                 vScrollBar.Value = 0;
                 hScrollBar.Value = 0;
 
-                fZoom = value;
-                fZoomX = value;
-                fZoomY = value;
+                m_dZoom = value;
+                m_dZoomX = value;
+                m_dZoomY = value;
             }
         }
         public double ZoomX
         {
-            get { return fZoomX; }
+            get { return m_dZoomX; }
         }
         public double ZoomY
         {
-            get { return fZoomY; }
+            get { return m_dZoomY; }
         }
         public PixelFormat PixFormat
         {
-            get { return fPixelFormat; }
-            set { fPixelFormat = value; }
+            get { return m_nPixelFormat; }
+            set { m_nPixelFormat = value; }
         }
         public int BitCount
         {
-            get { return fBitCount; }
-            set { fBitCount = value; }
+            get { return m_nBitCount; }
+            set { m_nBitCount = value; }
         }
         public Point ScrollPosition
         {
-            get { return fScrollPosition; }
-            set { fScrollPosition = value; }
+            get { return m_posScroll; }
+            set { m_posScroll = value; }
         }
         public Point RealMousePosition
         {
             get
             {
                 Point Pos = this.PointToClient(Control.MousePosition);
-                return new Point((int)(Pos.X / fZoomX + 0.5) + hScrollBar.Value, (int)(Pos.Y / fZoomY + 0.5) + vScrollBar.Value);
+                return new Point((int)(Pos.X / m_dZoomX + 0.5) + hScrollBar.Value, (int)(Pos.Y / m_dZoomY + 0.5) + vScrollBar.Value);
             }
         }
         public bool IsDefectROI
         {
-            get { return fDefectROI; }
-            set { fDefectROI = value; }
+            get { return m_bDefectROI; }
+            set { m_bDefectROI = value; }
         }
         public bool IsEnabledROI
         {
-            get { return fEnbaledROI; }
+            get { return m_bEnbaledROI; }
             set
             {
-                fEnbaledROI = value;
-                fRoiDraw = value;
+                m_bEnbaledROI = value;
+                m_bRoiDraw = value;
             }
         }
         public bool IsMeasure
         {
-            get { return fMeasure; }
+            get { return m_bMeasure; }
             set
             {
-                fMeasure = value;
-                fMeasureStartPos = fMeasureEndPos = new Point(0, 0);           //Measure 초기화
+                m_bMeasure = value;
+                m_posMeasureStart = m_posMeasureEnd = new Point(0, 0);           //Measure 초기화
             }
         }
         public bool IsProfile
         {
-            get { return fProfile; }
-            set { fProfile = value; }
+            get { return m_bProfile; }
+            set { m_bProfile = value; }
         }
         public bool IsGuideLine
         {
-            get { return fGuideLine; }
-            set { fGuideLine = value; }
+            get { return m_bGuideLine; }
+            set { m_bGuideLine = value; }
         }
         public bool IsObservationROI
         {
-            get { return fObservationROI; }
-            set { fObservationROI = value; }
+            get { return m_bObservationROI; }
+            set { m_bObservationROI = value; }
         }
         public bool IsROIDraw
         {
-            get { return fRoiDraw; }
-            set { fRoiDraw = value; }
+            get { return m_bRoiDraw; }
+            set { m_bRoiDraw = value; }
         }
         public Point StartPos
         {
-            get { return fstartPos; }
-            set { fstartPos = value; }
+            get { return m_posStart; }
+            set { m_posStart = value; }
         }
         public Point CurrentPos
         {
-            get { return fcurrentPos; }
-            set { fcurrentPos = value; }
+            get { return m_posCurrent; }
+            set { m_posCurrent = value; }
         }
         public bool IsDrawing
         {
-            get { return fDrawing; }
-            set { fDrawing = value; }
+            get { return m_bDrawing; }
+            set { m_bDrawing = value; }
         }
         public Rectangle ROI
         {
-            get { return fRectROI; }
-            set { fRectROI = value; }
+            get { return m_rectROI; }
+            set { m_rectROI = value; }
         }
         #endregion
 
@@ -188,12 +188,12 @@ namespace YoonFactory.Viewer
         /**************************************************************************************************************/
         public Point RealToScreen(Point realPoint)
         {
-            return new Point((int)((realPoint.X - hScrollBar.Value) * fZoomX + 0.5), (int)((realPoint.Y - vScrollBar.Value) * fZoomY + 0.5));
+            return new Point((int)((realPoint.X - hScrollBar.Value) * m_dZoomX + 0.5), (int)((realPoint.Y - vScrollBar.Value) * m_dZoomY + 0.5));
         }
 
         public Size RealToScreen(Size realSize)
         {
-            return new Size((int)(realSize.Width * fZoomX + 0.5), (int)(realSize.Height * fZoomY + 0.5));
+            return new Size((int)(realSize.Width * m_dZoomX + 0.5), (int)(realSize.Height * m_dZoomY + 0.5));
         }
 
         public Rectangle RealToScreen(Rectangle realRect)
@@ -223,7 +223,7 @@ namespace YoonFactory.Viewer
         public void MoveSelectPosition(int left, int top, int right, int bottom)
         {
             //fZoom == 0.0f
-            if (fZoom == 0.0f || toolStripMenuItem_FixToScreen.Checked == true)
+            if (m_dZoom == 0.0f || toolStripMenuItem_FixToScreen.Checked == true)
             {
                 MessageBox.Show("Image of Zoom ratio Fix To Screen If you can not move to the Defect.", "Zoom Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -239,16 +239,16 @@ namespace YoonFactory.Viewer
             //-- Scroll Bar 이동 계산 --------------------------------------------------------------------------------//
             Rectangle dcRect = ClientRectangle;
 
-            int xScroll = movPoint.X - (int)((dcRect.Width / fZoom + .5) / 2);
-            int yScroll = movPoint.Y - (int)((dcRect.Height / fZoom + .5) / 2);
+            int xScroll = movPoint.X - (int)((dcRect.Width / m_dZoom + .5) / 2);
+            int yScroll = movPoint.Y - (int)((dcRect.Height / m_dZoom + .5) / 2);
             //--------------------------------------------------------------------------------------------------------//
 
             //-- Scroll Bar 좌상단, 우하단 일 경우 이동 계산 ---------------------------------------------------------//
             if (xScroll < 0) xScroll = 0;
             if (yScroll < 0) yScroll = 0;
 
-            if (movPoint.X + (int)((dcRect.Width / fZoom + .5) / 2) > hScrollBar.Maximum) xScroll = hScrollBar.Maximum - (int)(dcRect.Width / fZoom + .5);
-            if (movPoint.Y + (int)((dcRect.Height / fZoom + .5) / 2) > vScrollBar.Maximum) yScroll = vScrollBar.Maximum - (int)(dcRect.Height / fZoom + .5);
+            if (movPoint.X + (int)((dcRect.Width / m_dZoom + .5) / 2) > hScrollBar.Maximum) xScroll = hScrollBar.Maximum - (int)(dcRect.Width / m_dZoom + .5);
+            if (movPoint.Y + (int)((dcRect.Height / m_dZoom + .5) / 2) > vScrollBar.Maximum) yScroll = vScrollBar.Maximum - (int)(dcRect.Height / m_dZoom + .5);
             //--------------------------------------------------------------------------------------------------------//
 
             yScroll = top;
@@ -271,15 +271,15 @@ namespace YoonFactory.Viewer
             Rectangle dumRc = new Rectangle();
             dumRc = this.ClientRectangle;
 
-            fDummyImage = (Image)new Bitmap(dumRc.Width, dumRc.Height);
-            fDummyGrphics = Graphics.FromImage(fDummyImage);
+            m_pDummyImage = (Image)new Bitmap(dumRc.Width, dumRc.Height);
+            m_pDummyGrphics = Graphics.FromImage(m_pDummyImage);
             //--------------------------------------------------------------------------------------------------------//
         }
 
         public void SetImageSize(int width, int height)
         {
-            fImageWidth = width;               // 원본 이미지 width
-            fImageHeight = height;              // 원본 이미지 height
+            m_nImageWidth = width;               // 원본 이미지 width
+            m_nImageHeight = height;              // 원본 이미지 height
         }
 
         /**************************************************************************************************************/
@@ -289,20 +289,20 @@ namespace YoonFactory.Viewer
         {
             InitializeComponent();
 
-            this.fEnabledDraw = false;                                 //Draw 여부
-            this.fZoom = 0.0;                                          //Zoom (0.0:Fix to Scrren, 0.5, 1, 2, 4, 8)
-            this.fZoomX = 0.0;                                         //Fix 옵션일 경우 X Zoom
-            this.fZoomY = 0.0;                                         //Fix 옵션일 경우 Y Zoom
-            this.fPixelFormat = PixelFormat.Format8bppIndexed;         //Pixel Format
-            this.fBitCount = 8;                                        //BitCount 
-            this.fScrollPosition = new Point(0, 0);                    //Scroll Position
-            this.fDefectROI = false;                                   //Defect 그리기
-            this.fEnbaledROI = false;                                    //ROI 그리기
-            this.fMeasure = false;                                     //영상측정
-            this.fProfile = false;                                     //Profile 그리기
-            this.fGuideLine = false;                                   //Guide Line 그리기
-            this.fObservationROI = false;                              //휘도 영역 그리기
-            this.fRoiDraw = false;
+            this.m_bEnabledDraw = false;                                 //Draw 여부
+            this.m_dZoom = 0.0;                                          //Zoom (0.0:Fix to Scrren, 0.5, 1, 2, 4, 8)
+            this.m_dZoomX = 0.0;                                         //Fix 옵션일 경우 X Zoom
+            this.m_dZoomY = 0.0;                                         //Fix 옵션일 경우 Y Zoom
+            this.m_nPixelFormat = PixelFormat.Format8bppIndexed;         //Pixel Format
+            this.m_nBitCount = 8;                                        //BitCount 
+            this.m_posScroll = new Point(0, 0);                    //Scroll Position
+            this.m_bDefectROI = false;                                   //Defect 그리기
+            this.m_bEnbaledROI = false;                                    //ROI 그리기
+            this.m_bMeasure = false;                                     //영상측정
+            this.m_bProfile = false;                                     //Profile 그리기
+            this.m_bGuideLine = false;                                   //Guide Line 그리기
+            this.m_bObservationROI = false;                              //휘도 영역 그리기
+            this.m_bRoiDraw = false;
 
             this.vScrollBar.Enabled = false;
             this.hScrollBar.Enabled = false;
@@ -323,7 +323,7 @@ namespace YoonFactory.Viewer
         {
             this.InputImage = new Bitmap(Path.Combine(Directory.GetCurrentDirectory(), @"Sample", @"Sample1.bmp"));
             this.IsEnabledDraw = true;
-            this.SetImageSize(fImage.Width, fImage.Height);
+            this.SetImageSize(m_pImage.Width, m_pImage.Height);
             this.SetDoubleBuffering();
             this.DrawImage();
         }
@@ -345,7 +345,7 @@ namespace YoonFactory.Viewer
             {
                 //-- 원본 영상 그리기 --------------------------------------------------------------------------------//
                 Graphics g = e.Graphics;
-                g.DrawImage(fDummyImage, new Point(0, 0));
+                g.DrawImage(m_pDummyImage, new Point(0, 0));
 
                 #region ROI_DRAWING
                 if (IsROIDraw)
@@ -381,7 +381,7 @@ namespace YoonFactory.Viewer
                     SolidBrush drawBrush = new SolidBrush(Color.Red);
 
                     bool isROIDrawing = true;
-                    Rectangle rect = new Rectangle(fRectROI.Left, fRectROI.Top, fRectROI.Width, fRectROI.Height);
+                    Rectangle rect = new Rectangle(m_rectROI.Left, m_rectROI.Top, m_rectROI.Width, m_rectROI.Height);
                     eStepROIDraw jobStep = eStepROIDraw.INIT;
                     Point posStart = new Point(); Point posEnd = new Point();
                     while (isROIDrawing)
@@ -417,13 +417,13 @@ namespace YoonFactory.Viewer
                 #region PROFILE_DISPLAY
                 if (IsProfile)
                 {
-                    if (fDummyProfile == null) return;
+                    if (m_pDummyProfile == null) return;
 
                     Pen pPen = new Pen(Color.Yellow, 2);
                     Point posOld = new Point(0, 0);
-                    for (int i = 0; i < fDummyImage.Width; i++)                    // 화면에 보이는 Bitmap 크기
+                    for (int i = 0; i < m_pDummyImage.Width; i++)                    // 화면에 보이는 Bitmap 크기
                     {
-                        Point posNew = new Point(i, fDummyProfile[i]);
+                        Point posNew = new Point(i, m_pDummyProfile[i]);
                         g.DrawLine(pPen, posOld, posNew);                        // 프로파일 그리기
                         posOld = posNew;
                     }
@@ -436,15 +436,15 @@ namespace YoonFactory.Viewer
 
                     for (int m = 0; m < 12; m++)
                     {
-                        g.DrawLine(gPen, new Point(0, m * 20), new Point(fDummyImage.Width, m * 20));
+                        g.DrawLine(gPen, new Point(0, m * 20), new Point(m_pDummyImage.Width, m * 20));
 
-                        PointF drawPos = new PointF((float)fDummyImage.Width - 70, (m * 20) + 2);
+                        PointF drawPos = new PointF((float)m_pDummyImage.Width - 70, (m * 20) + 2);
                         string drawStr = Convert.ToString(m * 20);
                         g.DrawString(drawStr, drawFont, drawBrush, drawPos);
                     }
-                    g.DrawLine(gPen, new Point(0, 255), new Point(fDummyImage.Width, 255));
+                    g.DrawLine(gPen, new Point(0, 255), new Point(m_pDummyImage.Width, 255));
 
-                    PointF drawPosLast = new PointF((float)fDummyImage.Width - 70, 255 + 2);
+                    PointF drawPosLast = new PointF((float)m_pDummyImage.Width - 70, 255 + 2);
 
                     g.DrawString("255", drawFont, drawBrush, drawPosLast);
                 }
@@ -456,24 +456,24 @@ namespace YoonFactory.Viewer
                 if (IsGuideLine)
                 {
                     Pen gPen = new Pen(Color.Aqua);
-                    g.DrawLine(gPen, new Point(0, fMousePos.Y), new Point(fDummyImage.Width, fMousePos.Y));     //가이드라인 X 그리기
-                    g.DrawLine(gPen, new Point(fMousePos.X, 0), new Point(fMousePos.X, fDummyImage.Height));    //가이드라인 Y 그리기
+                    g.DrawLine(gPen, new Point(0, m_posMouse.Y), new Point(m_pDummyImage.Width, m_posMouse.Y));     //가이드라인 X 그리기
+                    g.DrawLine(gPen, new Point(m_posMouse.X, 0), new Point(m_posMouse.X, m_pDummyImage.Height));    //가이드라인 Y 그리기
                 }
                 #endregion
                 //----------------------------------------------------------------------------------------------------//
 
                 //-- Measure 그리기 ----------------------------------------------------------------------------------//
                 #region MEASURE_DISPLAY
-                if (fMeasure)
+                if (m_bMeasure)
                 {
                     double angle = 0.0;
                     Point ptGuideStart = new Point(0, 0);
                     Point ptGuideEnd = new Point(0, 0);
 
-                    Point ptStart = fMeasureStartPos;                            //드레그 시작 포인트
-                    Point ptEnd = fMeasureEndPos;                              //드레그 종료 포인트 
+                    Point ptStart = m_posMeasureStart;                            //드레그 시작 포인트
+                    Point ptEnd = m_posMeasureEnd;                              //드레그 종료 포인트 
 
-                    angle = AngleCal(fMeasureStartPos, fMeasureEndPos);
+                    angle = AngleCal(m_posMeasureStart, m_posMeasureEnd);
 
                     ptGuideStart = RotateSegment(10, angle + _PI);               //시작 가이드 선길이 및 각도
                     ptGuideEnd = RotateSegment(10, angle - _PI);               //끝 가이드 선길이 및 각도
@@ -493,15 +493,15 @@ namespace YoonFactory.Viewer
                     int xlen = 0;
                     int ylen = 0;
 
-                    if (fZoom == 0.0)
+                    if (m_dZoom == 0.0)
                     {
-                        xlen = (int)((fMeasureEndPos.X - fMeasureStartPos.X) / fZoomX + .5);
-                        ylen = (int)((fMeasureEndPos.Y - fMeasureStartPos.Y) / fZoomY + .5);
+                        xlen = (int)((m_posMeasureEnd.X - m_posMeasureStart.X) / m_dZoomX + .5);
+                        ylen = (int)((m_posMeasureEnd.Y - m_posMeasureStart.Y) / m_dZoomY + .5);
                     }
                     else
                     {
-                        xlen = (int)((fMeasureEndPos.X - fMeasureStartPos.X) / fZoom + .5);
-                        ylen = (int)((fMeasureEndPos.Y - fMeasureStartPos.Y) / fZoom + .5);
+                        xlen = (int)((m_posMeasureEnd.X - m_posMeasureStart.X) / m_dZoom + .5);
+                        ylen = (int)((m_posMeasureEnd.Y - m_posMeasureStart.Y) / m_dZoom + .5);
                     }
 
                     double dist = Math.Sqrt(Math.Pow((double)xlen, 2) + Math.Pow((double)ylen, 2));
@@ -541,34 +541,34 @@ namespace YoonFactory.Viewer
 
         public void DrawImage()
         {
-            if (fEnabledDraw == false) return;
+            if (m_bEnabledDraw == false) return;
 
             Rectangle dcRect = new Rectangle();                                    //ClientDC
-            Rectangle bitmapRect = new Rectangle(0, 0, fImageWidth, fImageHeight);     //그릴 이미지 크기 지정
+            Rectangle bitmapRect = new Rectangle(0, 0, m_nImageWidth, m_nImageHeight);     //그릴 이미지 크기 지정
             dcRect = ClientRectangle;
 
             //-- 화면에 맞춤 -----------------------------------------------------------------------------------------//
-            if (fZoom == 0.0)
+            if (m_dZoom == 0.0)
             {
                 vScrollBar.Value = 0;
                 hScrollBar.Value = 0;
-                fZoom = fZoomX = fZoomY = (double)(this.ClientSize.Width) / fImageWidth;       //변경되는 FITWIDTH Zoom x 비율 계산
+                m_dZoom = m_dZoomX = m_dZoomY = (double)(this.ClientSize.Width) / m_nImageWidth;       //변경되는 FITWIDTH Zoom x 비율 계산
 
                 vScrollBar.Enabled = false;
                 hScrollBar.Enabled = false;
 
                 bitmapRect.X = hScrollBar.Value;
                 bitmapRect.Y = vScrollBar.Value;                                   //보여줘야 할 영상의 y시작점(비율에 따라)
-                bitmapRect.Width = (int)(dcRect.Width / fZoom + 0.5);             //가로 크기
-                bitmapRect.Height = (int)(dcRect.Height / fZoom + 0.5);            //세로 크기
+                bitmapRect.Width = (int)(dcRect.Width / m_dZoom + 0.5);             //가로 크기
+                bitmapRect.Height = (int)(dcRect.Height / m_dZoom + 0.5);            //세로 크기
 
                 hScrollBar.Minimum = 0;
                 hScrollBar.LargeChange = bitmapRect.Width;
-                hScrollBar.Maximum = fImageWidth;
+                hScrollBar.Maximum = m_nImageWidth;
 
                 vScrollBar.Minimum = 0;
                 vScrollBar.LargeChange = bitmapRect.Height;
-                vScrollBar.Maximum = fImageHeight;
+                vScrollBar.Maximum = m_nImageHeight;
 
             }
             //--------------------------------------------------------------------------------------------------------//
@@ -578,8 +578,8 @@ namespace YoonFactory.Viewer
             {
                 Size drawSize = new Size();
 
-                drawSize.Width = (int)(bitmapRect.Width * fZoom + .5);            //영상 Width를 비율에 맞게 조정
-                drawSize.Height = (int)(bitmapRect.Height * fZoom + .5);           //영상 Height를 비율에 맞게 조정
+                drawSize.Width = (int)(bitmapRect.Width * m_dZoom + .5);            //영상 Width를 비율에 맞게 조정
+                drawSize.Height = (int)(bitmapRect.Height * m_dZoom + .5);           //영상 Height를 비율에 맞게 조정
 
                 if (drawSize.Width <= this.ClientSize.Width)                       //Client Width 영역이 영상 보다 클경우 처리
                 {
@@ -603,28 +603,28 @@ namespace YoonFactory.Viewer
 
                 bitmapRect.Y = vScrollBar.Value;                                   //보여줘야 할 영상의 x시작점(비율에 따라)
                 bitmapRect.X = hScrollBar.Value;                                   //보여줘야 할 영상의 y시작점(비율에 따라)
-                bitmapRect.Width = (int)(dcRect.Width / fZoom + 0.5);             //가로 크기
-                bitmapRect.Height = (int)(dcRect.Height / fZoom + 0.5);            //세로 크기
+                bitmapRect.Width = (int)(dcRect.Width / m_dZoom + 0.5);             //가로 크기
+                bitmapRect.Height = (int)(dcRect.Height / m_dZoom + 0.5);            //세로 크기
 
                 vScrollBar.Minimum = 0;
                 vScrollBar.LargeChange = bitmapRect.Height;
-                vScrollBar.Maximum = fImageHeight;
+                vScrollBar.Maximum = m_nImageHeight;
 
                 hScrollBar.Minimum = 0;
                 hScrollBar.LargeChange = bitmapRect.Width;
-                hScrollBar.Maximum = fImageWidth;
+                hScrollBar.Maximum = m_nImageWidth;
             }
             //--------------------------------------------------------------------------------------------------------//
 
             //-- DrawIamge -------------------------------------------------------------------------------------------//
-            fDummyGrphics.DrawImage(fImage, dcRect, bitmapRect, GraphicsUnit.Pixel);
+            m_pDummyGrphics.DrawImage(m_pImage, dcRect, bitmapRect, GraphicsUnit.Pixel);
             //--------------------------------------------------------------------------------------------------------//
 
             //-- Profile 정보 담기 -----------------------------------------------------------------------------------//
-            if (fProfile) ProfileInfo();
+            if (m_bProfile) ProfileInfo();
             //--------------------------------------------------------------------------------------------------------//
 
-            fScrollPosition = new Point(hScrollBar.Value, vScrollBar.Value);
+            m_posScroll = new Point(hScrollBar.Value, vScrollBar.Value);
 
             // Refresh();
             Invalidate(false);
@@ -637,17 +637,17 @@ namespace YoonFactory.Viewer
         /**************************************************************************************************************/
         private void ProfileInfo()
         {
-            Bitmap bitmap = (Bitmap)fDummyImage;
+            Bitmap bitmap = (Bitmap)m_pDummyImage;
 
             //-- Profile 정보 담기 -----------------------------------------------------------------------------------//
-            fDummyProfile = new byte[bitmap.Width];                      //Profile 정보담을 배열
+            m_pDummyProfile = new byte[bitmap.Width];                      //Profile 정보담을 배열
 
             for (int i = 0; i < bitmap.Width; i++)
             {
                 Color color = Color.Black;
-                color = bitmap.GetPixel(i, fMousePos.Y);                 //Pixel 정보 가져오기
+                color = bitmap.GetPixel(i, m_posMouse.Y);                 //Pixel 정보 가져오기
 
-                fDummyProfile[i] = (byte)(0.2126*color.R + 0.7152*color.G + 0.0722*color.B);         //Profile 정보 담기
+                m_pDummyProfile[i] = (byte)(0.2126*color.R + 0.7152*color.G + 0.0722*color.B);         //Profile 정보 담기
             }
             //--------------------------------------------------------------------------------------------------------//
         }
@@ -699,29 +699,29 @@ namespace YoonFactory.Viewer
 
             SetDoubleBuffering();               // Double Buffering 공간 지운다.
 
-            fMeasureStartPos = fMeasureEndPos = new Point(0, 0);        //Measure 초기화
+            m_posMeasureStart = m_posMeasureEnd = new Point(0, 0);        //Measure 초기화
 
             //-- 현재 마우스 포인트 중심을 확대/축소 한다. -----------------------------------------------------------//
-            if (fEnabledDraw && Zoom != 0.0)
+            if (m_bEnabledDraw && Zoom != 0.0)
             {
                 hScrollBar.Value = 0;
                 vScrollBar.Value = 0;
 
-                Point movPoint = new Point(fMouseCenterZoom.X, fMouseCenterZoom.Y);                     //확대/축소 중심 위치
+                Point movPoint = new Point(m_posMouseCenterZoom.X, m_posMouseCenterZoom.Y);                     //확대/축소 중심 위치
 
                 //-- Scroll Bar 이동 계산 ----------------------------------------------------------------------------//
                 Rectangle dcRect = ClientRectangle;
 
-                int xScroll = movPoint.X - (int)((dcRect.Width / fZoom + .5) / 2);
-                int yScroll = movPoint.Y - (int)((dcRect.Height / fZoom + .5) / 2);
+                int xScroll = movPoint.X - (int)((dcRect.Width / m_dZoom + .5) / 2);
+                int yScroll = movPoint.Y - (int)((dcRect.Height / m_dZoom + .5) / 2);
                 //----------------------------------------------------------------------------------------------------//
 
                 //-- Scroll Bar 좌상단, 우하단 일 경우 이동 계산 -----------------------------------------------------//
                 if (xScroll < 0) xScroll = 0;
                 if (yScroll < 0) yScroll = 0;
 
-                if (movPoint.X + (int)((dcRect.Width / fZoom + .5) / 2) > hScrollBar.Maximum) xScroll = hScrollBar.Maximum - (int)(dcRect.Width / fZoom + .5);
-                if (movPoint.Y + (int)((dcRect.Height / fZoom + .5) / 2) > vScrollBar.Maximum) yScroll = vScrollBar.Maximum - (int)(dcRect.Height / fZoom + .5);
+                if (movPoint.X + (int)((dcRect.Width / m_dZoom + .5) / 2) > hScrollBar.Maximum) xScroll = hScrollBar.Maximum - (int)(dcRect.Width / m_dZoom + .5);
+                if (movPoint.Y + (int)((dcRect.Height / m_dZoom + .5) / 2) > vScrollBar.Maximum) yScroll = vScrollBar.Maximum - (int)(dcRect.Height / m_dZoom + .5);
                 //----------------------------------------------------------------------------------------------------//
 
                 if (xScroll < 0) xScroll = 0;
@@ -778,13 +778,13 @@ namespace YoonFactory.Viewer
 
         private void ImageViewer_MouseClick(object sender, MouseEventArgs e)
         {
-            fMousePos.X = e.X;                //Mouse X Pos
-            fMousePos.Y = e.Y;                //Mouse Y Pos
+            m_posMouse.X = e.X;                //Mouse X Pos
+            m_posMouse.Y = e.Y;                //Mouse Y Pos
 
             //-- 프로파일 / 가이드 라인 그리기 ----------------------------------------------------------------------//
-            if (fProfile || fGuideLine)
+            if (m_bProfile || m_bGuideLine)
             {
-                if (fProfile)
+                if (m_bProfile)
                 {
                     ProfileInfo();  //Profile 정보담기  
                 }
@@ -796,16 +796,16 @@ namespace YoonFactory.Viewer
 
         private void ImageViewer_MouseDown(object sender, MouseEventArgs e)
         {
-            fMouseDragStartPos = RealMousePosition;        //Mouse Drag 시작점
+            m_posMouseDragStart = RealMousePosition;        //Mouse Drag 시작점
 
             if (e.Button == MouseButtons.Left) m_bMouseLeft = true;
             if (e.Button == MouseButtons.Right) m_bMouseRight = true;
 
             //-- 영상 측정 시작 점 등록 ------------------------------------------------------------------------------//
-            if (fMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
+            if (m_bMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
             {
-                fMeasureStartPos = e.Location;
-                fMeasureEndPos = e.Location;
+                m_posMeasureStart = e.Location;
+                m_posMeasureEnd = e.Location;
 
                 Invalidate(false);
             }
@@ -814,8 +814,8 @@ namespace YoonFactory.Viewer
             //-- 영상 측정 시작 점 등록 ------------------------------------------------------------------------------//
             if (m_bMouseRight /*e.Button == MouseButtons.Right*/)
             {
-                fMeasureStartPos = e.Location;
-                fMeasureEndPos = e.Location;
+                m_posMeasureStart = e.Location;
+                m_posMeasureEnd = e.Location;
 
                 // Draw ROI
                 CurrentPos = StartPos = RealMousePosition;
@@ -829,18 +829,18 @@ namespace YoonFactory.Viewer
         private void ImageViewer_MouseUp(object sender, MouseEventArgs e)
         {
             //-- 영상 측정 끝 점 등록 --------------------------------------------------------------------------------//
-            if (fMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
+            if (m_bMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
             {
-                fMeasureEndPos = e.Location;
+                m_posMeasureEnd = e.Location;
                 if (m_bMeasureHorz == true && m_bMeasureVert == false)
                 {
-                    fMeasureEndPos.X = e.Location.X;
-                    fMeasureEndPos.Y = fMeasureStartPos.Y;
+                    m_posMeasureEnd.X = e.Location.X;
+                    m_posMeasureEnd.Y = m_posMeasureStart.Y;
                 }
                 else if (m_bMeasureHorz == false && m_bMeasureVert == true)
                 {
-                    fMeasureEndPos.X = fMeasureStartPos.X;
-                    fMeasureEndPos.Y = e.Location.Y;
+                    m_posMeasureEnd.X = m_posMeasureStart.X;
+                    m_posMeasureEnd.Y = e.Location.Y;
                 }
                 Invalidate(false);
             }
@@ -849,7 +849,7 @@ namespace YoonFactory.Viewer
             //-- 영상 Zoom시 마우스 포이터 중심으로 / Calibration 좌표 -----------------------------------------------//
             else if (m_bMouseRight /*e.Button == MouseButtons.Right*/)
             {
-                fMouseCenterZoom = new Point(RealMousePosition.X, RealMousePosition.Y);
+                m_posMouseCenterZoom = new Point(RealMousePosition.X, RealMousePosition.Y);
 
                 if (IsDrawing)
                 {
@@ -864,16 +864,16 @@ namespace YoonFactory.Viewer
 
         private void ImageViewer_MouseMove(object sender, MouseEventArgs e)
         {
-            if (fEnabledDraw == false) return;
+            if (m_bEnabledDraw == false) return;
 
             //-- Mouse 위치에 해당하는 Pixel값을 보여준다. -----------------------------------------------------------//
-            if (!m_bMouseLeft && !m_bMouseRight /*e.Button != MouseButtons.Left && e.Button != MouseButtons.Right*/)
+            if (m_bMouseLeft || m_bMouseRight /*e.Button != MouseButtons.Left && e.Button != MouseButtons.Right*/)
             {
                 Point pPos = new Point(RealMousePosition.X, RealMousePosition.Y);               //Pixel 위치   
-                Bitmap bitmap = (Bitmap)fDummyImage;
+                Bitmap bitmap = (Bitmap)m_pDummyImage;
 
                 Color color = Color.Black;
-                if ((pPos.X > 0 && pPos.X < fImageWidth) && (pPos.Y > 0 && pPos.Y < fImageHeight))
+                if ((pPos.X > 0 && pPos.X < m_nImageWidth) && (pPos.Y > 0 && pPos.Y < m_nImageHeight))
                 {
                     color = bitmap.GetPixel(e.X, e.Y);                                          //Pixel 값
 
@@ -884,7 +884,7 @@ namespace YoonFactory.Viewer
             }
             //--------------------------------------------------------------------------------------------------------//
 
-            if (fRoiDraw && m_bMouseRight /*e.Button == MouseButtons.Right*/)
+            if (m_bRoiDraw && m_bMouseRight /*e.Button == MouseButtons.Right*/)
             {
                 if (IsDrawing)
                 {
@@ -894,11 +894,11 @@ namespace YoonFactory.Viewer
             }
 
             //-- 영상 측정을 위한 Drag 계산 --------------------------------------------------------------------------//
-            if (fMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
+            if (m_bMeasure && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
             {
-                fMeasureEndPos = e.Location;
+                m_posMeasureEnd = e.Location;
                 bool one = false, two = false;
-                if (Math.Abs(fMeasureStartPos.Y - e.Location.Y) < 3)
+                if (Math.Abs(m_posMeasureStart.Y - e.Location.Y) < 3)
                 {
                     m_bMeasureHorz = true;
                     m_bMeasureVert = false;
@@ -906,7 +906,7 @@ namespace YoonFactory.Viewer
                 }
 
 
-                if (Math.Abs(fMeasureStartPos.X - e.Location.X) < 3)
+                if (Math.Abs(m_posMeasureStart.X - e.Location.X) < 3)
                 {
                     m_bMeasureHorz = false;
                     m_bMeasureVert = true;
@@ -921,38 +921,38 @@ namespace YoonFactory.Viewer
 
                 if (m_bMeasureHorz == true && m_bMeasureVert == false)
                 {
-                    fMeasureEndPos.X = e.Location.X;
-                    fMeasureEndPos.Y = fMeasureStartPos.Y;
+                    m_posMeasureEnd.X = e.Location.X;
+                    m_posMeasureEnd.Y = m_posMeasureStart.Y;
                 }
                 else if (m_bMeasureHorz == false && m_bMeasureVert == true)
                 {
-                    fMeasureEndPos.X = fMeasureStartPos.X;
-                    fMeasureEndPos.Y = e.Location.Y;
+                    m_posMeasureEnd.X = m_posMeasureStart.X;
+                    m_posMeasureEnd.Y = e.Location.Y;
                 }
                 Invalidate(false);
             }
             //--------------------------------------------------------------------------------------------------------//
 
             //-- Mouse Drag 이동 -------------------------------------------------------------------------------------//
-            if (fMeasure == false && fGuideLine == false && fProfile == false && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
+            if (m_bMeasure == false && m_bGuideLine == false && m_bProfile == false && m_bMouseLeft /*e.Button == MouseButtons.Left*/)
             {
                 if (!((e.X >= 0 && e.X <= this.Size.Width) && (e.Y >= 0 && e.Y <= this.Size.Height))) return;
 
-                fMouseDragEndPos = RealMousePosition;
+                m_posMouseDragEnd = RealMousePosition;
 
                 try
                 {
-                    int ValueX = (int)((fMouseDragStartPos.X - fMouseDragEndPos.X));
-                    int ValueY = (int)((fMouseDragStartPos.Y - fMouseDragEndPos.Y));
+                    int ValueX = (int)((m_posMouseDragStart.X - m_posMouseDragEnd.X));
+                    int ValueY = (int)((m_posMouseDragStart.Y - m_posMouseDragEnd.Y));
 
 
                     if (vScrollBar.Value + ValueY < 0)
                     {
                         vScrollBar.Value = 0;
                     }
-                    else if (vScrollBar.Value + ValueY > (vScrollBar.Maximum - ((this.Size.Height) / fZoomY)))
+                    else if (vScrollBar.Value + ValueY > (vScrollBar.Maximum - ((this.Size.Height) / m_dZoomY)))
                     {
-                        vScrollBar.Value = vScrollBar.Maximum - (int)((this.Size.Height) / fZoomY);
+                        vScrollBar.Value = vScrollBar.Maximum - (int)((this.Size.Height) / m_dZoomY);
                     }
                     else
                     {
@@ -963,9 +963,9 @@ namespace YoonFactory.Viewer
                     {
                         hScrollBar.Value = 0;
                     }
-                    else if (hScrollBar.Value + ValueX > (hScrollBar.Maximum - ((this.Size.Width) / fZoomX)))
+                    else if (hScrollBar.Value + ValueX > (hScrollBar.Maximum - ((this.Size.Width) / m_dZoomX)))
                     {
-                        hScrollBar.Value = hScrollBar.Maximum - (int)((this.Size.Width) / fZoomX);
+                        hScrollBar.Value = hScrollBar.Maximum - (int)((this.Size.Width) / m_dZoomX);
                     }
                     else
                     {
@@ -983,7 +983,7 @@ namespace YoonFactory.Viewer
 
         private void ImageViewer_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (fGuideLine)
+            if (m_bGuideLine)
             {
                 Point nowPosition = new Point(RealMousePosition.X, RealMousePosition.Y);
 

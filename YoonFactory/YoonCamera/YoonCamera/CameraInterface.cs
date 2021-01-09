@@ -36,13 +36,15 @@ namespace YoonFactory.Camera
         int UnderCount(T threshold, bool bIncludeThreshold);
     }
 
-    public interface IYoonCamera
+    public interface IYoonCamera : IDisposable
     {
         event ImageUpdateCallback OnCameraImageUpdateEvent;
 
         bool IsOpenCamera { get; }
         bool IsStartCamera { get; }
         bool IsLiveOn { get; }
+        int ImageWidth { get; set; }
+        int ImageHeight { get; set; }
 
         int OpenCamera(int nNo);
         bool StartCamera();

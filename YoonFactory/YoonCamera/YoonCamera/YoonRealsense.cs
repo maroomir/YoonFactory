@@ -381,7 +381,7 @@ namespace YoonFactory.Camera.Realsense
     public delegate void DepthUpdateCallback(object sender, RSDepthArgs e);
     public delegate void MetaDataUpdateCallback(object sender, RSMetaArgs e);
 
-    public class YoonRealsense : IYoonCamera, IDisposable
+    public class YoonRealsense : IYoonCamera
     {
         public const int MAX_IMAGE_WIDTH = 1920;    // D435 기준
         public const int MAX_IMAGE_HEIGHT = 1080;
@@ -489,6 +489,40 @@ namespace YoonFactory.Camera.Realsense
             }
 
             m_nAlignMode = nModeAlign;
+
+            ImageWidth = DepthWidth = nWidth;
+            ImageHeight = DepthHeight = nHeight;
+        }
+
+        public YoonRealsense(params eYoonRSCaptureMode[] args)
+        {
+            m_pListCaptureMode = new List<eYoonRSCaptureMode>(args);
+
+            m_pListCaptureMode = new List<eYoonRSCaptureMode>();
+            foreach (eYoonRSCaptureMode nModeCapture in Enum.GetValues(typeof(eYoonRSCaptureMode)))
+            {
+                if (nModeCapture == eYoonRSCaptureMode.None) continue;
+                m_pListCaptureMode.Add(nModeCapture);
+            }
+
+            m_nAlignMode = eYoonRSAlignMode.None;
+
+            ImageWidth = DepthWidth = 640;
+            ImageHeight = DepthHeight = 480;
+        }
+
+        public YoonRealsense(int nWidth, int nHeight, params eYoonRSCaptureMode[] args)
+        {
+            m_pListCaptureMode = new List<eYoonRSCaptureMode>(args);
+
+            m_pListCaptureMode = new List<eYoonRSCaptureMode>();
+            foreach (eYoonRSCaptureMode nModeCapture in Enum.GetValues(typeof(eYoonRSCaptureMode)))
+            {
+                if (nModeCapture == eYoonRSCaptureMode.None) continue;
+                m_pListCaptureMode.Add(nModeCapture);
+            }
+
+            m_nAlignMode = eYoonRSAlignMode.None;
 
             ImageWidth = DepthWidth = nWidth;
             ImageHeight = DepthHeight = nHeight;

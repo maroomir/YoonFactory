@@ -32,7 +32,7 @@ namespace YoonFactory.Camera.Basler
     /// 해당 Class를 사용하려면 다음 namespace가 선언되며, 개체 브라우저에 다음 참조가 추가되어야 한다.
     ///    => PylonC.Net
     /// </summary>
-    public class YoonBasler : IYoonCamera, IDisposable
+    public class YoonBasler : IYoonCamera
     {
         public const uint MAX_CAM = 1;
         public const uint MAX_BUFFER = 5;
@@ -58,8 +58,8 @@ namespace YoonFactory.Camera.Basler
         public bool IsOpenCamera { get; private set; }
         public bool IsStartCamera { get; private set; }
         public bool IsLiveOn { get; private set; }
-        public long ImageWidth { get; set; }
-        public long ImageHeight { get; set; }
+        public int ImageWidth { get; set; }
+        public int ImageHeight { get; set; }
         public long Gain { get; set; }
         public double ExposureTime { get; set; }
         public bool IsReverseX { get; set; }
@@ -207,7 +207,7 @@ namespace YoonFactory.Camera.Basler
             m_wait = Pylon.StreamGrabberGetWaitObject(m_grabber);
 
             // 이미지 Width, Heigh를 얻어와서 4의 배수가 아니면 다시 조정한다.            
-            m_cameraWidth = Pylon.DeviceGetIntegerFeature(m_device, "Width");
+            m_cameraWidth = Pylon.DeviceGetIntegerFeature(m_device, "Width") ;
             m_cameraHeight = Pylon.DeviceGetIntegerFeature(m_device, "Height");
             m_payloadSize = checked((uint)Pylon.DeviceGetIntegerFeature(m_device, "PayloadSize"));
 
@@ -284,16 +284,16 @@ namespace YoonFactory.Camera.Basler
             //// Image를 90도 돌려야하는지 확인한다.
             if (IsRotateImage)
             {
-                ImageWidth = m_cameraHeight;
-                ImageHeight = m_cameraWidth;
+                ImageWidth = (int)m_cameraHeight;
+                ImageHeight = (int)m_cameraWidth;
 
                 temp_a = ImageWidth / 4;
-                ImageWidth = temp_a * 4;
+                ImageWidth = (int)temp_a * 4;
             }
             else
             {
-                ImageWidth = m_cameraWidth;
-                ImageHeight = m_cameraHeight;
+                ImageWidth = (int)m_cameraWidth;
+                ImageHeight = (int)m_cameraHeight;
             }
 
             m_isInit = true;

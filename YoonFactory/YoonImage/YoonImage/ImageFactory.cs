@@ -123,6 +123,15 @@ namespace YoonFactory.Image
                 return BitmapFactory.CopyBitmap(pResultBitmap);
             }
 
+            public static Bitmap ToBitmap24BitWithColorMixed(IntPtr pBufferAddress, int nWidth, int nHeight, bool bRGBOrder = true)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight * 3];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight * 3);
+                return ToBitmap24BitWithColorMixed(pBuffer, nWidth, nHeight, bRGBOrder);
+            }
+
             public static Bitmap ToBitmap24BitWithColorMixed(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
             {
                 if (pBuffer == null || pBuffer.Length != nWidth * nHeight * 3) return null;
@@ -131,8 +140,8 @@ namespace YoonFactory.Image
                 if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
                 else { nRed = 2; nGreen = 1; nBlue = 0; }
                 int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
-                for (int j = 0; j < nHeight; j++)
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
+                for (int j = 0; j < nHeight - 1; j++) // Exception for nHeight-1
                 {
                     pPixel = new int[nWidth];
                     for (int i = 0; i < nWidth; i++)
@@ -141,12 +150,21 @@ namespace YoonFactory.Image
                         pBytePixel[0] = pBuffer[j * nWidth * 3 + i * 3 + nBlue]; // Blue
                         pBytePixel[1] = pBuffer[j * nWidth * 3 + i * 3 + nGreen]; // Green
                         pBytePixel[2] = pBuffer[j * nWidth * 3 + i * 3 + nRed]; // Red
-                        pBytePixel[3] = (byte)0; // Alpha = null
+                        pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
                         pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
                     }
                     BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
                 }
                 return BitmapFactory.CopyBitmap(pResultBitmap);
+            }
+
+            public static Bitmap ToBitmap24BitWithColorParallel(IntPtr pBufferAddress, int nWidth, int nHeight, bool bRGBOrder = true)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                byte[] pBuffer = new byte[nWidth * nHeight * 3];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight * 3);
+                return ToBitmap24BitWithColorParallel(pBuffer, nWidth, nHeight, bRGBOrder);
             }
 
             public static Bitmap ToBitmap24BitWithColorParallel(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
@@ -157,11 +175,11 @@ namespace YoonFactory.Image
                 if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
                 else { nRed = 2; nGreen = 1; nBlue = 0; }
                 int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
                 for (int iPlane = 0; iPlane < 3; iPlane++)
                 {
                     pPixel = new int[nWidth];
-                    for (int j = 0; j < nHeight; j++)
+                    for (int j = 0; j < nHeight-1; j++) // Exception for nHeight-1
                     {
                         for (int i = 0; i < nWidth; i++)
                         {
@@ -169,7 +187,7 @@ namespace YoonFactory.Image
                             pBytePixel[0] = pBuffer[(nBlue * nWidth * nHeight) + j * nWidth + i]; // Blue
                             pBytePixel[1] = pBuffer[(nGreen * nWidth * nHeight) + j * nWidth + i]; // Green
                             pBytePixel[2] = pBuffer[(nRed * nWidth * nHeight) + j * nWidth + i]; // Red
-                            pBytePixel[3] = (byte)0; // Alpha = null
+                            pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
                             pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
                         }
                         BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
@@ -178,11 +196,20 @@ namespace YoonFactory.Image
                 return BitmapFactory.CopyBitmap(pResultBitmap);
             }
 
+            public static Bitmap ToBitmap24Bit(IntPtr pBufferAddress, int nWidth, int nHeight)
+            {
+                if (pBufferAddress == IntPtr.Zero) return null;
+
+                int[] pBuffer = new int[nWidth * nHeight];
+                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
+                return ToBitmap24Bit(pBuffer, nWidth, nHeight);
+            }
+
             public static Bitmap ToBitmap24Bit(int[] pBuffer, int nWidth, int nHeight)
             {
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
                 BitmapFactory.Memory.Print24bitImage(pBuffer, ref pResultBitmap);
                 return BitmapFactory.CopyBitmap(pResultBitmap);
             }
@@ -195,7 +222,7 @@ namespace YoonFactory.Image
                     return null;
 
                 int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format24bppRgb);
+                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
                 for (int j = 0; j < nHeight; j++)
                 {
                     pPixel = new int[nWidth];
@@ -205,7 +232,7 @@ namespace YoonFactory.Image
                         pBytePixel[0] = pBlue[j * nWidth + i];
                         pBytePixel[1] = pGreen[j * nWidth + i];
                         pBytePixel[2] = pRed[j * nWidth + i];
-                        pBytePixel[3] = (byte)0;
+                        pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
                         pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
                     }
                     BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);

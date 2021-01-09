@@ -239,7 +239,7 @@ namespace YoonFactory.Image
         public static class Memory
         {
             // Bitmap Data를 보관하는 Dictionary
-            private static Dictionary<Bitmap, BitmapData> BitmapDataDictionary = new Dictionary<Bitmap, BitmapData>();
+            private static BitmapData pImageData = null;
 
             // Image로부터 Read/Write가 가능한 Memory Pointer를 가져온다.
             private static IntPtr GetMemory(ref Bitmap pImage)
@@ -262,14 +262,7 @@ namespace YoonFactory.Image
             // Image로부터 Rect영역을 Mode에 맞게 작업을 수행 할 수 있는 Memory Pointer를 가져온다.
             private static IntPtr GetMemory(ref Bitmap pImage, Rectangle rect, ImageLockMode mode)
             {
-                BitmapData pImageData = null;
-                if (BitmapDataDictionary.ContainsKey(pImage))
-                    pImageData = BitmapDataDictionary[pImage];
-                else
-                {
-                    pImageData = pImage.LockBits(rect, mode, pImage.PixelFormat);
-                    BitmapDataDictionary.Add(pImage, pImageData);
-                }
+                pImageData = pImage.LockBits(rect, mode, pImage.PixelFormat);
                 return pImageData.Scan0;
             }
 
@@ -278,7 +271,6 @@ namespace YoonFactory.Image
             {
                 try
                 {
-                    BitmapData pImageData = BitmapDataDictionary[pImage];
                     pImage.UnlockBits(pImageData);
                 }
                 catch (Exception)
