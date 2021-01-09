@@ -37,6 +37,18 @@ namespace YoonFactory.Files.Ini
             return false;
         }
 
+        private static bool TryParseEnum<T>(string text, out T value) where T : struct
+        {
+            T res;
+            if (Enum.TryParse(text, out res))
+            {
+                value = (T)Enum.Parse(typeof(T), text);
+                return true;
+            }
+            value = default(T);
+            return false;
+        }
+
         public string Value;
 
         public IniValue(object value)
@@ -131,6 +143,30 @@ namespace YoonFactory.Files.Ini
                 return false; ;
             }
             if (TryParseDouble(Value.Trim(), out result))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public object ToEnum<T>(T valueIfInvalue) where T : struct
+        {
+            T res;
+            if (TryConvertEnum(out res))
+            {
+                return res;
+            }
+            return valueIfInvalue;
+        }
+
+        public bool TryConvertEnum<T>(out T result) where T : struct
+        {
+            if (Value == null)
+            {
+                result = default(T);
+                return false;
+            }
+            if (TryParseEnum<T>(Value.Trim(), out result))
             {
                 return true;
             }
