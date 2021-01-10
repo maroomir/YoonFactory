@@ -52,7 +52,7 @@
                 <FormattedString>
                     <FormattedString.Spans>
                         <Span Text="Provided by "/>
-                        <Span Text="cheoljoung.yoon@lge.com" FontAttributes="Bold"/>
+                        <Span Text="maroomir@gmail.com" FontAttributes="Bold"/>
                     </FormattedString.Spans>
                 </FormattedString>
             </Label.FormattedText>
