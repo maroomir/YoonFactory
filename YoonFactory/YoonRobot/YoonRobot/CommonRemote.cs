@@ -354,7 +354,7 @@ namespace YoonFactory.Robot.Remote
             ic.LoadFile();
             pRemote.IPAddress = ic[strKey]["IP"].ToString("127.0.0.1");
             pRemote.Port = ic[strKey]["Port"].ToString("1234");
-            pRemote.TCPMode = (eYoonCommType)Enum.Parse(typeof(eYoonCommType), ic[strKey]["Mode"].ToString("None"));
+            pRemote.TCPMode = ic[strKey]["Mode"].ToEnum(eYoonCommType.TCPServer);
             return pRemote;
         }
 
