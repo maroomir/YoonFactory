@@ -357,7 +357,7 @@ namespace YoonFactory.Files
 
         public YoonIni(string strPath) : this(DefaultComparer)
         {
-            if (FileFactory.VerifyFileExtension(ref strPath, ".csv", true, true))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.ini");
@@ -372,7 +372,7 @@ namespace YoonFactory.Files
         public YoonIni(string strPath, IEqualityComparer<string> stringComparer)
         {
 
-            if (FileFactory.VerifyFileExtension(ref strPath, ".csv", true, true))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.ini");

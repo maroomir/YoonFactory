@@ -149,7 +149,7 @@ namespace YoonFactory.Files.Ini
             return false;
         }
 
-        public object ToEnum<T>(T valueIfInvalue) where T : struct
+        public T ToEnum<T>(T valueIfInvalue) where T : struct
         {
             T res;
             if (TryConvertEnum(out res))
