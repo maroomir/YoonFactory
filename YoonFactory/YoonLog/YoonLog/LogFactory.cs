@@ -7,7 +7,7 @@ using YoonFactory.Files;
 namespace YoonFactory.Log
 {
     /*  Log -> Console 기록 전용 Class */
-    public class ConsoleLogManager : IDisposable
+    public class YoonConsoleLog : IDisposable
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -48,17 +48,17 @@ namespace YoonFactory.Log
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생
 
-        public ConsoleLogManager()
+        public YoonConsoleLog()
         {
             //
         }
 
-        public ConsoleLogManager(int nDays)
+        public YoonConsoleLog(int nDays)
         {
             m_nDirectoryFileExistDays = nDays;
         }
 
-        public ConsoleLogManager(string strPath, int nDays)
+        public YoonConsoleLog(string strPath, int nDays)
         {
             RootDirectory = strPath;
             m_nDirectoryFileExistDays = nDays;

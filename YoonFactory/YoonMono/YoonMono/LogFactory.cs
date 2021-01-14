@@ -28,7 +28,7 @@ namespace YoonFactory.Mono.Log
     public delegate void LogDisplayCallback(object sender, LogArgs e);
 
     /*  Log -> TextBox 기록 전용 Class */
-    public class DisplayLogManager : IDisposable
+    public class YoonDisplayLog : IDisposable
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -72,7 +72,7 @@ namespace YoonFactory.Mono.Log
         private int m_nCountLog = 0;
         public event LogDisplayCallback OnLogDisplayEvent;
 
-        public DisplayLogManager()
+        public YoonDisplayLog()
         {
             m_nCountLog = 0;
         }
@@ -114,42 +114,42 @@ namespace YoonFactory.Mono.Log
                     ////  일반 Process Message 출력
                     case eYoonStatus.Normal:
                         strMessage = "[" + nowTime + "] " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.White, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.White, strMessage, bRequestClear));
                         break;
                     ////  기타 확인 : 오류 메세지 설명은 별도로 저장
                     case eYoonStatus.Conform:
                         strMessage = "[" + nowTime + "]  CONFIRM : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Khaki, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Khaki, strMessage, bRequestClear));
                         break;
                     ////  전송 확인 : 전송 메시지 출력
                     case eYoonStatus.Send:
                         strMessage = "[" + nowTime + "]  SEND : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Lavender, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Lavender, strMessage, bRequestClear));
                         break;
                     ////  수신 확인 : 수신 메시지 출력
                     case eYoonStatus.Receive:
                         strMessage = "[" + nowTime + "]  RECEIVE : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Lavender, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Lavender, strMessage, bRequestClear));
                         break;
                     ////  사용자 확인 : 사용자 조작시 발생 메시지 출력
                     case eYoonStatus.User:
                         strMessage = "[" + nowTime + "]  USER : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Lime, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Lime, strMessage, bRequestClear));
                         break;
                     ////  Insepct 확인 :  Inspection 시 발생 메시지 출력
                     case eYoonStatus.Inspect:
                         strMessage = "[" + nowTime + "]  INSPECT : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Lime, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Lime, strMessage, bRequestClear));
                         break;
                     ////  오류 확인 :  오류 메시지 출력
                     case eYoonStatus.Error:
                         strMessage = "[" + nowTime + "]  ERROR : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Salmon, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Salmon, strMessage, bRequestClear));
                         break;
                     ////  Info 확인 :  상황 확인 메시지 출력
                     case eYoonStatus.Info:
                         strMessage = "[" + nowTime + "]  INFO : " + message + "\n";
-                        OnLogDisplayEvent(this, new LogArgs(GtkColor.Khaki, strMessage, bRequestClear));
+                        OnLogDisplayEvent(this, new LogArgs(ColorFactory.Khaki, strMessage, bRequestClear));
                         break;
                 }
                 m_nCountLog++;

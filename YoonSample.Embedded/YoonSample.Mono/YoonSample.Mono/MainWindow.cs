@@ -70,11 +70,11 @@ public partial class MainWindow : Gtk.Window
 
         CommonClass.pCLM.Write(string.Format("Step {0} : Init Main Interface", nStepInit++));
         {
-            GtkFactory.ChangeWidgetFont(label_TitleMain, PangoFont.SubTitle(), GtkColor.Black, StateType.Normal);
-            GtkFactory.ChangeWidgetFont(label_TitleSetting, PangoFont.SubTitle(), GtkColor.Black, StateType.Normal);
-            GtkFactory.ChangeWidgetFont(label_TitleAction, PangoFont.SubTitle(), GtkColor.Black, StateType.Normal);
+            GtkFactory.ChangeWidgetFont(label_TitleMain, FontFactory.SubTitle(), ColorFactory.Black, StateType.Normal);
+            GtkFactory.ChangeWidgetFont(label_TitleSetting, FontFactory.SubTitle(), ColorFactory.Black, StateType.Normal);
+            GtkFactory.ChangeWidgetFont(label_TitleAction, FontFactory.SubTitle(), ColorFactory.Black, StateType.Normal);
 
-            GtkFactory.ChangeContainerFont(vbox_Main, PangoFont.Default(), GtkColor.Black, StateType.Normal);
+            GtkFactory.ChangeContainerFont(vbox_Main, FontFactory.Default(), ColorFactory.Black, StateType.Normal);
         }
 
         CommonClass.pCLM.Write(string.Format("Step {0} : Init Setting Interface", nStepInit++));
@@ -88,7 +88,7 @@ public partial class MainWindow : Gtk.Window
 
         CommonClass.pCLM.Write(string.Format("Step {0} : Init Action Interface", nStepInit++));
         {
-            GtkFactory.ChangeContainerFont(vbox_Action, PangoFont.Default(), GtkColor.Black, StateType.Normal);
+            GtkFactory.ChangeContainerFont(vbox_Action, FontFactory.Default(), ColorFactory.Black, StateType.Normal);
 
             label_ActionSelect.SetSizeRequest(CommonClass.DEFAULT_CHECKBOX_WIDTH, CommonClass.DEFAULT_CHECKBOX_HEIGHT);
             label_ActionName.SetSizeRequest(CommonClass.DEFAULT_ENTRY_WIDTH, CommonClass.DEFAULT_ENTRY_HEIGHT);
@@ -111,8 +111,8 @@ public partial class MainWindow : Gtk.Window
             for (int iParam = 0; iParam < CommonClass.MAX_ACTION_NUM; iParam++)
             {
                 ActionPanel pPanel = new ActionPanel(iParam + 1, CommonClass.pParamAction.ActionNames[iParam], CommonClass.pParamAction.ActionValues[iParam]);
-                pPanel.SetEntryInterface(CommonClass.DEFAULT_ENTRY_WIDTH, CommonClass.DEFAULT_ENTRY_HEIGHT, PangoFont.Comment());
-                pPanel.SetCheckboxInterface(CommonClass.DEFAULT_CHECKBOX_WIDTH, CommonClass.DEFAULT_CHECKBOX_HEIGHT, PangoFont.Comment());
+                pPanel.SetEntryInterface(CommonClass.DEFAULT_ENTRY_WIDTH, CommonClass.DEFAULT_ENTRY_HEIGHT, FontFactory.Comment());
+                pPanel.SetCheckboxInterface(CommonClass.DEFAULT_CHECKBOX_WIDTH, CommonClass.DEFAULT_CHECKBOX_HEIGHT, FontFactory.Comment());
                 CommonClass.pListPanelAction.Add(pPanel);
                 Box pBox = vbox_Action;
                 GtkFactory.SetWidgetInBoxLayout(ref pBox, pPanel.ParameterHBox, iParam + 2); // 0 : Button, 1 : Titles

@@ -17,17 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="YoonLogd">
-      <HintPath>..\..\..\Build\Debug\AnyCPU\YoonLogd.dll</HintPath>
-    </Reference>
-    <Reference Include="YoonCommd">
-      <HintPath>..\..\..\Build\Debug\AnyCPU\YoonCommd.dll</HintPath>
-    </Reference>
-    <Reference Include="YoonCommond">
-      <HintPath>..\..\..\Build\Debug\AnyCPU\YoonCommond.dll</HintPath>
-    </Reference>
-    <Reference Include="YoonFiled">
-      <HintPath>..\..\..\Build\Debug\AnyCPU\YoonFiled.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonCommon\YoonCommon.csproj" />
+    <ProjectReference Include="..\..\..\YoonFactory\YoonComm\YoonComm\YoonComm.csproj" />
+    <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj" />
+    <ProjectReference Include="..\..\..\YoonFactory\YoonLog\YoonLog\YoonLog.csproj" />
   </ItemGroup>
 </Project>

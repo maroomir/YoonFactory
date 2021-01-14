@@ -315,7 +315,7 @@ namespace YoonFactory.Mono
         }
     }
 
-    public static class GtkColor
+    public static class ColorFactory
     {
         public static Gdk.Color Black = new Gdk.Color(0, 0, 0);
         public static Gdk.Color White = new Gdk.Color(255, 255, 255);
@@ -336,7 +336,7 @@ namespace YoonFactory.Mono
 
     }
 
-    public static class PangoFont
+    public static class FontFactory
     {
         public static FontDescription Default()
         {

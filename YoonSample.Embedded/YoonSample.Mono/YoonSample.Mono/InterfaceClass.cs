@@ -132,14 +132,14 @@ namespace YoonSample.Mono
         {
             entry_ParamName.SetSizeRequest(nWidth, nHeight);
             entry_ParamValue.SetSizeRequest(nWidth, nHeight);
-            GtkFactory.ChangeWidgetFont(entry_ParamName, pFont, GtkColor.Black);
-            GtkFactory.ChangeWidgetFont(entry_ParamValue, pFont, GtkColor.Black);
+            GtkFactory.ChangeWidgetFont(entry_ParamName, pFont, ColorFactory.Black);
+            GtkFactory.ChangeWidgetFont(entry_ParamValue, pFont, ColorFactory.Black);
         }
 
         public void SetCheckboxInterface(int nWidth, int nHeight, FontDescription pFont)
         {
             checkButton_IsSelected.SetSizeRequest(nWidth, nHeight);
-            GtkFactory.ChangeContainerFont(checkButton_IsSelected, pFont, GtkColor.Black);
+            GtkFactory.ChangeContainerFont(checkButton_IsSelected, pFont, ColorFactory.Black);
         }
     }
 }

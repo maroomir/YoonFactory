@@ -11,7 +11,7 @@ namespace YoonSample.ImageViewer
     public static class CommonClass
     {
         // Initialize YoonFactory
-        public static ConsoleLogManager pCLM = new ConsoleLogManager(30);
+        public static YoonConsoleLog pCLM = new YoonConsoleLog(30);
         public static IYoonCamera pCamera = null;
     }
 }
