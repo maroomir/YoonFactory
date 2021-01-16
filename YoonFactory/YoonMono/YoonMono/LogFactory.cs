@@ -28,7 +28,7 @@ namespace YoonFactory.Mono.Log
     public delegate void LogDisplayCallback(object sender, LogArgs e);
 
     /*  Log -> TextBox 기록 전용 Class */
-    public class YoonDisplayLog : IDisposable
+    public class YoonDisplayer : IDisposable
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -72,7 +72,7 @@ namespace YoonFactory.Mono.Log
         private int m_nCountLog = 0;
         public event LogDisplayCallback OnLogDisplayEvent;
 
-        public YoonDisplayLog()
+        public YoonDisplayer()
         {
             m_nCountLog = 0;
         }

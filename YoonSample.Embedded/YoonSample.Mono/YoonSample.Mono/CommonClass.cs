@@ -30,8 +30,8 @@ namespace YoonSample.Mono
         public static ParameterAction pParamAction = new ParameterAction();
 
         // YoonFactory Component
-        public static YoonConsoleLog pCLM = new YoonConsoleLog(90);
-        public static YoonDisplayLog pDLM = new YoonDisplayLog();
+        public static YoonScribe pCLM = new YoonScribe(90);
+        public static YoonDisplayer pDLM = new YoonDisplayer();
         
         public static YoonServer pTCPServer = null;
         public static YoonClient pTCPClient = null;
