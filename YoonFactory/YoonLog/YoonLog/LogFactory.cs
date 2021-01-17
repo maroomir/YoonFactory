@@ -6,8 +6,15 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Log
 {
+    public interface IYoonLog
+    {
+        string RootDirectory { get; set; }
+        void SetDirectoryFileExistDays(int nDays);
+        void Write(string strMessage, bool isSave);
+    }
+
     /*  Log -> Console 기록 전용 Class */
-    public class YoonScribe : IDisposable
+    public class YoonScribe : IYoonLog, IDisposable
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -47,6 +54,7 @@ namespace YoonFactory.Log
 
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생
+        private const int MAX_DAY_SPAN = 30;
 
         public YoonScribe()
         {
@@ -55,13 +63,19 @@ namespace YoonFactory.Log
 
         public YoonScribe(int nDays)
         {
-            m_nDirectoryFileExistDays = nDays;
+            if (nDays > MAX_DAY_SPAN)
+                m_nDirectoryFileExistDays = MAX_DAY_SPAN;
+            else
+                m_nDirectoryFileExistDays = nDays;
         }
 
         public YoonScribe(string strPath, int nDays)
         {
             RootDirectory = strPath;
-            m_nDirectoryFileExistDays = nDays;
+            if (nDays > MAX_DAY_SPAN)
+                m_nDirectoryFileExistDays = MAX_DAY_SPAN;
+            else
+                m_nDirectoryFileExistDays = nDays;
         }
 
         /// <summary>
@@ -70,14 +84,17 @@ namespace YoonFactory.Log
         /// <param name="nDays"></param>
         public void SetDirectoryFileExistDays(int nDays)
         {
-            m_nDirectoryFileExistDays = nDays;
+            if (nDays > MAX_DAY_SPAN)
+                m_nDirectoryFileExistDays = MAX_DAY_SPAN;
+            else
+                m_nDirectoryFileExistDays = nDays;
         }
 
         /// <summary>
         /// Console 창에 Log를 작성하는 Sequence 다.
         /// </summary>
         /// <param name="strMessage"> Message </param>
-        public void Write(string strMessage, bool isSave=true)
+        public void Write(string strMessage, bool isSave = true)
         {
             string nowTime = string.Format("{0:yyyy-MM-dd HH:mm:ss:fff}", DateTime.Now);
             string strLine = "[" + nowTime + "] " + strMessage;
@@ -149,51 +166,7 @@ namespace YoonFactory.Log
             {
                 Console.WriteLine("LogManagement CreateDirectoryFileConsole Exception: {0}", ex.ToString());
             }
-
             return strDirPath;
-        }
-
-        /// <summary>
-        /// 삭제될 Directory를 확인한다.
-        /// </summary>
-        /// <param name="path"></param>
-        private void DeleteDirectoryFileCheck(string path)
-        {
-            try
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(path);
-
-                if (dirInfo == null || !dirInfo.Exists)
-                    return;
-
-                DateTime today = DateTime.Now;
-
-                foreach (DirectoryInfo dir in dirInfo.GetDirectories())
-                {
-                    foreach (FileInfo file in dir.GetFiles())
-                    {
-                        TimeSpan spanFile = today - file.CreationTime;
-
-                        if ((int)spanFile.TotalDays >= m_nDirectoryFileExistDays)
-                        {
-                            file.Delete();
-                        }
-                    }
-
-                    DeleteDirectoryFileCheck(dir.FullName);
-
-                    TimeSpan spanDir = today - dir.CreationTime;
-
-                    if ((int)spanDir.TotalDays >= m_nDirectoryFileExistDays)
-                    {
-                        dir.Delete(true);
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("LogManagement DeleteDirectoryFile Exception: {0}", ex.ToString());
-            }
         }
 
         /// <summary>
@@ -205,9 +178,8 @@ namespace YoonFactory.Log
             {
                 string strMonthPath;
                 DateTime now = DateTime.Now;
-
                 strMonthPath = Path.Combine(RootDirectory, now.Year.ToString(), now.Month.ToString());
-                DeleteDirectoryFileCheck(strMonthPath);
+                FileFactory.DeleteOldFilesInDirectory(strMonthPath, m_nDirectoryFileExistDays);
             }
             catch (System.Exception ex)
             {

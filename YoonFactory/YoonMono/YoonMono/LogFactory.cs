@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Gtk;
 using Pango;
+using YoonFactory.Log;
 
 namespace YoonFactory.Mono.Log
 {

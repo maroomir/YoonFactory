@@ -79,7 +79,8 @@ namespace YoonFactory.Files
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
-                    if (Directory.Exists(path)) return true;
+                    if (Directory.Exists(path))
+                        return true;
                 }
                 else
                     return true;
@@ -87,7 +88,7 @@ namespace YoonFactory.Files
             return false;
         }
 
-        public static bool VerifyFilePath(string path, bool bCreateFile=true)
+        public static bool VerifyFilePath(string path, bool bCreateFile = true)
         {
             if (!string.IsNullOrEmpty(path))
             {
@@ -107,7 +108,7 @@ namespace YoonFactory.Files
                     else
                         return true;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
                 }
@@ -122,9 +123,9 @@ namespace YoonFactory.Files
         /// <param name="strExt"> Extension string as like ".Ext" </param>
         /// <param name="bChangeExtension"> To change the extension as strExt </param>
         /// <returns></returns>
-        public static bool VerifyFileExtension(ref string path, string strExt, bool bChangeExtension=false, bool bCreateFile=false)
+        public static bool VerifyFileExtension(ref string path, string strExt, bool bChangeExtension = false, bool bCreateFile = false)
         {
-            if(VerifyFilePath(path, bCreateFile))
+            if (VerifyFilePath(path, bCreateFile))
             {
                 FileInfo fi = new FileInfo(path);
                 if (fi.Extension != strExt)
@@ -153,16 +154,16 @@ namespace YoonFactory.Files
                 return null;
             FileAttributes fAttribute = File.GetAttributes(rootPath);
             //// If rootpath is Directory
-            if((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
+            if ((fAttribute & FileAttributes.Directory) == FileAttributes.Directory)
             {
                 DirectoryInfo di = new DirectoryInfo(rootPath);
                 //// continues abtract subdirectory
-                foreach(DirectoryInfo dir in di.GetDirectories())
+                foreach (DirectoryInfo dir in di.GetDirectories())
                 {
                     GetFileListInDir(dir.FullName, fListFile);
                 }
                 //// abstract subfiles
-                foreach(FileInfo fir in di.GetFiles())
+                foreach (FileInfo fir in di.GetFiles())
                 {
                     GetFileListInDir(fir.FullName, fListFile);
                 }
@@ -269,31 +270,74 @@ namespace YoonFactory.Files
 
         public static void DeleteExtensionFilesInDirectory(string dirPath, string strExt)
         {
-            if(!VerifyDirectory(dirPath))
+            if (VerifyDirectory(dirPath))
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                 //// File Clear in DirPath
                 foreach (FileInfo file in dirInfo.GetFiles())
                 {
-                    if (file.Extension == strExt) file.Delete();
+                    if (file.Extension == strExt)
+                        file.Delete();
                 }
                 //// Directory clear in DirPath
                 foreach (DirectoryInfo dir in dirInfo.GetDirectories())
-                {
-                    foreach (FileInfo file in dir.GetFiles())
-                    {
-                        if (file.Extension == strExt) file.Delete();
-                    }
-                    dir.Delete(true);
-                }
+                    DeleteExtensionFilesInDirectory(dir.FullName, strExt);
             }
         }
 
+        public static void DeleteIncludeSpecificInDirectory(string dirPath, string strSpecific, bool bCheckFileNameOnly = false)
+        {
+            if (VerifyDirectory(dirPath))
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
+                //// File Clear in DirPath
+                foreach (FileInfo file in dirInfo.GetFiles())
+                {
+                    if (bCheckFileNameOnly)
+                    {
+                        string strFileName = file.Name + "." + file.Extension;
+                        if (strFileName.Contains(strSpecific))
+                            file.Delete();
+                    }
+                    else
+                    {
+                        if (file.FullName.Contains(strSpecific))
+                            file.Delete();
+                    }
+                }
+                //// Directory clear in DirPath
+                foreach (DirectoryInfo dir in dirInfo.GetDirectories())
+                    DeleteExtensionFilesInDirectory(dir.FullName, strSpecific);
+            }
+        }
+
+        public static void DeleteOldFilesInDirectory(string dirPath, int nDateSpan)
+        {
+            DeleteOldFilesInDirectory(dirPath, DateTime.Now, nDateSpan);
+        }
+
+        public static void DeleteOldFilesInDirectory(string dirPath, DateTime pDateStart, int nDateSpan)
+        {
+            if (VerifyDirectory(dirPath))
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
+                //// File Clear in DirPath
+                foreach (FileInfo file in dirInfo.GetFiles())
+                {
+                    TimeSpan pSpan = pDateStart - file.CreationTime;
+
+                    if ((int)pSpan.TotalDays >= nDateSpan)
+                        file.Delete();
+                }
+                //// Directory clear in DirPath
+                foreach (DirectoryInfo dir in dirInfo.GetDirectories())
+                    DeleteOldFilesInDirectory(dir.FullName, pDateStart, nDateSpan);
+            }
+        }
 
         public static void DeleteAllFilesInDirectory(string dirPath)
         {
-
-            if (!VerifyDirectory(dirPath))
+            if (VerifyDirectory(dirPath))
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                 //// File Clear in DirPath
@@ -304,11 +348,7 @@ namespace YoonFactory.Files
                 //// Directory clear in DirPath
                 foreach (DirectoryInfo dir in dirInfo.GetDirectories())
                 {
-                    foreach (FileInfo file in dir.GetFiles())
-                    {
-                        file.Delete();
-                    }
-                    dir.Delete(true);
+                    DeleteAllFilesInDirectory(dirPath);
                 }
             }
         }
