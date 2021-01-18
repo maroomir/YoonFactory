@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Gtk;
 using YoonSample.Mono;
 using YoonFactory;
-using YoonFactory.Files.Core;
+using YoonFactory.Log;
 using YoonFactory.Mono;
 using YoonFactory.Mono.Log;
 using YoonFactory.Comm;
@@ -32,7 +32,7 @@ public partial class MainWindow : Gtk.Window
 
         CommonClass.pCLM.Write(string.Format("Step {0} : Init Log Manager", nStepInit++));
         {
-            CommonClass.pDLM.OnLogDisplayEvent += OnDisplatLogEvent;
+            CommonClass.pDLM.OnProcessLogEvent += OnDisplatLogEvent;
         }
 
         CommonClass.pCLM.Write(string.Format("Step {0} : Init Configuration", nStepInit++));
@@ -154,8 +154,11 @@ public partial class MainWindow : Gtk.Window
 
     public void OnDisplatLogEvent(object sender, LogArgs e)
     {
-        GtkFactory.ChangeContainerColor(textview_Log, e.BackColor, StateType.Normal);
-        textview_Log.Buffer.Text += e.Message;
+        if (e is LogMonoArgs pArgs)
+        {
+            GtkFactory.ChangeContainerColor(textview_Log, pArgs.BackColor, StateType.Normal);
+            textview_Log.Buffer.Text += e.Message;
+        }
     }
 
     public void OnDisplayTcpIpMessageEvent(object sender, MessageArgs e)

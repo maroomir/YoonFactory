@@ -515,7 +515,7 @@ namespace YoonFactory.Files
                                     if (nSectionEnd > 0)
                                     {
                                         string strSectionName = strTrimStart.Substring(1, nSectionEnd - 1).Trim();
-                                        section = new IniSection(StrComparer) { Ordered = ordered };
+                                        section = new IniSection(StrComparer) { IsOrdered = ordered };
                                         m_dicSections[strSectionName] = section;
                                     }
                                 }
@@ -576,7 +576,7 @@ namespace YoonFactory.Files
 
         public IniSection Add(string section, Dictionary<string, IniValue> values, bool ordered = false)
         {
-            return Add(section, new IniSection(values, StrComparer) { Ordered = ordered });
+            return Add(section, new IniSection(values, StrComparer) { IsOrdered = ordered });
         }
 
         public IniSection Add(string section, IniSection value)
@@ -591,7 +591,7 @@ namespace YoonFactory.Files
 
         public IniSection Add(string section, bool ordered = false)
         {
-            IniSection value = new IniSection(StrComparer) { Ordered = ordered };
+            IniSection value = new IniSection(StrComparer) { IsOrdered = ordered };
             m_dicSections.Add(section, value);
             return value;
         }

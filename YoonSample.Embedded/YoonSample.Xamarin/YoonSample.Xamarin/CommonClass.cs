@@ -17,7 +17,7 @@ namespace YoonSample.Xamarin
         public static string strApplicationDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         public static string strYoonFactoryDirectory = Path.Combine(strApplicationDirectory, "YoonFactory");
         // Configurqtion YoonFactory
-        public static YoonScribe pCLM = new YoonScribe(30);
+        public static YoonConsoler pCLM = new YoonConsoler(30);
         public static YoonParameter pConnectManager = new YoonParameter(pParamConnect, typeof(ParameterConnection));
         public static IYoonTcpIp pTcpIp = null;
     }

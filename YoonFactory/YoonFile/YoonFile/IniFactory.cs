@@ -271,263 +271,73 @@ namespace YoonFactory.Files.Ini
 
     public class IniSection : IEnumerable<KeyValuePair<string, IniValue>>, IDictionary<string, IniValue>
     {
-        private Dictionary<string, IniValue> values;
+        private Dictionary<string, IniValue> m_pDicIniValue;
+        private List<string> m_pListKeyOrdered;
 
-        private List<string> orderedKeys;
-
-        public int IndexOf(string key)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on IniSection: section was not ordered.");
-            }
-            return IndexOf(key, 0, orderedKeys.Count);
-        }
-
-        public int IndexOf(string key, int index)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int) on IniSection: section was not ordered.");
-            }
-            return IndexOf(key, index, orderedKeys.Count - index);
-        }
-
-        public int IndexOf(string key, int index, int count)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            if (count < 0)
-            {
-                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: count");
-            }
-            if (index + count > orderedKeys.Count)
-            {
-                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
-            }
-            var end = index + count;
-            for (int i = index; i < end; i++)
-            {
-                if (Comparer.Equals(orderedKeys[i], key))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        public int LastIndexOf(string key)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string) on IniSection: section was not ordered.");
-            }
-            return LastIndexOf(key, 0, orderedKeys.Count);
-        }
-
-        public int LastIndexOf(string key, int index)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on IniSection: section was not ordered.");
-            }
-            return LastIndexOf(key, index, orderedKeys.Count - index);
-        }
-
-        public int LastIndexOf(string key, int index, int count)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            if (count < 0)
-            {
-                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: count");
-            }
-            if (index + count > orderedKeys.Count)
-            {
-                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
-            }
-            var end = index + count;
-            for (int i = end - 1; i >= index; i--)
-            {
-                if (Comparer.Equals(orderedKeys[i], key))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        public void Insert(int index, string key, IniValue value)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call Insert(int, string, IniValue) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            values.Add(key, value);
-            orderedKeys.Insert(index, key);
-        }
-
-        public void InsertRange(int index, IEnumerable<KeyValuePair<string, IniValue>> collection)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, IniValue>>) on IniSection: section was not ordered.");
-            }
-            if (collection == null)
-            {
-                throw new ArgumentNullException("Value cannot be null." + Environment.NewLine + "Parameter name: collection");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            foreach (var kvp in collection)
-            {
-                Insert(index, kvp.Key, kvp.Value);
-                index++;
-            }
-        }
-
-        public void RemoveAt(int index)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            var key = orderedKeys[index];
-            orderedKeys.RemoveAt(index);
-            values.Remove(key);
-        }
-
-        public void RemoveRange(int index, int count)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            if (count < 0)
-            {
-                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: count");
-            }
-            if (index + count > orderedKeys.Count)
-            {
-                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
-            }
-            for (int i = 0; i < count; i++)
-            {
-                RemoveAt(index);
-            }
-        }
-
-        public void Reverse()
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call Reverse() on IniSection: section was not ordered.");
-            }
-            orderedKeys.Reverse();
-        }
-
-        public void Reverse(int index, int count)
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on IniSection: section was not ordered.");
-            }
-            if (index < 0 || index > orderedKeys.Count)
-            {
-                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-            }
-            if (count < 0)
-            {
-                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: count");
-            }
-            if (index + count > orderedKeys.Count)
-            {
-                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
-            }
-            orderedKeys.Reverse(index, count);
-        }
-
-        public ICollection<IniValue> GetOrderedValues()
-        {
-            if (!Ordered)
-            {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on IniSection: section was not ordered.");
-            }
-            var list = new List<IniValue>();
-            for (int i = 0; i < orderedKeys.Count; i++)
-            {
-                list.Add(values[orderedKeys[i]]);
-            }
-            return list;
-        }
-
-        public IniValue this[int index]
+        public bool IsOrdered
         {
             get
             {
-                if (!Ordered)
-                {
-                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
-                }
-                if (index < 0 || index >= orderedKeys.Count)
-                {
-                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-                }
-                return values[orderedKeys[index]];
+                return m_pListKeyOrdered != null;
             }
             set
             {
-                if (!Ordered)
+                if (IsOrdered != value)
                 {
-                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
+                    m_pListKeyOrdered = value ? new List<string>(m_pDicIniValue.Keys) : null;
                 }
-                if (index < 0 || index >= orderedKeys.Count)
-                {
-                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
-                }
-                var key = orderedKeys[index];
-                values[key] = value;
             }
         }
 
-        public bool Ordered
+        public IEqualityComparer<string> Comparer { get { return m_pDicIniValue.Comparer; } }
+
+        public IniValue this[int nIndex]
         {
             get
             {
-                return orderedKeys != null;
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                return m_pDicIniValue[m_pListKeyOrdered[nIndex]];
             }
             set
             {
-                if (Ordered != value)
+                if (!IsOrdered)
                 {
-                    orderedKeys = value ? new List<string>(values.Keys) : null;
+                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
                 }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                var key = m_pListKeyOrdered[nIndex];
+                m_pDicIniValue[key] = value;
+            }
+        }
+
+        public IniValue this[string strName]
+        {
+            get
+            {
+                IniValue pValue;
+                if (m_pDicIniValue.TryGetValue(strName, out pValue))
+                {
+                    return pValue;
+                }
+                return IniValue.Default;
+            }
+            set
+            {
+                if (IsOrdered && !m_pListKeyOrdered.Contains(strName, Comparer))
+                {
+                    m_pListKeyOrdered.Add(strName);
+                }
+                m_pDicIniValue[strName] = value;
             }
         }
 
@@ -536,43 +346,255 @@ namespace YoonFactory.Files.Ini
         {
         }
 
-        public IniSection(IEqualityComparer<string> stringComparer)
+        public IniSection(IEqualityComparer<string> pStringComparer)
         {
-            this.values = new Dictionary<string, IniValue>(stringComparer);
+            this.m_pDicIniValue = new Dictionary<string, IniValue>(pStringComparer);
         }
 
-        public IniSection(Dictionary<string, IniValue> values)
-            : this(values, YoonIni.DefaultComparer)
-        {
-        }
-
-        public IniSection(Dictionary<string, IniValue> values, IEqualityComparer<string> stringComparer)
-        {
-            this.values = new Dictionary<string, IniValue>(values, stringComparer);
-        }
-
-        public IniSection(IniSection values)
-            : this(values, YoonIni.DefaultComparer)
+        public IniSection(Dictionary<string, IniValue> pDic)
+            : this(pDic, YoonIni.DefaultComparer)
         {
         }
 
-        public IniSection(IniSection values, IEqualityComparer<string> stringComparer)
+        public IniSection(Dictionary<string, IniValue> pDic, IEqualityComparer<string> pStringComparer)
         {
-            this.values = new Dictionary<string, IniValue>(values.values, stringComparer);
+            this.m_pDicIniValue = new Dictionary<string, IniValue>(pDic, pStringComparer);
         }
 
-        public void Add(string key, IniValue value)
+        public IniSection(IniSection pSection)
+            : this(pSection, YoonIni.DefaultComparer)
         {
-            values.Add(key, value);
-            if (Ordered)
+        }
+
+        public IniSection(IniSection pSection, IEqualityComparer<string> pStringComparer)
+        {
+            this.m_pDicIniValue = new Dictionary<string, IniValue>(pSection.m_pDicIniValue, pStringComparer);
+        }
+
+        public int IndexOf(string strKey)
+        {
+            if (!IsOrdered)
             {
-                orderedKeys.Add(key);
+                throw new InvalidOperationException("Cannot call IndexOf(string) on IniSection: section was not ordered.");
+            }
+            return IndexOf(strKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int IndexOf(string strKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(string, int) on IniSection: section was not ordered.");
+            }
+            return IndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int IndexOf(string strKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = nIndex; i < end; i++)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public int LastIndexOf(string strKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(string) on IniSection: section was not ordered.");
+            }
+            return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int LastIndexOf(string strKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on IniSection: section was not ordered.");
+            }
+            return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int LastIndexOf(string strKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = end - 1; i >= nIndex; i--)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Insert(int nIndex, string strKey, IniValue pValue)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Insert(int, string, IniValue) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            m_pDicIniValue.Add(strKey, pValue);
+            m_pListKeyOrdered.Insert(nIndex, strKey);
+        }
+
+        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<string, IniValue>> pCollection)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, IniValue>>) on IniSection: section was not ordered.");
+            }
+            if (pCollection == null)
+            {
+                throw new ArgumentNullException("Value cannot be null." + Environment.NewLine + "Parameter name: pCollection");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            foreach (var kvp in pCollection)
+            {
+                Insert(nIndex, kvp.Key, kvp.Value);
+                nIndex++;
             }
         }
 
-        public bool ContainsKey(string key)
+        public void RemoveAt(int nIndex)
         {
-            return values.ContainsKey(key);
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            var key = m_pListKeyOrdered[nIndex];
+            m_pListKeyOrdered.RemoveAt(nIndex);
+            m_pDicIniValue.Remove(key);
+        }
+
+        public void RemoveRange(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            for (int i = 0; i < nCount; i++)
+            {
+                RemoveAt(nIndex);
+            }
+        }
+
+        public void Reverse()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse() on IniSection: section was not ordered.");
+            }
+            m_pListKeyOrdered.Reverse();
+        }
+
+        public void Reverse(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on IniSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            m_pListKeyOrdered.Reverse(nIndex, nCount);
+        }
+
+        public ICollection<IniValue> GetOrderedValues()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on IniSection: section was not ordered.");
+            }
+            var list = new List<IniValue>();
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                list.Add(m_pDicIniValue[m_pListKeyOrdered[i]]);
+            }
+            return list;
+        }
+
+        public void Add(string strKey, IniValue pValue)
+        {
+            m_pDicIniValue.Add(strKey, pValue);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(strKey);
+            }
+        }
+
+        public bool ContainsKey(string strKey)
+        {
+            return m_pDicIniValue.ContainsKey(strKey);
         }
 
         /// <summary>
@@ -580,19 +602,19 @@ namespace YoonFactory.Files.Ini
         /// </summary>
         public ICollection<string> Keys
         {
-            get { return Ordered ? (ICollection<string>)orderedKeys : values.Keys; }
+            get { return IsOrdered ? (ICollection<string>)m_pListKeyOrdered : m_pDicIniValue.Keys; }
         }
 
-        public bool Remove(string key)
+        public bool Remove(string strKey)
         {
-            var ret = values.Remove(key);
-            if (Ordered && ret)
+            var ret = m_pDicIniValue.Remove(strKey);
+            if (IsOrdered && ret)
             {
-                for (int i = 0; i < orderedKeys.Count; i++)
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
-                    if (Comparer.Equals(orderedKeys[i], key))
+                    if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
                     {
-                        orderedKeys.RemoveAt(i);
+                        m_pListKeyOrdered.RemoveAt(i);
                         break;
                     }
                 }
@@ -600,9 +622,9 @@ namespace YoonFactory.Files.Ini
             return ret;
         }
 
-        public bool TryGetValue(string key, out IniValue value)
+        public bool TryGetValue(string strKey, out IniValue pValue)
         {
-            return values.TryGetValue(key, out value);
+            return m_pDicIniValue.TryGetValue(strKey, out pValue);
         }
 
         /// <summary>
@@ -612,58 +634,58 @@ namespace YoonFactory.Files.Ini
         {
             get
             {
-                return values.Values;
+                return m_pDicIniValue.Values;
             }
         }
 
-        void ICollection<KeyValuePair<string, IniValue>>.Add(KeyValuePair<string, IniValue> item)
+        void ICollection<KeyValuePair<string, IniValue>>.Add(KeyValuePair<string, IniValue> pCollection)
         {
-            ((IDictionary<string, IniValue>)values).Add(item);
-            if (Ordered)
+            ((IDictionary<string, IniValue>)m_pDicIniValue).Add(pCollection);
+            if (IsOrdered)
             {
-                orderedKeys.Add(item.Key);
+                m_pListKeyOrdered.Add(pCollection.Key);
             }
         }
 
         public void Clear()
         {
-            values.Clear();
-            if (Ordered)
+            m_pDicIniValue.Clear();
+            if (IsOrdered)
             {
-                orderedKeys.Clear();
+                m_pListKeyOrdered.Clear();
             }
         }
 
-        bool ICollection<KeyValuePair<string, IniValue>>.Contains(KeyValuePair<string, IniValue> item)
+        bool ICollection<KeyValuePair<string, IniValue>>.Contains(KeyValuePair<string, IniValue> pCollection)
         {
-            return ((IDictionary<string, IniValue>)values).Contains(item);
+            return ((IDictionary<string, IniValue>)m_pDicIniValue).Contains(pCollection);
         }
 
-        void ICollection<KeyValuePair<string, IniValue>>.CopyTo(KeyValuePair<string, IniValue>[] array, int arrayIndex)
+        void ICollection<KeyValuePair<string, IniValue>>.CopyTo(KeyValuePair<string, IniValue>[] pArray, int nIndexArray)
         {
-            ((IDictionary<string, IniValue>)values).CopyTo(array, arrayIndex);
+            ((IDictionary<string, IniValue>)m_pDicIniValue).CopyTo(pArray, nIndexArray);
         }
 
         public int Count
         {
-            get { return values.Count; }
+            get { return m_pDicIniValue.Count; }
         }
 
         bool ICollection<KeyValuePair<string, IniValue>>.IsReadOnly
         {
-            get { return ((IDictionary<string, IniValue>)values).IsReadOnly; }
+            get { return ((IDictionary<string, IniValue>)m_pDicIniValue).IsReadOnly; }
         }
 
-        bool ICollection<KeyValuePair<string, IniValue>>.Remove(KeyValuePair<string, IniValue> item)
+        bool ICollection<KeyValuePair<string, IniValue>>.Remove(KeyValuePair<string, IniValue> pCollection)
         {
-            var ret = ((IDictionary<string, IniValue>)values).Remove(item);
-            if (Ordered && ret)
+            var ret = ((IDictionary<string, IniValue>)m_pDicIniValue).Remove(pCollection);
+            if (IsOrdered && ret)
             {
-                for (int i = 0; i < orderedKeys.Count; i++)
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
-                    if (Comparer.Equals(orderedKeys[i], item.Key))
+                    if (Comparer.Equals(m_pListKeyOrdered[i], pCollection.Key))
                     {
-                        orderedKeys.RemoveAt(i);
+                        m_pListKeyOrdered.RemoveAt(i);
                         break;
                     }
                 }
@@ -673,21 +695,21 @@ namespace YoonFactory.Files.Ini
 
         public IEnumerator<KeyValuePair<string, IniValue>> GetEnumerator()
         {
-            if (Ordered)
+            if (IsOrdered)
             {
                 return GetOrderedEnumerator();
             }
             else
             {
-                return values.GetEnumerator();
+                return m_pDicIniValue.GetEnumerator();
             }
         }
 
         private IEnumerator<KeyValuePair<string, IniValue>> GetOrderedEnumerator()
         {
-            for (int i = 0; i < orderedKeys.Count; i++)
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
             {
-                yield return new KeyValuePair<string, IniValue>(orderedKeys[i], values[orderedKeys[i]]);
+                yield return new KeyValuePair<string, IniValue>(m_pListKeyOrdered[i], m_pDicIniValue[m_pListKeyOrdered[i]]);
             }
         }
 
@@ -696,37 +718,14 @@ namespace YoonFactory.Files.Ini
             return GetEnumerator();
         }
 
-        public IEqualityComparer<string> Comparer { get { return values.Comparer; } }
-
-        public IniValue this[string name]
+        public static implicit operator IniSection(Dictionary<string, IniValue> pDic)
         {
-            get
-            {
-                IniValue val;
-                if (values.TryGetValue(name, out val))
-                {
-                    return val;
-                }
-                return IniValue.Default;
-            }
-            set
-            {
-                if (Ordered && !orderedKeys.Contains(name, Comparer))
-                {
-                    orderedKeys.Add(name);
-                }
-                values[name] = value;
-            }
+            return new IniSection(pDic);
         }
 
-        public static implicit operator IniSection(Dictionary<string, IniValue> dict)
+        public static explicit operator Dictionary<string, IniValue>(IniSection pSection)
         {
-            return new IniSection(dict);
-        }
-
-        public static explicit operator Dictionary<string, IniValue>(IniSection section)
-        {
-            return section.values;
+            return pSection.m_pDicIniValue;
         }
     }
 }
