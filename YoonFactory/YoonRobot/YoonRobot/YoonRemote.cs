@@ -8,7 +8,7 @@ using YoonFactory.Comm.TCP;
 
 namespace YoonFactory.Robot.Remote
 {
-    public class YoonRemoteRobot : IDisposable
+    public class YoonRemote : IDisposable
     {
         public enum eStepRemote : int
         {
@@ -73,7 +73,7 @@ namespace YoonFactory.Robot.Remote
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        public YoonRemoteRobot()
+        public YoonRemote()
         {
             m_nJobReservation = eStepRemote.Wait;
             // 서버용 구독
@@ -100,7 +100,7 @@ namespace YoonFactory.Robot.Remote
             IsInit = false;
         }
 
-        public YoonRemoteRobot(string strDirectory)
+        public YoonRemote(string strDirectory)
         {
             m_nJobReservation = eStepRemote.Wait;
             // 서버용 구독
@@ -127,7 +127,7 @@ namespace YoonFactory.Robot.Remote
             IsInit = false;
         }
 
-        ~YoonRemoteRobot()
+        ~YoonRemote()
         {
             Dispose(false);
         }
@@ -904,7 +904,7 @@ namespace YoonFactory.Robot.Remote
             switch (nType)
             {
                 case eYoonRobotType.UR:
-                    strMessage = URRemote.EncodingMessage(nHeader, pParamData);
+                    strMessage = URFactory.EncodingMessage(nHeader, pParamData);
                     break;
                 default:
                     break;
@@ -919,7 +919,7 @@ namespace YoonFactory.Robot.Remote
             switch (nType)
             {
                 case eYoonRobotType.UR:
-                    nHeader = URRemote.DecodingMessage(strMessage, ref pParamData);
+                    nHeader = URFactory.DecodingMessage(strMessage, ref pParamData);
                     break;
                 default:
                     break;

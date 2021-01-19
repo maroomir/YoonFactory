@@ -72,7 +72,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonImage.cs" />
+    <Compile Include="CommonClass.cs" />
     <Compile Include="ImageFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BitmapFactory.cs" />

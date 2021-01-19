@@ -70,8 +70,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonRemote.cs" />
-    <Compile Include="YoonRemoteRobot.cs" />
+    <Compile Include="CommonClass.cs" />
+    <Compile Include="YoonRemote.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="URRemoteFactory.cs" />
   </ItemGroup>

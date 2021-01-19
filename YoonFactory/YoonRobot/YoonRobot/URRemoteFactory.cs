@@ -1,6 +1,6 @@
 ﻿namespace YoonFactory.Robot.Remote
 {
-    public static class URRemote
+    public static class URFactory
     {
         public static string EncodingMessage(eYoonRobotRemoteHeadSend nHeader, ParamRobotSend pParamData)
         {

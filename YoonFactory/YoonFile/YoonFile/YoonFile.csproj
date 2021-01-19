@@ -77,11 +77,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoreFactory.cs" />
-    <Compile Include="FileFactory.cs" />
+    <Compile Include="ParameterFactory.cs" />
+    <Compile Include="CommonClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IniFactory.cs" />
-    <Compile Include="FileInterface.cs" />
+    <Compile Include="CommonInterface.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">

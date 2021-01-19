@@ -98,7 +98,7 @@
   <ItemGroup>
     <Compile Include="CognexFactory.cs" />
     <Compile Include="CogToolFactory.cs" />
-    <Compile Include="CommonCognex.cs" />
+    <Compile Include="CommonClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

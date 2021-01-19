@@ -92,8 +92,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="YoonBasler.cs" />
-    <Compile Include="CameraClass.cs" />
-    <Compile Include="CameraInterface.cs" />
+    <Compile Include="CommonClass.cs" />
+    <Compile Include="CommonInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="YoonRealsense.cs" />
   </ItemGroup>
