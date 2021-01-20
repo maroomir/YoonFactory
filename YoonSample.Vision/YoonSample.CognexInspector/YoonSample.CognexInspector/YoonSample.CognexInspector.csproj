@@ -1,0 +1,332 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BF396E97-85AA-4CFB-A00F-03A735995944}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>YoonSample.CognexInspector</RootNamespace>
+    <AssemblyName>YoonSample.CognexInspector</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cognex.VisionPro, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ApplicationWizard.Core, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.Blob, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.Blob.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ColorExtractor, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ColorExtractor.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ColorSegmenter, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ColorSegmenter.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.Core, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.CorePlus, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.Display.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ImageProcessing, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.ImageProcessing.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.Inspection.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.LineMax, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.LineMax.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.OCRMax, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.OCRMax.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.OCVMax, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.OCVMax.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.PMAlign, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.PMAlign.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.SearchMax, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="Cognex.VisionPro.SearchMax.Controls, Version=71.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FormMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogBlob.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogBlob.Designer.cs">
+      <DependentUpon>Form_CogBlob.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogCalibCheckerboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogCalibCheckerboard.Designer.cs">
+      <DependentUpon>Form_CogCalibCheckerboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogColorExtract.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogColorExtract.Designer.cs">
+      <DependentUpon>Form_CogColorExtract.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogColorSegment.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogColorSegment.Designer.cs">
+      <DependentUpon>Form_CogColorSegment.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogFindLine.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogFindLine.Designer.cs">
+      <DependentUpon>Form_CogFindLine.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogIDMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogIDMax.Designer.cs">
+      <DependentUpon>Form_CogIDMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogImageConvert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogImageConvert.Designer.cs">
+      <DependentUpon>Form_CogImageConvert.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogImageSharppen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogImageSharppen.Designer.cs">
+      <DependentUpon>Form_CogImageSharppen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogImageSobelEdge.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogImageSobelEdge.Designer.cs">
+      <DependentUpon>Form_CogImageSobelEdge.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogIPOneImage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogIPOneImage.Designer.cs">
+      <DependentUpon>Form_CogIPOneImage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageAdd.Designer.cs">
+      <DependentUpon>Form_CogIPTwoImageAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageMinMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageMinMax.Designer.cs">
+      <DependentUpon>Form_CogIPTwoImageMinMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageSubstract.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogIPTwoImageSubstract.Designer.cs">
+      <DependentUpon>Form_CogIPTwoImageSubstract.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogJobEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogJobEdit.Designer.cs">
+      <DependentUpon>Form_CogJobEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogLineMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogLineMax.Designer.cs">
+      <DependentUpon>Form_CogLineMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogOCRMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogOCRMax.Designer.cs">
+      <DependentUpon>Form_CogOCRMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogOCVMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogOCVMax.Designer.cs">
+      <DependentUpon>Form_CogOCVMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogPatternAlign.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogPatternAlign.Designer.cs">
+      <DependentUpon>Form_CogPatternAlign.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_CogSearchMax.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_CogSearchMax.Designer.cs">
+      <DependentUpon>Form_CogSearchMax.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabCombine.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TabCombine.Designer.cs">
+      <DependentUpon>TabCombine.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabObjectExtract.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TabObjectExtract.Designer.cs">
+      <DependentUpon>TabObjectExtract.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabPatternMatching.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TabPatternMatching.Designer.cs">
+      <DependentUpon>TabPatternMatching.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabPreprocessing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TabPreprocessing.Designer.cs">
+      <DependentUpon>TabPreprocessing.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogBlob.resx">
+      <DependentUpon>Form_CogBlob.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogCalibCheckerboard.resx">
+      <DependentUpon>Form_CogCalibCheckerboard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogColorExtract.resx">
+      <DependentUpon>Form_CogColorExtract.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogColorSegment.resx">
+      <DependentUpon>Form_CogColorSegment.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogFindLine.resx">
+      <DependentUpon>Form_CogFindLine.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogIDMax.resx">
+      <DependentUpon>Form_CogIDMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogImageConvert.resx">
+      <DependentUpon>Form_CogImageConvert.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogImageSharppen.resx">
+      <DependentUpon>Form_CogImageSharppen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogImageSobelEdge.resx">
+      <DependentUpon>Form_CogImageSobelEdge.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogIPOneImage.resx">
+      <DependentUpon>Form_CogIPOneImage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogIPTwoImageAdd.resx">
+      <DependentUpon>Form_CogIPTwoImageAdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogIPTwoImageMinMax.resx">
+      <DependentUpon>Form_CogIPTwoImageMinMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogIPTwoImageSubstract.resx">
+      <DependentUpon>Form_CogIPTwoImageSubstract.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogJobEdit.resx">
+      <DependentUpon>Form_CogJobEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogLineMax.resx">
+      <DependentUpon>Form_CogLineMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogOCRMax.resx">
+      <DependentUpon>Form_CogOCRMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogOCVMax.resx">
+      <DependentUpon>Form_CogOCVMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogPatternAlign.resx">
+      <DependentUpon>Form_CogPatternAlign.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_CogSearchMax.resx">
+      <DependentUpon>Form_CogSearchMax.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabCombine.resx">
+      <DependentUpon>TabCombine.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabObjectExtract.resx">
+      <DependentUpon>TabObjectExtract.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabPatternMatching.resx">
+      <DependentUpon>TabPatternMatching.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabPreprocessing.resx">
+      <DependentUpon>TabPreprocessing.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonCognex\YoonCognex\YoonCognex.csproj">
+      <Project>{977c4538-9128-4a6a-8fda-6ccdc250c768}</Project>
+      <Name>YoonCognex</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428cea-a460-47a6-ae13-50c17ea6727f}</Project>
+      <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonLog\YoonLog\YoonLog.csproj">
+      <Project>{c347ebd9-6691-43f6-a83e-97ebab6988e8}</Project>
+      <Name>YoonLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonWindows\YoonWindows\YoonWindows.csproj">
+      <Project>{d8d8fd97-c764-4b5a-b02e-8ba9bfff0ca8}</Project>
+      <Name>YoonWindows</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
