@@ -15,9 +15,9 @@ using YoonFactory.Align;
 using YoonFactory.Cognex;
 using YoonFactory.Windows;
 
-namespace RobotIntegratedVision
+namespace YoonSample.CognexInspector
 {
-    public partial class FormTab_PatternMatching : Form, IInspectionTab
+    public partial class TabPatternMatching : Form, IInspectionTab
     {
         private int m_nModelNo, m_nJobNo;
         private int m_nIndexModel, m_nIndexJob, m_nIndex;
@@ -34,7 +34,7 @@ namespace RobotIntegratedVision
 
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public FormTab_PatternMatching(int nIndexModel, int nIndexJob, int nIndex)
+        public TabPatternMatching(int nIndexModel, int nIndexJob, int nIndex)
         {
             InitializeComponent();
 

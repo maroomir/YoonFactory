@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoonFactory.Cognex;
 
-namespace RobotIntegratedVision
+namespace YoonSample.CognexInspector
 {
-    public partial class FormTab_Combine : Form, IInspectionTab
+    public partial class TabCombine : Form, IInspectionTab
     {
         private int m_nIndex, m_nIndexModel, m_nIndexJob;
         private int m_nModelNo, m_nJobNo;
@@ -27,7 +27,7 @@ namespace RobotIntegratedVision
         private List<KeyValuePair<int, eTypeInspect>> m_pListTotalInspFlag;
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public FormTab_Combine(int nIndexModel, int nIndexJob, int nIndex)
+        public TabCombine(int nIndexModel, int nIndexJob, int nIndex)
         {
             InitializeComponent();
 

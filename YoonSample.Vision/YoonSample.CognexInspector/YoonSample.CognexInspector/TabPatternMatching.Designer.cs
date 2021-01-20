@@ -1,6 +1,6 @@
-﻿namespace RobotIntegratedVision
+﻿namespace YoonSample.CognexInspector
 {
-    partial class FormTab_PatternMatching
+    partial class TabPatternMatching
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTab_PatternMatching));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TabPatternMatching));
             this.label_TextAlignResult = new System.Windows.Forms.Label();
             this.dataGridView_AlignResult = new System.Windows.Forms.DataGridView();
             this.button_ProcessPM = new System.Windows.Forms.Button();

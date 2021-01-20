@@ -1,6 +1,6 @@
-﻿namespace RobotIntegratedVision
+﻿namespace YoonSample.CognexInspector
 {
-    partial class FormTab_ObjectExtract
+    partial class TabObjectExtract
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTab_ObjectExtract));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TabObjectExtract));
             this.button_ProcessObjectExtract = new System.Windows.Forms.Button();
             this.button_SettingColorSegment = new System.Windows.Forms.Button();
             this.button_SettingBlob = new System.Windows.Forms.Button();

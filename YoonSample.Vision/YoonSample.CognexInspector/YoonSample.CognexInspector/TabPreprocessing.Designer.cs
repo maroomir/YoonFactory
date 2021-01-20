@@ -1,6 +1,6 @@
-﻿namespace RobotIntegratedVision
+﻿namespace YoonSample.CognexInspector
 {
-    partial class FormTab_Preprocessing
+    partial class TabPreprocessing
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTab_Preprocessing));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TabPreprocessing));
             this.checkBox_IsUseFiltering = new System.Windows.Forms.CheckBox();
             this.button_SettingFiltering = new System.Windows.Forms.Button();
             this.label_TextFiltering = new System.Windows.Forms.Label();

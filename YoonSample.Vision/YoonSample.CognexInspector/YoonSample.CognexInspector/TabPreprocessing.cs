@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoonFactory.Cognex;
 
-namespace RobotIntegratedVision
+namespace YoonSample.CognexInspector
 {
-    public partial class FormTab_Preprocessing : Form, IInspectionTab
+    public partial class TabPreprocessing : Form, IInspectionTab
     {
         private int m_nIndex, m_nIndexModel, m_nIndexJob;
         private InspectionInfo m_pInspectionInfo;
@@ -24,7 +24,7 @@ namespace RobotIntegratedVision
 
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public FormTab_Preprocessing(int nIndexModel, int nIndexJob, int nIndex)
+        public TabPreprocessing(int nIndexModel, int nIndexJob, int nIndex)
         {
             InitializeComponent();
 

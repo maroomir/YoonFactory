@@ -1,7 +1,6 @@
 ﻿using Cognex.VisionPro;
 using Cognex.VisionPro.Blob;
 using Cognex.VisionPro.ColorSegmenter;
-using RobotIntegratedVision.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,9 +14,9 @@ using System.Windows.Forms;
 using YoonFactory;
 using YoonFactory.Cognex;
 
-namespace RobotIntegratedVision
+namespace YoonSample.CognexInspector
 {
-    public partial class FormTab_ObjectExtract : Form, IInspectionTab
+    public partial class TabObjectExtract : Form, IInspectionTab
     {
         private int m_nIndex, m_nIndexModel, m_nIndexJob;
         private int m_nModelNo, m_nJobNo;
@@ -31,7 +30,7 @@ namespace RobotIntegratedVision
         private List<KeyValuePair<int, eTypeInspect>> m_pListTotalInspFlag;
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public FormTab_ObjectExtract(int nIndexModel, int nIndexJob, int nIndex)
+        public TabObjectExtract(int nIndexModel, int nIndexJob, int nIndex)
         {
             InitializeComponent();
 

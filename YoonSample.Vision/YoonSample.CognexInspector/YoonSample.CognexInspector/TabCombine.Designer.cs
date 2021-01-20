@@ -1,6 +1,6 @@
-﻿namespace RobotIntegratedVision
+﻿namespace YoonSample.CognexInspector
 {
-    partial class FormTab_Combine
+    partial class TabCombine
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTab_Combine));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TabCombine));
             this.button_ProcessCombine = new System.Windows.Forms.Button();
             this.cogDisplay_ObjectView = new Cognex.VisionPro.Display.CogDisplay();
             this.cogDisplay_SourceView = new Cognex.VisionPro.Display.CogDisplay();
