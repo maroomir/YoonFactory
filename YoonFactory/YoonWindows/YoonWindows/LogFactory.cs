@@ -62,7 +62,7 @@ namespace YoonFactory.Windows.Log
         #endregion
 
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "DLMLog");
-        public LogRepository Repository { get; private set; } = new LogRepository();
+        public LogContainer Repository { get; private set; } = new LogContainer();
         public event LogProcessCallback OnProcessLogEvent;
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생
 

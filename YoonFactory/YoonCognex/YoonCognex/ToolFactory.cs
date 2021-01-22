@@ -20,7 +20,7 @@ using Cognex.VisionPro.ColorSegmenter;
 
 namespace YoonFactory.Cognex
 {
-    public static class CogToolFactory
+    public static class ToolFactory
     {
         public static ICogTool InitCognexTool(eYoonCognexType pType)
         {

@@ -9,7 +9,7 @@ namespace YoonFactory.Log
     public interface IYoonLog
     {
         string RootDirectory { get; set; }
-        LogRepository Repository { get; }
+        LogContainer Repository { get; }
 
         event LogProcessCallback OnProcessLogEvent;
         void Write(string strMessage, bool isSave);
@@ -65,7 +65,7 @@ namespace YoonFactory.Log
         #endregion
 
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
-        public LogRepository Repository { get; private set; } = new LogRepository();
+        public LogContainer Repository { get; private set; } = new LogContainer();
         public event LogProcessCallback OnProcessLogEvent;  // Interface 맞춤용 (사용안함)
 
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생

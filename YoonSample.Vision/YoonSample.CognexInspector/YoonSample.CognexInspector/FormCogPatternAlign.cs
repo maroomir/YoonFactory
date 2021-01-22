@@ -51,8 +51,8 @@ namespace YoonSample.CognexInspector
             {
                 ////  Working 영역에 Vpp File 별도 저장 (백업 및 확인용)
                 string strFilePath = Path.Combine(CommonClass.strCurrentWorkingDirectory, string.Format("{0}.vpp", ToolType.ToString()));
-                if (CogToolFactory.SaveCognexToolToVpp(CogTool, strFilePath))
-                    CogTool = CogToolFactory.LoadCognexToolFromVpp(strFilePath) as CogPMAlignTool;
+                if (ToolFactory.SaveCognexToolToVpp(CogTool, strFilePath))
+                    CogTool = ToolFactory.LoadCognexToolFromVpp(strFilePath) as CogPMAlignTool;
                 if (CogTool == null) return;
                 ////  Main Form에 Cognex Tool 전달
                 OnUpdateCogToolEvent(this, new CogToolArgs(ToolType, CogToolLabel, CogTool, CogTool.InputImage));

@@ -54,4 +54,6 @@ namespace YoonSample.CognexInspector
                 ContainImage = pImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
         }
     }
+
+
 }

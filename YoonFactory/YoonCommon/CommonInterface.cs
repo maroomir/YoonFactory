@@ -175,7 +175,6 @@ namespace YoonFactory
     public interface IYoonParameter
     {
         bool IsEqual(IYoonParameter pParam);
-
         void CopyFrom(IYoonParameter pParam);
         IYoonParameter Clone();
     }
@@ -213,19 +212,29 @@ namespace YoonFactory
         void CopyFrom(IYoonContainer pContainer);
         IYoonContainer Clone();
         void Clear();
-        bool LoadValue(string strKey);
-        bool SaveValue(string strKey);
     }
 
-    public interface IYoonContainer<T> : IYoonContainer
+    public interface IYoonContainer<TKey, TValue> : IYoonContainer, IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>
     {
-        Dictionary<string, T> ObjectDictionary { get; }
+        bool IsOrdered { get; set; }
+        IEqualityComparer<TKey> Comparer { get; }
+        TValue this[int nIndex] { get; set; }
 
-        bool Add(string strKey, T pValue);
-        bool Remove(string strKey);
-        string GetKey(T pValue);
-        T GetValue(string strKey);
-        void SetValue(string strKey, T pValue);
+        bool LoadValue(TKey pKey);
+        bool SaveValue(TKey pKey);
+        int IndexOf(TKey pKey);
+        int IndexOf(TKey pKey, int nIndex);
+        int IndexOf(TKey pKey, int nIndex, int nCount);
+        int LastIndexOf(TKey pKey);
+        int LastIndexOf(TKey pKey, int nIndex);
+        int LastIndexOf(TKey pKey, int nIndex, int nCount);
+        void Insert(int nIndex, TKey pKey, TValue pValue);
+        void InsertRange(int nIndex, IEnumerable<KeyValuePair<TKey, TValue>> pCollection);
+        void RemoveAt(int nIndex);
+        void RemoveRange(int nIndex, int nCount);
+        void Reverse();
+        void Reverse(int nIndex, int nCount);
+        ICollection<TValue> GetOrderedValues();
     }
 
     public interface IYoonTemplate : IDisposable
@@ -241,8 +250,8 @@ namespace YoonFactory
         bool LoadTemplate();
     }
 
-    public interface IYoonTemplate<T> : IYoonTemplate
+    public interface IYoonTemplate<TKey, TValue> : IYoonTemplate
     {
-        IYoonContainer<T> Container { get; set; }
+        IYoonContainer<TKey, TValue> Container { get; set; }
     }
 }

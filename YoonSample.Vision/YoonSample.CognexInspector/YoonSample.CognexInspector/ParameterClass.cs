@@ -10,52 +10,69 @@ using YoonFactory.Cognex;
 
 namespace YoonSample.CognexInspector
 {
-    public class InspectionInfo : IYoonParameter
+    public class ParameterInspectionPreprocessing : IYoonParameter
     {
-        public int No { get; set; } = 0;
-        public eTypeInspect InspectType { get; set; } = eTypeInspect.Preprocessing;
-        public bool InspectResult { get; set; } = false;
-        [Browsable(false)]
-        public IParameterInspection InspectionParam { get; set; } = null;
-        [Browsable(false)]
-        public ICogImage[] SourceImages { get; set; } = new ICogImage[CommonClass.MAX_SOURCE_NUM];
-        [Browsable(false)]
-        public ICogImage ResultImage { get; set; } = new CogImage24PlanarColor();
-        [Browsable(false)]
-        public CogToolContainer CogToolContainer { get; set; } = new CogToolContainer();
-        [Browsable(false)]
-        public CogResultContainer CogResultContainer { get; set; } = new CogResultContainer();
-    }
-
-    public class ParameterInspectionPreprocessing : IParameterInspection
-    {
-        [CategoryAttribute("Common"), DescriptionAttribute("전처리 검사 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Preprocessing (true/false)")]
         public bool IsUse { get; set; } = true;
-        [CategoryAttribute("Common"), DescriptionAttribute("Image Convert 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Image Convert (true/false)")]
         public bool IsUseImageConvert { get; set; } = false;
-        [CategoryAttribute("Common"), DescriptionAttribute("Sobel Edge 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Sobel Edge (true/false)")]
         public bool IsUseSobelEdge { get; set; } = false;
-        [CategoryAttribute("Common"), DescriptionAttribute("Image Filtering 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Image Filtering (true/false)")]
         public bool IsUseImageFilter { get; set; } = false;
+
+        public bool IsEqual(IYoonParameter pParam)
+        {
+            if(pParam is ParameterInspectionPreprocessing pParamPre)
+            {
+                if (IsUse == pParamPre.IsUse &&
+                    IsUseImageConvert == pParamPre.IsUseImageConvert &&
+                    IsUseSobelEdge == pParamPre.IsUseSobelEdge &&
+                    IsUseImageFilter == pParamPre.IsUseImageFilter)
+                    return true;
+            }
+            return false;
+        }
+
+        public void CopyFrom(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionPreprocessing pParamPre)
+            {
+                IsUse = pParamPre.IsUse;
+                IsUseImageConvert = pParamPre.IsUseImageConvert;
+                IsUseSobelEdge = pParamPre.IsUseSobelEdge;
+                IsUseImageFilter = pParamPre.IsUseImageFilter;
+            }
+        }
+
+        public IYoonParameter Clone()
+        {
+            ParameterInspectionPreprocessing pParam = new ParameterInspectionPreprocessing();
+            pParam.IsUse = IsUse;
+            pParam.IsUseImageFilter = IsUseImageFilter;
+            pParam.IsUseImageConvert = IsUseImageConvert;
+            pParam.IsUseSobelEdge = IsUseSobelEdge;
+            return pParam;
+        }
     }
 
-    public class ParameterInspectionPatternMatching : IParameterInspection
+    public class ParameterInspectionPatternMatching : IYoonParameter
     {
-        [CategoryAttribute("Common"), DescriptionAttribute("Pattern 검사 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Pattern Match (true/false)")]
         public bool IsUse { get; set; } = true;
-        [CategoryAttribute("Common"), DescriptionAttribute("각 Pattern들의 사용 여부 (true/false)")]
+        [CategoryAttribute("Common"), DescriptionAttribute("Whether to use each patterns (true/false)")]
         public bool[] IsUseEachPatterns { get; set; } = new bool[CommonClass.MAX_PATTERN_NUM];
-        [CategoryAttribute("Setting"), DescriptionAttribute("Multi Pattern 검사 여부 (true/false)")]
+        [CategoryAttribute("Setting"), DescriptionAttribute("Whether to inspect multi Pattern (true/false)")]
         public bool IsUseMultiPatternInspection { get; set; } = false;
-        [CategoryAttribute("Image"), DescriptionAttribute("Source Image 선택")]
+        [CategoryAttribute("Image"), DescriptionAttribute("Selected Source Image")]
         public eLevelImageSelection SelectedSourceLevel { get; set; } = eLevelImageSelection.Origin;
         [Browsable(false)]
         public int SelectedSourceNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedSourceType { get; set; } = eTypeInspect.None;
-        [CategoryAttribute("Align"), DescriptionAttribute("Align 검사 여부 (true/false)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("whether to use Align (true/false)")]
         public bool IsCheckAlign { get; set; } = false;
-        [CategoryAttribute("Align"), DescriptionAttribute("Align 검사에 Multi-Align 사용 여부 (true/false)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("whether to Multi-Align (true/false)")]
         public bool IsUseMultiPatternAlign { get; set; } = false;
         [Browsable(false)]
         public eTypeAlign AlignType { get; set; } = eTypeAlign.None;
@@ -71,17 +88,58 @@ namespace YoonSample.CognexInspector
         public double[] OriginRealYs { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
         [Browsable(false)]
         public double[] OriginThetas { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
-        [CategoryAttribute("Align"), DescriptionAttribute("X 기준 Align 틀어짐 정도 (mm)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("Offset length referenced X-Axis (mm)")]
         public double OffsetX { get; set; } = 100.0;    // 현재는 Pixel, 향후에 Pixel -> mm로 전환할 것
-        [CategoryAttribute("Align"), DescriptionAttribute("Y 기준 Align 틀어짐 정도 (mm)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("Offset length referenced Y-Axis (mm)")]
         public double OffsetY { get; set; } = 100.0;    // 현재는 Pixel, 향후에 Pixel -> mm로 전환할 것
-        [CategoryAttribute("Align"), DescriptionAttribute("Theta 기준 Align 틀어짐 정도 (degree)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("Offset degree referenced Theta (degree)")]
         public double OffsetT { get; set; } = 100.0;
-        [CategoryAttribute("Align"), DescriptionAttribute("Align NG 조건을 OR로 처리 (true/false)")]
+        [CategoryAttribute("Align"), DescriptionAttribute("Handling NG Condition with 'OR' component (true/false)")]
         public bool IsAlignCheckWithOR { get; set; } = true;
+
+        public bool IsEqual(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionPatternMatching pParamPattern)
+            {
+                if (IsUse == pParamPattern.IsUse &&
+                    IsUseEachPatterns == pParamPattern.IsUseEachPatterns &&
+                    IsUseMultiPatternInspection == pParamPattern.IsUseMultiPatternInspection &&
+                    SelectedSourceLevel == pParamPattern.SelectedSourceLevel &&
+                    SelectedSourceNo == pParamPattern.SelectedSourceNo &&
+                    SelectedSourceType == pParamPattern.SelectedSourceType &&
+                    IsCheckAlign == pParamPattern.IsCheckAlign &&
+                    IsUseMultiPatternAlign == pParamPattern.IsUseMultiPatternAlign &&
+                    AlignType == pParamPattern.AlignType &&
+
+                    )
+                    return true;
+            }
+            return false;
+        }
+
+        public void CopyFrom(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionPatternMatching pParamPre)
+            {
+                IsUse = pParamPre.IsUse;
+                IsUseImageConvert = pParamPre.IsUseImageConvert;
+                IsUseSobelEdge = pParamPre.IsUseSobelEdge;
+                IsUseImageFilter = pParamPre.IsUseImageFilter;
+            }
+        }
+
+        public IYoonParameter Clone()
+        {
+            ParameterInspectionPatternMatching pParam = new ParameterInspectionPatternMatching();
+            pParam.IsUse = IsUse;
+            pParam.IsUseImageFilter = IsUseImageFilter;
+            pParam.IsUseImageConvert = IsUseImageConvert;
+            pParam.IsUseSobelEdge = IsUseSobelEdge;
+            return pParam;
+        }
     }
 
-    public class ParameterInspectionObjectExtract : IParameterInspection
+    public class ParameterInspectionObjectExtract : IYoonParameter
     {
         [CategoryAttribute("Common"), DescriptionAttribute("Object Extract 사용 여부 (true/false)")]
         public bool IsUse { get; set; } = true;
@@ -106,7 +164,7 @@ namespace YoonSample.CognexInspector
         public eTypeInspect SelectedColorSegmentImageType { get; set; } = eTypeInspect.None;
     }
 
-    public class ParameterInspectionCombine : IParameterInspection
+    public class ParameterInspectionCombine : IYoonParameter
     {
         [CategoryAttribute("Common"), DescriptionAttribute("Combine 사용 여부 (true/false)")]
         public bool IsUse { get; set; } = true;

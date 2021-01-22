@@ -22,8 +22,4 @@ namespace YoonSample.CognexInspector
 
         event PassImageCallback OnUpdateResultImageEvent;
     }
-    public interface IParameterInspection : IYoonParameter
-    {
-        bool IsUse { get; set; }
-    }
 }

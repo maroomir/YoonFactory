@@ -4,7 +4,7 @@ using System.IO;
 using YoonFactory.Comm;
 using YoonFactory.Files;
 
-namespace YoonFactory.Robot.Remote
+namespace YoonFactory.Robot
 {
 
     public enum eYoonRobotType : int
@@ -14,7 +14,7 @@ namespace YoonFactory.Robot.Remote
         TM,
     }
 
-    public enum eYoonRobotRemote : int
+    public enum eYoonRemoteType : int
     {
         None = -1,
         Socket,
@@ -22,7 +22,7 @@ namespace YoonFactory.Robot.Remote
         Dashboard,
     }
 
-    public enum eYoonRobotRemoteHeadSend : int   // REMOTE MODE = UR : DASHBOARD
+    public enum eYoonHeadSend : int   // REMOTE MODE = UR : DASHBOARD
     {
         None = -1,
         StatusServo = 0,
@@ -42,7 +42,7 @@ namespace YoonFactory.Robot.Remote
         BreakRelease,
     }
 
-    public enum eYoonRobotRemoteHeadReceive : int    // REMOTE MODE = UR : DASHBOARD
+    public enum eYooneHeadReceive : int    // REMOTE MODE = UR : DASHBOARD
     {
         None = -1,
         StatusServoOK = 0,
@@ -70,7 +70,7 @@ namespace YoonFactory.Robot.Remote
         BreakReleaseOK,
     }
 
-    public struct ParamRobotSend
+    public struct SendValue
     {
         public string ProjectName;  //
         public string ProgramName;  // UR
@@ -83,51 +83,55 @@ namespace YoonFactory.Robot.Remote
         public string[] ArraySocketParam;   // UR, TM
     }
 
-    public struct ParamRobotReceive
+    public struct ReceiveValue
     {
         public YoonJointD JointPos;   // UR, TM
         public YoonCartD CartPos;     // UR, TM
     }
 
-    public class RemoteParameter : IYoonParameter
+    public delegate void RemoteResultCallback(object sender, ResultArgs e);
+    public class ResultArgs : EventArgs
     {
-        public string IPAddress { get; set; } = "127.0.0.1";
-        public string Port { get; set; } = "30000";
-        public eYoonCommType TCPMode { get; set; } = eYoonCommType.TCPServer;
+        public eYoonStatus Status;
+        public string Message;
+        public eYooneHeadReceive ReceiveHead;
+        public ReceiveValue ReceiveData;
 
-        public bool IsEqual(IYoonParameter pParam)
+        public ResultArgs(eYoonStatus nStatus, string strMessage)
         {
-            if(pParam is RemoteParameter pParamRemote)
+            Status = nStatus;
+            ReceiveHead = eYooneHeadReceive.None;
+            ReceiveData = new ReceiveValue();
+            Message = strMessage;
+        }
+        public ResultArgs(eYoonStatus nStatus, eYooneHeadReceive nHead, string strMessage)
+        {
+            Status = nStatus;
+            ReceiveHead = eYooneHeadReceive.None;
+            ReceiveData = new ReceiveValue();
+            Message = strMessage;
+        }
+
+        public ResultArgs(eYooneHeadReceive nHead, ReceiveValue pDataReceive, string strMessage)
+        {
+            Status = eYoonStatus.OK;
+            ReceiveHead = nHead;
+            Message = strMessage;
+            ReceiveData = new ReceiveValue();
             {
-                if (pParamRemote.IPAddress == IPAddress && pParamRemote.Port == Port && pParamRemote.TCPMode == TCPMode)
-                    return true;
-            }
-            return false;
-        }
-
-        public IYoonParameter Clone()
-        {
-            RemoteParameter pParam = new RemoteParameter();
-            pParam.IPAddress = IPAddress;
-            pParam.Port = Port;
-            pParam.TCPMode = TCPMode;
-            return pParam;
-        }
-
-        public void CopyFrom(IYoonParameter pParam)
-        {
-            if (pParam is RemoteParameter pParamRemote)
-            {
-                IPAddress = pParamRemote.IPAddress;
-                Port = pParamRemote.Port;
-                TCPMode = pParamRemote.TCPMode;
+                if (pDataReceive.JointPos != null)
+                    ReceiveData.JointPos = pDataReceive.JointPos.Clone() as YoonJointD;
+                if (pDataReceive.CartPos != null)
+                    ReceiveData.CartPos = pDataReceive.CartPos.Clone() as YoonCartD;
             }
         }
+
     }
 
-    public class RemoteContainer : IYoonContainer, IYoonContainer<RemoteParameter>
+
+    public class RemoteContainer : IYoonContainer, IYoonContainer<eYoonRobotType, RemoteSection>
     {
-        #region IDisposable Support
+        #region Supported IDisposable Pattern
         ~RemoteContainer()
         {
             this.Dispose(false);
@@ -146,247 +150,200 @@ namespace YoonFactory.Robot.Remote
             if (disposing)
             {
                 ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
-                if (ObjectDictionary != null)
-                    ObjectDictionary.Clear();
-                ObjectDictionary = null;
-
             }
             //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
+            this.disposed = true;
+            Clear();
+            m_pDicSection = null;
+            m_pListKeyOrdered = null;
             this.disposed = true;
         }
         #endregion
 
-        public Dictionary<string, RemoteParameter> ObjectDictionary { get; private set; } = new Dictionary<string, RemoteParameter>();
-        public string RootDirectory { get; set; }
-        public RemoteParameter this[string strKey]
+        public static IEqualityComparer<eYoonRobotType> DefaultComparer;
+
+        class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonRobotType>
         {
-            get => GetValue(strKey);
-            set => SetValue(strKey, value);
+            public bool Equals(eYoonRobotType x, eYoonRobotType y)
+            {
+                return (x == y);
+            }
+
+            public int GetHashCode(eYoonRobotType obj)
+            {
+                return obj.GetHashCode();
+            }
         }
 
-        public RemoteContainer()
+        public string RootDirectory { get; set; }
+
+        private Dictionary<eYoonRobotType, RemoteSection> m_pDicSection;
+        private List<eYoonRobotType> m_pListKeyOrdered;
+
+        public bool IsOrdered
         {
-            SetDefault();
+            get
+            {
+                return m_pListKeyOrdered != null;
+            }
+            set
+            {
+                if (IsOrdered != value)
+                {
+                    m_pListKeyOrdered = value ? new List<eYoonRobotType>(m_pDicSection.Keys) : null;
+                }
+            }
+        }
+
+        public IEqualityComparer<eYoonRobotType> Comparer { get { return m_pDicSection.Comparer; } }
+
+        public static RemoteContainer Default
+        {
+            get
+            {
+                RemoteContainer pContainer = new RemoteContainer();
+                pContainer.Add(eYoonRobotType.UR, RemoteSection.DefaultUR);
+                pContainer.Add(eYoonRobotType.TM, RemoteSection.DefaultTM);
+                return pContainer;
+            }
+        }
+
+        public RemoteSection this[int nIndex]
+        {
+            get
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                return m_pDicSection[m_pListKeyOrdered[nIndex]];
+            }
+            set
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                var key = m_pListKeyOrdered[nIndex];
+                m_pDicSection[key] = value;
+            }
+        }
+
+        public RemoteSection this[eYoonRobotType nKey]
+        {
+            get
+            {
+                RemoteSection pSection;
+                if (m_pDicSection.TryGetValue(nKey, out pSection))
+                {
+                    return pSection;
+                }
+                return new RemoteSection(nKey);
+            }
+            set
+            {
+                if (IsOrdered && !m_pListKeyOrdered.Contains(nKey))
+                {
+                    m_pListKeyOrdered.Add(nKey);
+                }
+                m_pDicSection[nKey] = value;
+            }
+        }
+
+
+        public RemoteContainer()
+            : this(DefaultComparer)
+        {
+            //
+        }
+
+        public RemoteContainer(IEqualityComparer<eYoonRobotType> pComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonRobotType, RemoteSection>(pComparer);
+        }
+
+        public RemoteContainer(Dictionary<eYoonRobotType, RemoteSection> pDic)
+            : this(pDic, DefaultComparer)
+        {
+            //
+        }
+
+        public RemoteContainer(Dictionary<eYoonRobotType, RemoteSection> pDic, IEqualityComparer<eYoonRobotType> pComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonRobotType, RemoteSection>(pDic, pComparer);
+        }
+
+        public RemoteContainer(RemoteContainer pContainer)
+            : this(pContainer, default)
+        {
+            //
+        }
+
+        public RemoteContainer(RemoteContainer pContainer, IEqualityComparer<eYoonRobotType> pComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonRobotType, RemoteSection>(pContainer.m_pDicSection, pComparer);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
-            if (pContainer is RemoteContainer pRemoteContainer)
+            if (pContainer is RemoteContainer pParamContainer)
             {
-                ObjectDictionary.Clear();
-
-                RootDirectory = pRemoteContainer.RootDirectory;
-                ObjectDictionary = new Dictionary<string, RemoteParameter>(pRemoteContainer.ObjectDictionary);
+                Clear();
+                foreach (eYoonRobotType nkey in pParamContainer.Keys)
+                {
+                    Add(nkey, pParamContainer[nkey]);
+                }
             }
         }
 
         public IYoonContainer Clone()
         {
-            RemoteContainer pContainer = new RemoteContainer();
-            pContainer.RootDirectory = RootDirectory;
-            pContainer.ObjectDictionary = new Dictionary<string, RemoteParameter>(ObjectDictionary);
-            return pContainer;
-        }
-
-        public bool Add(string strKey, RemoteParameter pRemote)
-        {
-            try
-            {
-                ObjectDictionary.Add(strKey, pRemote);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Add(eYoonRobotType nRobot, eYoonRobotRemote nRemote, RemoteParameter pRemote)
-        {
-            string strKey = ConvertKey(nRobot, nRemote);
-            try
-            {
-                ObjectDictionary.Add(strKey, pRemote);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Remove(string strKey)
-        {
-            return ObjectDictionary.Remove(strKey);
-        }
-
-        public bool Remove(eYoonRobotType nRobot, eYoonRobotRemote nRemote)
-        {
-            string strKey = ConvertKey(nRobot, nRemote);
-            return ObjectDictionary.Remove(strKey);
+            return new RemoteContainer(this, Comparer);
         }
 
         public void Clear()
         {
-            ObjectDictionary.Clear();
-        }
-
-        public string GetKey(RemoteParameter pRemote)
-        {
-            foreach (string strKey in ObjectDictionary.Keys)
+            if (m_pDicSection != null)
+                m_pDicSection.Clear();
+            if (IsOrdered)
             {
-                if (ObjectDictionary[strKey] == pRemote)
-                    return strKey;
+                m_pListKeyOrdered.Clear();
             }
-            return string.Empty;
-        }
-
-        public RemoteParameter GetValue(string strKey)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                return ObjectDictionary[strKey];
-            else
-                return new RemoteParameter();
-        }
-
-        public RemoteParameter GetValue(eYoonRobotType nRobot, eYoonRobotRemote nRemote = eYoonRobotRemote.Socket)
-        {
-            string strKey = nRobot.ToString() + "_" + nRemote.ToString();
-            if (ObjectDictionary.ContainsKey(strKey))
-                return ObjectDictionary[strKey];
-            else
-                return new RemoteParameter();
-        }
-
-        public void SetValue(string strKey, RemoteParameter pRemote)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                ObjectDictionary[strKey] = pRemote;
-            else
-                Add(strKey, pRemote);
-        }
-
-        public void SetValue(eYoonRobotType nRobot, eYoonRobotRemote nRemote, RemoteParameter pRemote)
-        {
-            string strKey = ConvertKey(nRobot, nRemote);
-            if (ObjectDictionary.ContainsKey(strKey))
-                ObjectDictionary[strKey] = pRemote;
-            else
-                Add(nRobot, nRemote, pRemote);
-        }
-
-        public bool LoadValue(string strKey)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            eYoonRobotType nRobot = eYoonRobotType.None;
-            eYoonRobotRemote nRemote = eYoonRobotRemote.None;
-            ConvertKey(strKey, ref nRobot, ref nRemote);
-            string strFilePath = GetRemoteIniFilePath(nRobot, nRemote);
-            RemoteParameter pRemote = LoadRemoteFileFromIni(strFilePath, strKey);
-            if (pRemote == null) return false;
-
-            SetValue(strKey, pRemote);
-            return true;
-        }
-
-        public bool LoadValue(eYoonRobotType nRobot, eYoonRobotRemote nRemote)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            string strKey = ConvertKey(nRobot, nRemote);
-            string strFilePath = GetRemoteIniFilePath(nRobot, nRemote);
-            RemoteParameter pRemote = LoadRemoteFileFromIni(strFilePath, strKey);
-            if (pRemote == null) return false;
-
-            SetValue(strKey, pRemote);
-            return true;
-        }
-
-        public bool SaveValue(string strKey)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            eYoonRobotType nRobot = eYoonRobotType.None;
-            eYoonRobotRemote nRemote = eYoonRobotRemote.None;
-            ConvertKey(strKey, ref nRobot, ref nRemote);
-            string strFilePath = GetRemoteIniFilePath(nRobot, nRemote);
-            RemoteParameter pRemote = GetValue(strKey);
-            return SaveRemoteFileToIni(strFilePath, strKey, pRemote);
-        }
-
-        public bool SaveValue(eYoonRobotType nRobot, eYoonRobotRemote nRemote)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            string strKey = ConvertKey(nRobot, nRemote);
-            string strFilePath = GetRemoteIniFilePath(nRobot, nRemote);
-            RemoteParameter pRemote = GetValue(strKey);
-            return SaveRemoteFileToIni(strFilePath, strKey, pRemote);
-        }
-
-        public void ConvertKey(string strKey, ref eYoonRobotType nRobot, ref eYoonRobotRemote nRemote)
-        {
-            string[] strKeys = strKey.Split('_');
-            if (strKeys.Length >= 2)
-            {
-                nRobot = (eYoonRobotType)Enum.Parse(typeof(eYoonRobotType), strKeys[0]);
-                nRemote = (eYoonRobotRemote)Enum.Parse(typeof(eYoonRobotRemote), strKeys[1]);
-            }
-        }
-
-        public string ConvertKey(eYoonRobotType nRobot, eYoonRobotRemote nRemote)
-        {
-            return nRobot.ToString() + "_" + nRemote.ToString();
-        }
-
-        private string GetRemoteIniFilePath(eYoonRobotType nRobot, eYoonRobotRemote nRemote)
-        {
-            return Path.Combine(RootDirectory, string.Format(@"Remote{0}{1}.ini", nRobot.ToString(), nRemote.ToString()));
-        }
-
-        private RemoteParameter LoadRemoteFileFromIni(string strFilePath, string strKey)
-        {
-            if (RootDirectory == string.Empty) return null;
-
-            RemoteParameter pRemote = new RemoteParameter();
-            YoonIni ic = new YoonIni(strFilePath);
-            ic.LoadFile();
-            pRemote.IPAddress = ic[strKey]["IP"].ToString("127.0.0.1");
-            pRemote.Port = ic[strKey]["Port"].ToString("1234");
-            pRemote.TCPMode = ic[strKey]["Mode"].ToEnum(eYoonCommType.TCPServer);
-            return pRemote;
-        }
-
-        private bool SaveRemoteFileToIni(string strFilePath, string strKey, RemoteParameter pRemote)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            YoonIni ic = new YoonIni(strFilePath);
-            ic[strKey]["IP"] = pRemote.IPAddress;
-            ic[strKey]["Port"] = pRemote.Port;
-            ic[strKey]["Mode"] = pRemote.TCPMode.ToString();
-            ic.SaveFile();
-            return true;
         }
 
         public bool LoadAll()
         {
-            if (ObjectDictionary == null)
-                ObjectDictionary = new Dictionary<string, RemoteParameter>();
-            ObjectDictionary.Clear();
+            if (RootDirectory == string.Empty) return false;
+            bool bResult = true;
+            foreach (eYoonRobotType nKey in m_pDicSection.Keys)
+            {
+                if (!LoadValue(nKey))
+                    bResult = false;
+            }
+            return bResult;
+        }
+
+        public bool LoadValue(eYoonRobotType nKey)
+        {
+            if (RootDirectory == string.Empty) return false;
 
             bool bResult = true;
-            for (int iRobot = 0; iRobot < Enum.GetValues(typeof(eYoonRobotType)).Length - 1; iRobot++)
+            if (!m_pDicSection.ContainsKey(nKey))
+                Add(nKey, new RemoteSection(nKey));
+            else
             {
-                eYoonRobotType nRobot = (eYoonRobotType)iRobot; // LG, UR, TM
-                if (nRobot == eYoonRobotType.None) continue;
-
-                for (int iComm = 0; iComm < Enum.GetValues(typeof(eYoonRobotRemote)).Length - 1; iComm++)
+                m_pDicSection[nKey].ParantsType = nKey;
+                foreach (eYoonRemoteType nRemote in m_pDicSection[nKey].Keys)
                 {
-                    eYoonRobotRemote nComm = (eYoonRobotRemote)iComm; // Socket, Script, Dashboard
-                    if (nComm == eYoonRobotRemote.None) continue;
-                    if (!LoadValue(nRobot, nComm))
+                    if (!m_pDicSection[nKey].LoadValue(nRemote))
                         bResult = false;
                 }
             }
@@ -395,145 +352,373 @@ namespace YoonFactory.Robot.Remote
 
         public bool SaveAll()
         {
-            if (ObjectDictionary == null)
-                return false;
-
+            if (RootDirectory == string.Empty) return false;
             bool bResult = true;
-            foreach (string strKey in ObjectDictionary.Keys)
+            foreach (eYoonRobotType nKey in m_pDicSection.Keys)
             {
-                if (!SaveValue(strKey))
+                if (!SaveValue(nKey))
                     bResult = false;
             }
             return bResult;
         }
 
-        public void SetDefault()
+        public bool SaveValue(eYoonRobotType nKey)
         {
-            if (ObjectDictionary == null)
-                ObjectDictionary = new Dictionary<string, RemoteParameter>();
-            ObjectDictionary.Clear();
+            if (RootDirectory == string.Empty) return false;
 
-            for (int iRobot = 0; iRobot < Enum.GetValues(typeof(eYoonRobotType)).Length - 1; iRobot++)
+            if (!m_pDicSection.ContainsKey(nKey))
+                return false;
+
+            bool bResult = true;
+            m_pDicSection[nKey].ParantsType = nKey;
+            foreach (eYoonRemoteType nRemote in m_pDicSection[nKey].Keys)
             {
-                eYoonRobotType nRobot = (eYoonRobotType)iRobot; // LG, UR, TM
-                if (nRobot == eYoonRobotType.None) continue;
+                if (!m_pDicSection[nKey].SaveValue(nRemote))
+                    bResult = false;
+            }
+            return bResult;
+        }
 
-                for (int iComm = 0; iComm < Enum.GetValues(typeof(eYoonRobotRemote)).Length - 1; iComm++)
+        public int IndexOf(eYoonRobotType nKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType) on ParameterContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int IndexOf(eYoonRobotType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int) on ParameterContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int IndexOf(eYoonRobotType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int, int) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = nIndex; i < end; i++)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
                 {
-                    eYoonRobotRemote nComm = (eYoonRobotRemote)iComm; // Socket, Script, Dashboard
-                    if (nComm == eYoonRobotRemote.None) continue;
-
-                    RemoteParameter pRemote = new RemoteParameter();
-                    switch (ConvertKey(nRobot, nComm))
-                    {
-                        case "LG_Socket":
-                            pRemote.IPAddress = "192.168.101.100";
-                            pRemote.Port = "30000";
-                            pRemote.TCPMode = eYoonCommType.TCPServer;
-                            break;
-                        case "UR_Dashboard":
-                            pRemote.IPAddress = "192.168.101.101";
-                            pRemote.Port = "29999";
-                            pRemote.TCPMode = eYoonCommType.TCPClient;
-                            break;
-                        case "UR_Script":
-                            pRemote.IPAddress = "192.168.101.101";
-                            pRemote.Port = "30001";
-                            pRemote.TCPMode = eYoonCommType.TCPClient;
-                            break;
-                        case "UR_Socket":
-                            pRemote.IPAddress = "192.168.101.101";
-                            pRemote.Port = "50000";
-                            pRemote.TCPMode = eYoonCommType.TCPClient;
-                            break;
-                        case "TM_Script":
-                            pRemote.IPAddress = "192.168.101.102";
-                            pRemote.Port = "5890";
-                            pRemote.TCPMode = eYoonCommType.TCPClient;
-                            break;
-                        case "TM_Socket":
-                            pRemote.IPAddress = "192.168.101.102";
-                            pRemote.Port = "30000";
-                            pRemote.TCPMode = eYoonCommType.TCPServer;
-                            break;
-                        default:
-                            pRemote.Port = "11111";
-                            pRemote.TCPMode = eYoonCommType.TCPServer;
-                            break;
-                    }
-
-                    Add(nRobot, nComm, pRemote);
+                    return i;
                 }
             }
+            return -1;
         }
-    }
 
-    public delegate void RemoteLogCallback(object sender, RemoteLogArgs e);
-    public class RemoteLogArgs : EventArgs
-    {
-        public DateTime Time;
-        public eYoonStatus Status;
-        public string LogMessage;
-
-        public RemoteLogArgs(eYoonStatus nStatus, string strMessage)
+        public int LastIndexOf(eYoonRobotType nKey)
         {
-            Time = DateTime.Now;
-            Status = nStatus;
-            switch (Status)
+            if (!IsOrdered)
             {
-                case eYoonStatus.OK:
-                    this.LogMessage = "[OK] : " + strMessage;
-                    break;
-                case eYoonStatus.NG:
-                    this.LogMessage = "[NG] : " + strMessage;
-                    break;
-                case eYoonStatus.Error:
-                    this.LogMessage = "[ERR] : " + strMessage;
-                    break;
-                default:
-                    this.LogMessage = "RemoteFactory : " + strMessage;
-                    break;
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType) on ParameterContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int LastIndexOf(eYoonRobotType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int) on ParameterContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int LastIndexOf(eYoonRobotType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int, int) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name : nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and Count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = end - 1; i >= nIndex; i--)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Insert(int nIndex, eYoonRobotType nKey, RemoteSection pValue)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Insert(int, eYoonRobotType, ParameterSection) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            m_pDicSection.Add(nKey, pValue);
+            m_pListKeyOrdered.Insert(nIndex, nKey);
+        }
+
+        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<eYoonRobotType, RemoteSection>> pCollection)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRobotType, ParameterSection>>) on ParameterContainer: container was not ordered.");
+            }
+            if (pCollection == null)
+            {
+                throw new ArgumentNullException("Value cannot be null." + Environment.NewLine + "Parameter name: pCollection");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            foreach (var kvp in pCollection)
+            {
+                Insert(nIndex, kvp.Key, kvp.Value);
+                nIndex++;
             }
         }
-    }
 
-    public delegate void RemoteResultCallback(object sender, RemoteResultArgs e);
-    public class RemoteResultArgs : EventArgs
-    {
-        public eYoonStatus Status;
-        public string Message;
-        public eYoonRobotRemoteHeadReceive ReceiveHead;
-        public ParamRobotReceive ReceiveData;
-
-        public RemoteResultArgs(eYoonStatus nStatus, string strMessage)
+        public void RemoveAt(int nIndex)
         {
-            Status = nStatus;
-            ReceiveHead = eYoonRobotRemoteHeadReceive.None;
-            ReceiveData = new ParamRobotReceive();
-            Message = strMessage;
-        }
-        public RemoteResultArgs(eYoonStatus nStatus, eYoonRobotRemoteHeadReceive nHead, string strMessage)
-        {
-            Status = nStatus;
-            ReceiveHead = eYoonRobotRemoteHeadReceive.None;
-            ReceiveData = new ParamRobotReceive();
-            Message = strMessage;
-        }
-
-        public RemoteResultArgs(eYoonRobotRemoteHeadReceive nHead, ParamRobotReceive pDataReceive, string strMessage)
-        {
-            Status = eYoonStatus.OK;
-            ReceiveHead = nHead;
-            Message = strMessage;
-            ReceiveData = new ParamRobotReceive();
+            if (!IsOrdered)
             {
-                if (pDataReceive.JointPos != null)
-                    ReceiveData.JointPos = pDataReceive.JointPos.Clone() as YoonJointD;
-                if (pDataReceive.CartPos != null)
-                    ReceiveData.CartPos = pDataReceive.CartPos.Clone() as YoonCartD;
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            var key = m_pListKeyOrdered[nIndex];
+            m_pListKeyOrdered.RemoveAt(nIndex);
+            m_pDicSection.Remove(key);
+        }
+
+        public void RemoveRange(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            for (int i = 0; i < nCount; i++)
+            {
+                RemoveAt(nIndex);
             }
         }
 
-    }
+        public void Reverse()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse() on ParameterContainer: container was not ordered.");
+            }
+            m_pListKeyOrdered.Reverse();
+        }
 
+        public void Reverse(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            m_pListKeyOrdered.Reverse(nIndex, nCount);
+        }
+
+        public ICollection<RemoteSection> GetOrderedValues()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterContainer: container was not ordered.");
+            }
+            var list = new List<RemoteSection>();
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                list.Add(m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+            return list;
+        }
+
+        public void Add(eYoonRobotType nkey, RemoteSection pValue)
+        {
+            m_pDicSection.Add(nkey, pValue);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(nkey);
+            }
+        }
+
+        public bool ContainsKey(eYoonRobotType nKey)
+        {
+            return m_pDicSection.ContainsKey(nKey);
+        }
+
+        public ICollection<eYoonRobotType> Keys
+        {
+            get { return IsOrdered ? (ICollection<eYoonRobotType>)m_pListKeyOrdered : m_pDicSection.Keys; }
+        }
+
+        public ICollection<RemoteSection> Values
+        {
+            get
+            {
+                return m_pDicSection.Values;
+            }
+        }
+
+        public bool Remove(eYoonRobotType nKey)
+        {
+            var ret = m_pDicSection.Remove(nKey);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public bool TryGetValue(eYoonRobotType nKey, out RemoteSection pValue)
+        {
+            return m_pDicSection.TryGetValue(nKey, out pValue);
+        }
+
+        public int Count
+        {
+            get { return m_pDicSection.Count; }
+        }
+
+        void ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.Add(KeyValuePair<eYoonRobotType, RemoteSection> pCollection)
+        {
+            ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).Add(pCollection);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(pCollection.Key);
+            }
+        }
+
+        bool ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.Contains(KeyValuePair<eYoonRobotType, RemoteSection> pCollection)
+        {
+            return ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).Contains(pCollection);
+        }
+
+        void ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.CopyTo(KeyValuePair<eYoonRobotType, RemoteSection>[] pArray, int nIndexArray)
+        {
+            ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).CopyTo(pArray, nIndexArray);
+        }
+
+        bool ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.IsReadOnly
+        {
+            get { return ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).IsReadOnly; }
+        }
+
+        bool ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.Remove(KeyValuePair<eYoonRobotType, RemoteSection> pCollection)
+        {
+            var ret = ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).Remove(pCollection);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], pCollection.Key))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public IEnumerator<KeyValuePair<eYoonRobotType, RemoteSection>> GetEnumerator()
+        {
+            if (IsOrdered)
+            {
+                return GetOrderedEnumerator();
+            }
+            else
+            {
+                return m_pDicSection.GetEnumerator();
+            }
+        }
+
+        private IEnumerator<KeyValuePair<eYoonRobotType, RemoteSection>> GetOrderedEnumerator()
+        {
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                yield return new KeyValuePair<eYoonRobotType, RemoteSection>(m_pListKeyOrdered[i], m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public static implicit operator RemoteContainer(Dictionary<eYoonRobotType, RemoteSection> pDic)
+        {
+            return new RemoteContainer(pDic);
+        }
+
+        public static explicit operator Dictionary<eYoonRobotType, RemoteSection>(RemoteContainer pContainer)
+        {
+            return pContainer.m_pDicSection;
+        }
+    }
 }

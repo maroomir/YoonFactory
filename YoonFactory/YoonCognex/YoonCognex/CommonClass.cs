@@ -225,10 +225,10 @@ namespace YoonFactory.Cognex
         }
     }
 
-    public class CogToolContainer : IYoonContainer, IYoonContainer<ICogTool>
+    public class ToolContainer : IYoonContainer, IYoonContainer<eYoonCognexType, ToolSection>
     {
         #region Supported IDisposable Pattern
-        ~CogToolContainer()
+        ~ToolContainer()
         {
             this.Dispose(false);
         }
@@ -246,230 +246,548 @@ namespace YoonFactory.Cognex
             if (disposing)
             {
                 ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
-                if (ObjectDictionary != null)
-                    ObjectDictionary.Clear();
-                ObjectDictionary = null;
-
             }
             //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
+            this.disposed = true;
+            Clear();
+            m_pDicSection = null;
+            m_pListKeyOrdered = null;
             this.disposed = true;
         }
         #endregion
 
-        public Dictionary<string, ICogTool> ObjectDictionary { get; private set; } = new Dictionary<string, ICogTool>();
-        public string RootDirectory { get; set; }
-        public ICogTool this[string strKey]
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+
+        class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
-            get => GetValue(strKey);
-            set => SetValue(strKey, value);
+            public bool Equals(eYoonCognexType x, eYoonCognexType y)
+            {
+                return (x == y);
+            }
+
+            public int GetHashCode(eYoonCognexType obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
+        public string RootDirectory { get; set; }
+
+        private Dictionary<eYoonCognexType, ToolSection> m_pDicSection;
+        private List<eYoonCognexType> m_pListKeyOrdered;
+
+        public bool IsOrdered
+        {
+            get
+            {
+                return m_pListKeyOrdered != null;
+            }
+            set
+            {
+                if (IsOrdered != value)
+                {
+                    m_pListKeyOrdered = value ? new List<eYoonCognexType>(m_pDicSection.Keys) : null;
+                }
+            }
+        }
+
+
+        public IEqualityComparer<eYoonCognexType> Comparer { get { return m_pDicSection.Comparer; } }
+
+        public ToolSection this[int nIndex]
+        {
+            get
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                return m_pDicSection[m_pListKeyOrdered[nIndex]];
+            }
+            set
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                var key = m_pListKeyOrdered[nIndex];
+                m_pDicSection[key] = value;
+            }
+        }
+
+        public ToolSection this[eYoonCognexType nKey]
+        {
+            get
+            {
+                ToolSection pSection;
+                if (m_pDicSection.TryGetValue(nKey, out pSection))
+                {
+                    return pSection;
+                }
+                return new ToolSection(nKey);
+            }
+            set
+            {
+                if (IsOrdered && !m_pListKeyOrdered.Contains(nKey, Comparer))
+                {
+                    m_pListKeyOrdered.Add(nKey);
+                }
+                m_pDicSection[nKey] = value;
+            }
+        }
+
+
+        public ToolContainer()
+            : this(DefaultComparer)
+        {
+            //
+        }
+
+        public ToolContainer(IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pStringComparer);
+        }
+
+        public ToolContainer(Dictionary<eYoonCognexType, ToolSection> pDic)
+            : this(pDic, DefaultComparer)
+        {
+            //
+        }
+
+        public ToolContainer(Dictionary<eYoonCognexType, ToolSection> pDic, IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pDic, pStringComparer);
+        }
+
+        public ToolContainer(ToolContainer pContainer)
+            : this(pContainer, default)
+        {
+            //
+        }
+
+        public ToolContainer(ToolContainer pContainer, IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pContainer.m_pDicSection, pStringComparer);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
-            if(pContainer is CogToolContainer pToolContainer)
+            if (pContainer is ToolContainer pToolContainer)
             {
-                ObjectDictionary.Clear();
-
-                RootDirectory = pToolContainer.RootDirectory;
-                ObjectDictionary = new Dictionary<string, ICogTool>(pToolContainer.ObjectDictionary);
+                Clear();
+                foreach (eYoonCognexType nkey in pToolContainer.Keys)
+                {
+                    Add(nkey, pToolContainer[nkey]);
+                }
             }
         }
 
         public IYoonContainer Clone()
         {
-            CogToolContainer pContainer = new CogToolContainer();
-            pContainer.RootDirectory = RootDirectory;
-            pContainer.ObjectDictionary = new Dictionary<string, ICogTool>(ObjectDictionary);
-            return pContainer;
-        }
-
-        public bool Add(string strKey, ICogTool pCogTool)
-        {
-            try
-            {
-                ObjectDictionary.Add(strKey, pCogTool);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Add(eYoonCognexType nType, string strTag, ICogTool pCogTool)
-        {
-            string strKey = nType.ToString() + "_" + strTag;
-            try
-            {
-                ObjectDictionary.Add(strKey, pCogTool);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Remove(string strKey)
-        {
-            return ObjectDictionary.Remove(strKey);
-        }
-
-        public bool Remove(eYoonCognexType nType, string strTag)
-        {
-            string strKey = nType.ToString() + "_" + strTag;
-            return ObjectDictionary.Remove(strKey);
+            return new ToolContainer(this, Comparer);
         }
 
         public void Clear()
         {
-            ObjectDictionary.Clear();
-        }
-
-        public string GetKey(ICogTool pCogTool)
-        {
-            foreach(string strKey in ObjectDictionary.Keys)
+            if (m_pDicSection != null)
+                m_pDicSection.Clear();
+            if (IsOrdered)
             {
-                if (ObjectDictionary[strKey] == pCogTool)
-                    return strKey;
-            }
-            return string.Empty;
-        }
-
-        public ICogTool GetValue(string strKey)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                return ObjectDictionary[strKey];
-            else
-                return null;
-        }
-
-        public ICogTool GetValue(eYoonCognexType nType, string strTag)
-        {
-            string strKeys = nType.ToString() + "_" + strTag;
-            if (ObjectDictionary.ContainsKey(strKeys))
-                return ObjectDictionary[strKeys];
-            else
-                return CogToolFactory.InitCognexTool(nType);
-        }
-
-        public void SetValue(string strKey, ICogTool pCogTool)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                ObjectDictionary[strKey] = pCogTool;
-            else
-                Add(strKey, pCogTool);
-        }
-
-        public void SetValue(eYoonCognexType nType, string strTag, ICogTool pCogTool)
-        {
-            string strKeys = nType.ToString() + "_" + strTag;
-            if (ObjectDictionary.ContainsKey(strKeys))
-                ObjectDictionary[strKeys] = pCogTool;
-            else
-                Add(nType, strTag, pCogTool);
-        }
-
-        public bool LoadValue(string strKey)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            eYoonCognexType nType = eYoonCognexType.None;
-            string strTag = string.Empty;
-            ConvertKey(strKey, ref nType, ref strTag);
-            string strFilePath = GetCognexToolFilePath(nType, strTag);
-            ICogTool pCogTool = CogToolFactory.LoadCognexToolFromVpp(strFilePath);
-            if (pCogTool == null) return false;
-
-            SetValue(nType, strTag, pCogTool);
-            return true;
-        }
-
-        public bool LoadValue(eYoonCognexType nType, string strTag)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            string strFilePath = GetCognexToolFilePath(nType, strTag);
-            ICogTool pCogTool = CogToolFactory.LoadCognexToolFromVpp(strFilePath);
-            if (pCogTool == null) return false;
-
-            SetValue(nType, strTag, pCogTool);
-            return true;
-        }
-
-        public bool SaveValue(string strKey)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            eYoonCognexType nType = eYoonCognexType.None;
-            string strTag = string.Empty;
-            ConvertKey(strKey, ref nType, ref strTag);
-            string strFilePath = GetCognexToolFilePath(nType, strTag);
-            ICogTool pCogTool = GetValue(nType, strTag);
-            return CogToolFactory.SaveCognexToolToVpp(pCogTool, strFilePath);
-        }
-
-        public bool SaveValue(eYoonCognexType nType, string strTag)
-        {
-            if (RootDirectory == string.Empty) return false;
-
-            string strFilePath = GetCognexToolFilePath(nType, strTag);
-            ICogTool pCogTool = GetValue(nType, strTag);
-            return CogToolFactory.SaveCognexToolToVpp(pCogTool, strFilePath);
-        }
-
-        public void ConvertKey(string strKey, ref eYoonCognexType nType, ref string strTag)
-        {
-            string[] strKeys = strKey.Split('_');
-            if (strKeys.Length >= 2)
-            {
-                nType = (eYoonCognexType)Enum.Parse(typeof(eYoonCognexType), strKeys[0]);
-                strTag = strKeys[1];
+                m_pListKeyOrdered.Clear();
             }
         }
 
-        private string GetCognexToolFilePath(eYoonCognexType pType, string strTag)
+        public bool LoadValue(eYoonCognexType nKey)
         {
-            switch (pType)
+            if (RootDirectory == string.Empty) return false;
+
+            bool bResult = true;
+            if (!m_pDicSection.ContainsKey(nKey))
+                Add(nKey, new ToolSection(nKey));
+            else
             {
-                case eYoonCognexType.Blob:
-                    return Path.Combine(RootDirectory, string.Format(@"CogBlobTool{0}.vpp", strTag));
-                case eYoonCognexType.Calibration:
-                    return Path.Combine(RootDirectory, string.Format(@"CogCalibCheckerBoardTool{0}.vpp", strTag));
-                case eYoonCognexType.ColorExtract:
-                    return Path.Combine(RootDirectory, string.Format(@"CogColorExtractorTool{0}.vpp", strTag));
-                case eYoonCognexType.ColorSegment:
-                    return Path.Combine(RootDirectory, string.Format(@"CogColorSegmenterTool{0}.vpp", strTag));
-                case eYoonCognexType.LineFitting:
-                    return Path.Combine(RootDirectory, string.Format(@"CogLineFittingTool{0}.vpp", strTag));
-                case eYoonCognexType.Filtering:
-                    return Path.Combine(RootDirectory, string.Format(@"CogIPOneImageTool{0}.vpp", strTag));
-                case eYoonCognexType.Convert:
-                    return Path.Combine(RootDirectory, string.Format(@"CogImageConvertTool{0}.vpp", strTag));
-                case eYoonCognexType.Sharpness:
-                    return Path.Combine(RootDirectory, string.Format(@"CogImageSharpnessTool{0}.vpp", strTag));
-                case eYoonCognexType.Sobel:
-                    return Path.Combine(RootDirectory, string.Format(@"CogSobelEdgeTool{0}.vpp", strTag));
-                case eYoonCognexType.PMAlign:
-                    return Path.Combine(RootDirectory, string.Format(@"CogMainPMAlignTool{0}.vpp", strTag));
-                case eYoonCognexType.ImageAdd:
-                    return Path.Combine(RootDirectory, string.Format(@"CogIPTwoImageAddTool{0}.vpp", strTag));
-                case eYoonCognexType.ImageMinMax:
-                    return Path.Combine(RootDirectory, string.Format(@"CogIPTwoImageMinMaxTool{0}.vpp", strTag));
-                case eYoonCognexType.ImageSubtract:
-                    return Path.Combine(RootDirectory, string.Format(@"CogIPTwoImageSubstractTool{0}.vpp", strTag));
-                default:
-                    break;
+                m_pDicSection[nKey].ParantsType = nKey;
+                foreach (string strTag in m_pDicSection[nKey].Keys)
+                {
+                    if (!m_pDicSection[nKey].LoadValue(strTag))
+                        bResult = false;
+                }
             }
-            return string.Empty;
+            return bResult;
+        }
+
+        public bool SaveValue(eYoonCognexType nKey)
+        {
+            if (RootDirectory == string.Empty) return false;
+
+            if (!m_pDicSection.ContainsKey(nKey))
+                return false;
+
+            bool bResult = true;
+            m_pDicSection[nKey].ParantsType = nKey;
+            foreach (string strTag in m_pDicSection[nKey].Keys)
+            {
+                if (!m_pDicSection[nKey].SaveValue(strTag))
+                    bResult = false;
+            }
+            return bResult;
+        }
+
+        public int IndexOf(eYoonCognexType nKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType) on ToolContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int IndexOf(eYoonCognexType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType, int) on ToolContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int IndexOf(eYoonCognexType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType, int, int) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = nIndex; i < end; i++)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType) on ToolContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType, int) on ToolContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType, int, int) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name : nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and Count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = end - 1; i >= nIndex; i--)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Insert(int nIndex, eYoonCognexType nKey, ToolSection pValue)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Insert(int, eYoonCognexType, ToolSection) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            m_pDicSection.Add(nKey, pValue);
+            m_pListKeyOrdered.Insert(nIndex, nKey);
+        }
+
+        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<eYoonCognexType, ToolSection>> pCollection)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonCognexType, ToolSection>>) on ToolContainer: container was not ordered.");
+            }
+            if (pCollection == null)
+            {
+                throw new ArgumentNullException("Value cannot be null." + Environment.NewLine + "Parameter name: pCollection");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            foreach (var kvp in pCollection)
+            {
+                Insert(nIndex, kvp.Key, kvp.Value);
+                nIndex++;
+            }
+        }
+
+        public void RemoveAt(int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            var key = m_pListKeyOrdered[nIndex];
+            m_pListKeyOrdered.RemoveAt(nIndex);
+            m_pDicSection.Remove(key);
+        }
+
+        public void RemoveRange(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            for (int i = 0; i < nCount; i++)
+            {
+                RemoveAt(nIndex);
+            }
+        }
+
+        public void Reverse()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse() on ToolContainer: container was not ordered.");
+            }
+            m_pListKeyOrdered.Reverse();
+        }
+
+        public void Reverse(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ToolContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            m_pListKeyOrdered.Reverse(nIndex, nCount);
+        }
+
+        public ICollection<ToolSection> GetOrderedValues()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ToolContainer: container was not ordered.");
+            }
+            var list = new List<ToolSection>();
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                list.Add(m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+            return list;
+        }
+
+        public void Add(eYoonCognexType nkey, ToolSection pValue)
+        {
+            m_pDicSection.Add(nkey, pValue);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(nkey);
+            }
+        }
+
+        public bool ContainsKey(eYoonCognexType nKey)
+        {
+            return m_pDicSection.ContainsKey(nKey);
+        }
+
+        public ICollection<eYoonCognexType> Keys
+        {
+            get { return IsOrdered ? (ICollection<eYoonCognexType>)m_pListKeyOrdered : m_pDicSection.Keys; }
+        }
+
+        public ICollection<ToolSection> Values
+        {
+            get
+            {
+                return m_pDicSection.Values;
+            }
+        }
+
+        public bool Remove(eYoonCognexType nKey)
+        {
+            var ret = m_pDicSection.Remove(nKey);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public bool TryGetValue(eYoonCognexType nKey, out ToolSection pValue)
+        {
+            return m_pDicSection.TryGetValue(nKey, out pValue);
+        }
+
+        public int Count
+        {
+            get { return m_pDicSection.Count; }
+        }
+
+        void ICollection<KeyValuePair<eYoonCognexType, ToolSection>>.Add(KeyValuePair<eYoonCognexType, ToolSection> pCollection)
+        {
+            ((IDictionary<eYoonCognexType, ToolSection>)m_pDicSection).Add(pCollection);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(pCollection.Key);
+            }
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ToolSection>>.Contains(KeyValuePair<eYoonCognexType, ToolSection> pCollection)
+        {
+            return ((IDictionary<eYoonCognexType, ToolSection>)m_pDicSection).Contains(pCollection);
+        }
+
+        void ICollection<KeyValuePair<eYoonCognexType, ToolSection>>.CopyTo(KeyValuePair<eYoonCognexType, ToolSection>[] pArray, int nIndexArray)
+        {
+            ((IDictionary<eYoonCognexType, ToolSection>)m_pDicSection).CopyTo(pArray, nIndexArray);
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ToolSection>>.IsReadOnly
+        {
+            get { return ((IDictionary<eYoonCognexType, ToolSection>)m_pDicSection).IsReadOnly; }
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ToolSection>>.Remove(KeyValuePair<eYoonCognexType, ToolSection> pCollection)
+        {
+            var ret = ((IDictionary<eYoonCognexType, ToolSection>)m_pDicSection).Remove(pCollection);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], pCollection.Key))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public IEnumerator<KeyValuePair<eYoonCognexType, ToolSection>> GetEnumerator()
+        {
+            if (IsOrdered)
+            {
+                return GetOrderedEnumerator();
+            }
+            else
+            {
+                return m_pDicSection.GetEnumerator();
+            }
+        }
+
+        private IEnumerator<KeyValuePair<eYoonCognexType, ToolSection>> GetOrderedEnumerator()
+        {
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                yield return new KeyValuePair<eYoonCognexType, ToolSection>(m_pListKeyOrdered[i], m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public static implicit operator ToolContainer(Dictionary<eYoonCognexType, ToolSection> pDic)
+        {
+            return new ToolContainer(pDic);
+        }
+
+        public static explicit operator Dictionary<eYoonCognexType, ToolSection>(ToolContainer pContainer)
+        {
+            return pContainer.m_pDicSection;
         }
     }
 
-    public class CogResultContainer : IYoonContainer, IYoonContainer<CognexResult>
+    public class ResultContainer : IYoonContainer, IYoonContainer<eYoonCognexType, ResultSection>
     {
-
         #region Supported IDisposable Pattern
-        ~CogResultContainer()
+        ~ResultContainer()
         {
             this.Dispose(false);
         }
@@ -487,176 +805,540 @@ namespace YoonFactory.Cognex
             if (disposing)
             {
                 ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
-                if (ObjectDictionary != null)
-                    ObjectDictionary.Clear();
-                ObjectDictionary = null;
-
             }
             //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
+            this.disposed = true;
+            Clear();
+            m_pDicSection = null;
+            m_pListKeyOrdered = null;
             this.disposed = true;
         }
         #endregion
 
-        public Dictionary<string, CognexResult> ObjectDictionary { get; private set; } = new Dictionary<string, CognexResult>();
-        public string RootDirectory { get; set; }
-        public CognexResult this[string strKey]
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+
+        class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
-            get => GetValue(strKey);
-            set => SetValue(strKey, value);
+            public bool Equals(eYoonCognexType x, eYoonCognexType y)
+            {
+                return (x == y);
+            }
+
+            public int GetHashCode(eYoonCognexType obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
+        public string RootDirectory { get; set; }
+
+        private Dictionary<eYoonCognexType, ResultSection> m_pDicSection;
+        private List<eYoonCognexType> m_pListKeyOrdered;
+
+        public bool IsOrdered
+        {
+            get
+            {
+                return m_pListKeyOrdered != null;
+            }
+            set
+            {
+                if (IsOrdered != value)
+                {
+                    m_pListKeyOrdered = value ? new List<eYoonCognexType>(m_pDicSection.Keys) : null;
+                }
+            }
+        }
+
+        public IEqualityComparer<eYoonCognexType> Comparer { get { return m_pDicSection.Comparer; } }
+
+        public ResultSection this[int nIndex]
+        {
+            get
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ResultContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                return m_pDicSection[m_pListKeyOrdered[nIndex]];
+            }
+            set
+            {
+                if (!IsOrdered)
+                {
+                    throw new InvalidOperationException("Cannot index ResultContainer using integer key: container was not ordered.");
+                }
+                if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
+                {
+                    throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: index");
+                }
+                var key = m_pListKeyOrdered[nIndex];
+                m_pDicSection[key] = value;
+            }
+        }
+
+        public ResultSection this[eYoonCognexType nKey]
+        {
+            get
+            {
+                ResultSection pSection;
+                if (m_pDicSection.TryGetValue(nKey, out pSection))
+                {
+                    return pSection;
+                }
+                return new ResultSection(nKey);
+            }
+            set
+            {
+                if (IsOrdered && !m_pListKeyOrdered.Contains(nKey, Comparer))
+                {
+                    m_pListKeyOrdered.Add(nKey);
+                }
+                m_pDicSection[nKey] = value;
+            }
+        }
+
+
+        public ResultContainer()
+            : this(DefaultComparer)
+        {
+            //
+        }
+
+        public ResultContainer(IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pStringComparer);
+        }
+
+        public ResultContainer(Dictionary<eYoonCognexType, ResultSection> pDic)
+            : this(pDic, DefaultComparer)
+        {
+            //
+        }
+
+        public ResultContainer(Dictionary<eYoonCognexType, ResultSection> pDic, IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pDic, pStringComparer);
+        }
+
+        public ResultContainer(ResultContainer pContainer)
+            : this(pContainer, default)
+        {
+            //
+        }
+
+        public ResultContainer(ResultContainer pContainer, IEqualityComparer<eYoonCognexType> pStringComparer)
+        {
+            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pContainer.m_pDicSection, pStringComparer);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
-            if (pContainer is CogResultContainer pResultContainer)
+            if (pContainer is ResultContainer pResultContainer)
             {
-                ObjectDictionary.Clear();
-                ObjectDictionary = new Dictionary<string, CognexResult>(pResultContainer.ObjectDictionary);
-                RootDirectory = pResultContainer.RootDirectory;
+                Clear();
+                foreach (eYoonCognexType nkey in pResultContainer.Keys)
+                {
+                    Add(nkey, pResultContainer[nkey]);
+                }
             }
         }
 
         public IYoonContainer Clone()
         {
-            CogResultContainer pContainer = new CogResultContainer();
-            pContainer.ObjectDictionary = new Dictionary<string, CognexResult>(ObjectDictionary);
-            pContainer.RootDirectory = RootDirectory;
-            return pContainer;
-        }
-
-        public bool Add(string strKey, CognexResult pResult)
-        {
-            try
-            {
-                ObjectDictionary.Add(strKey, pResult);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Add(eYoonCognexType nType, string strTag, CognexResult pResult)
-        {
-            try
-            {
-                string strKeys = nType.ToString() + "_" + strTag;
-                ObjectDictionary.Add(strKeys, pResult);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool Remove(eYoonCognexType nType, string strTag)
-        {
-            string strKeys = nType.ToString() + "_" + strTag;
-            return ObjectDictionary.Remove(strKeys);
-        }
-
-        public bool Remove(string strKey)
-        {
-            return ObjectDictionary.Remove(strKey);
+            return new ResultContainer(this, Comparer);
         }
 
         public void Clear()
         {
-            ObjectDictionary.Clear();
-        }
-
-        public string GetKey(CognexResult pResult)
-        {
-            foreach (string strKey in ObjectDictionary.Keys)
+            if (m_pDicSection != null)
+                m_pDicSection.Clear();
+            if (IsOrdered)
             {
-                if (ObjectDictionary[strKey] == pResult)
-                    return strKey;
-            }
-            return string.Empty;
-        }
-
-        public CognexResult GetValue(string strKey)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                return ObjectDictionary[strKey];
-            else
-                return null;
-        }
-
-        public CognexResult GetValue(eYoonCognexType nType, string strTag)
-        {
-            string strKeys = nType.ToString() + "_" + strTag;
-            if (ObjectDictionary.ContainsKey(strKeys))
-                return ObjectDictionary[strKeys];
-            else
-                return null;
-        }
-
-        public void SetValue(string strKey, CognexResult pResult)
-        {
-            if (ObjectDictionary.ContainsKey(strKey))
-                ObjectDictionary[strKey] = pResult;
-            else
-                Add(strKey, pResult);
-        }
-
-        public void SetValue(eYoonCognexType nType, string strTag, CognexResult pResult)
-        {
-            string strKeys = nType.ToString() + "_" + strTag;
-            if (ObjectDictionary.ContainsKey(strKeys))
-                ObjectDictionary[strKeys] = pResult;
-            else
-                Add(nType, strTag, pResult);
-        }
-
-        public bool LoadValue(string strKey)
-        {
-            return false;
-        }
-
-        public bool SaveValue(string strKey)
-        {
-            if (RootDirectory == null || RootDirectory== string.Empty) return false;
-
-            eYoonCognexType nType = eYoonCognexType.None;
-            string strTag = string.Empty;
-            ConvertKey(strKey, ref nType, ref strTag);
-            string strFilePath = GetCognexResultImagePath(nType, strTag);
-            ICogImage pImage = GetValue(nType, strTag).ResultImage;
-            if (pImage is CogImage24PlanarColor pImageColor)
-                CognexFactory.SaveColorImageToBitmap(pImageColor, strFilePath);
-            else if (pImage is CogImage8Grey pImageMono)
-                CognexFactory.SaveMonoImageToBitmap(pImageMono, strFilePath);
-            return true;
-        }
-
-        public bool SaveValue(eYoonCognexType nType, string strTag)
-        {
-            if (RootDirectory == null || RootDirectory == string.Empty) return false;
-
-            string strFilePath = GetCognexResultImagePath(nType, strTag);
-            ICogImage pImage = GetValue(nType, strTag).ResultImage;
-            if (pImage is CogImage24PlanarColor pImageColor)
-                CognexFactory.SaveColorImageToBitmap(pImageColor, strFilePath);
-            else if (pImage is CogImage8Grey pImageMono)
-                CognexFactory.SaveMonoImageToBitmap(pImageMono, strFilePath);
-            return true;
-        }
-
-        public void ConvertKey(string strKey, ref eYoonCognexType nType, ref string strTag)
-        {
-            string[] strKeys = strKey.Split('_');
-            if (strKeys.Length >= 2)
-            {
-                nType = (eYoonCognexType)Enum.Parse(typeof(eYoonCognexType), strKeys[0]);
-                strTag = strKeys[1];
+                m_pListKeyOrdered.Clear();
             }
         }
 
-        private string GetCognexResultImagePath(eYoonCognexType pType, string strTag)
+        public bool LoadValue(eYoonCognexType nKey)
         {
-            return Path.Combine(RootDirectory, string.Format(@"Result{0}{1}.bmp", pType.ToString(), strTag));
+            if (RootDirectory == string.Empty) return false;
+
+            bool bResult = true;
+            if (!m_pDicSection.ContainsKey(nKey))
+                Add(nKey, new ResultSection(nKey));
+            else
+            {
+                m_pDicSection[nKey].ParantsType = nKey;
+                foreach (string strTag in m_pDicSection[nKey].Keys)
+                {
+                    if (!m_pDicSection[nKey].LoadValue(strTag))
+                        bResult = false;
+                }
+            }
+            return bResult;
+        }
+
+        public bool SaveValue(eYoonCognexType nKey)
+        {
+            if (RootDirectory == string.Empty) return false;
+
+            if (!m_pDicSection.ContainsKey(nKey))
+                return false;
+
+            bool bResult = true;
+            m_pDicSection[nKey].ParantsType = nKey;
+            foreach (string strTag in m_pDicSection[nKey].Keys)
+            {
+                if (!m_pDicSection[nKey].SaveValue(strTag))
+                    bResult = false;
+            }
+            return bResult;
+        }
+
+        public int IndexOf(eYoonCognexType nKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType) on ResultContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int IndexOf(eYoonCognexType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType, int) on ResultContainer: container was not ordered.");
+            }
+            return IndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int IndexOf(eYoonCognexType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType, int, int) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = nIndex; i < end; i++)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType) on ResultContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, 0, m_pListKeyOrdered.Count);
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey, int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType, int) on ResultContainer: container was not ordered.");
+            }
+            return LastIndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+        }
+
+        public int LastIndexOf(eYoonCognexType nKey, int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonCognexType, int, int) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name : nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and Count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            var end = nIndex + nCount;
+            for (int i = end - 1; i >= nIndex; i--)
+            {
+                if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Insert(int nIndex, eYoonCognexType nKey, ResultSection pValue)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Insert(int, eYoonCognexType, ResultSection) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            m_pDicSection.Add(nKey, pValue);
+            m_pListKeyOrdered.Insert(nIndex, nKey);
+        }
+
+        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<eYoonCognexType, ResultSection>> pCollection)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonCognexType, ResultSection>>) on ResultContainer: container was not ordered.");
+            }
+            if (pCollection == null)
+            {
+                throw new ArgumentNullException("Value cannot be null." + Environment.NewLine + "Parameter name: pCollection");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            foreach (var kvp in pCollection)
+            {
+                Insert(nIndex, kvp.Key, kvp.Value);
+                nIndex++;
+            }
+        }
+
+        public void RemoveAt(int nIndex)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            var key = m_pListKeyOrdered[nIndex];
+            m_pListKeyOrdered.RemoveAt(nIndex);
+            m_pDicSection.Remove(key);
+        }
+
+        public void RemoveRange(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            for (int i = 0; i < nCount; i++)
+            {
+                RemoveAt(nIndex);
+            }
+        }
+
+        public void Reverse()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse() on ResultContainer: container was not ordered.");
+            }
+            m_pListKeyOrdered.Reverse();
+        }
+
+        public void Reverse(int nIndex, int nCount)
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ResultContainer: container was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            if (nCount < 0)
+            {
+                throw new IndexOutOfRangeException("Count cannot be less than zero." + Environment.NewLine + "Parameter name: nCount");
+            }
+            if (nIndex + nCount > m_pListKeyOrdered.Count)
+            {
+                throw new ArgumentException("Index and count were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+            m_pListKeyOrdered.Reverse(nIndex, nCount);
+        }
+
+        public ICollection<ResultSection> GetOrderedValues()
+        {
+            if (!IsOrdered)
+            {
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ResultContainer: container was not ordered.");
+            }
+            var list = new List<ResultSection>();
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                list.Add(m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+            return list;
+        }
+
+        public void Add(eYoonCognexType nkey, ResultSection pValue)
+        {
+            m_pDicSection.Add(nkey, pValue);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(nkey);
+            }
+        }
+
+        public bool ContainsKey(eYoonCognexType nKey)
+        {
+            return m_pDicSection.ContainsKey(nKey);
+        }
+
+        public ICollection<eYoonCognexType> Keys
+        {
+            get { return IsOrdered ? (ICollection<eYoonCognexType>)m_pListKeyOrdered : m_pDicSection.Keys; }
+        }
+
+        public ICollection<ResultSection> Values
+        {
+            get
+            {
+                return m_pDicSection.Values;
+            }
+        }
+
+        public bool Remove(eYoonCognexType nKey)
+        {
+            var ret = m_pDicSection.Remove(nKey);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], nKey))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public bool TryGetValue(eYoonCognexType nKey, out ResultSection pValue)
+        {
+            return m_pDicSection.TryGetValue(nKey, out pValue);
+        }
+
+        public int Count
+        {
+            get { return m_pDicSection.Count; }
+        }
+
+        void ICollection<KeyValuePair<eYoonCognexType, ResultSection>>.Add(KeyValuePair<eYoonCognexType, ResultSection> pCollection)
+        {
+            ((IDictionary<eYoonCognexType, ResultSection>)m_pDicSection).Add(pCollection);
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Add(pCollection.Key);
+            }
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ResultSection>>.Contains(KeyValuePair<eYoonCognexType, ResultSection> pCollection)
+        {
+            return ((IDictionary<eYoonCognexType, ResultSection>)m_pDicSection).Contains(pCollection);
+        }
+
+        void ICollection<KeyValuePair<eYoonCognexType, ResultSection>>.CopyTo(KeyValuePair<eYoonCognexType, ResultSection>[] pArray, int nIndexArray)
+        {
+            ((IDictionary<eYoonCognexType, ResultSection>)m_pDicSection).CopyTo(pArray, nIndexArray);
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ResultSection>>.IsReadOnly
+        {
+            get { return ((IDictionary<eYoonCognexType, ResultSection>)m_pDicSection).IsReadOnly; }
+        }
+
+        bool ICollection<KeyValuePair<eYoonCognexType, ResultSection>>.Remove(KeyValuePair<eYoonCognexType, ResultSection> pCollection)
+        {
+            var ret = ((IDictionary<eYoonCognexType, ResultSection>)m_pDicSection).Remove(pCollection);
+            if (IsOrdered && ret)
+            {
+                for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+                {
+                    if (Comparer.Equals(m_pListKeyOrdered[i], pCollection.Key))
+                    {
+                        m_pListKeyOrdered.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        public IEnumerator<KeyValuePair<eYoonCognexType, ResultSection>> GetEnumerator()
+        {
+            if (IsOrdered)
+            {
+                return GetOrderedEnumerator();
+            }
+            else
+            {
+                return m_pDicSection.GetEnumerator();
+            }
+        }
+
+        private IEnumerator<KeyValuePair<eYoonCognexType, ResultSection>> GetOrderedEnumerator()
+        {
+            for (int i = 0; i < m_pListKeyOrdered.Count; i++)
+            {
+                yield return new KeyValuePair<eYoonCognexType, ResultSection>(m_pListKeyOrdered[i], m_pDicSection[m_pListKeyOrdered[i]]);
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public static implicit operator ResultContainer(Dictionary<eYoonCognexType, ResultSection> pDic)
+        {
+            return new ResultContainer(pDic);
+        }
+
+        public static explicit operator Dictionary<eYoonCognexType, ResultSection>(ResultContainer pContainer)
+        {
+            return pContainer.m_pDicSection;
         }
     }
 

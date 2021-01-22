@@ -269,8 +269,38 @@ namespace YoonFactory.Files.Ini
         public static IniValue Default { get { return _default; } }
     }
 
-    public class IniSection : IEnumerable<KeyValuePair<string, IniValue>>, IDictionary<string, IniValue>
+    public class IniSection : IYoonContainer<string, IniValue>
     {
+        #region IDisposable Support
+        ~IniSection()
+        {
+            this.Dispose(false);
+        }
+
+        private bool disposed;
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed) return;
+            if (disposing)
+            {
+                ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
+            }
+            Clear();
+            m_pDicIniValue = null;
+            m_pListKeyOrdered = null;
+            //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
+            this.disposed = true;
+        }
+        #endregion
+
+        public string RootDirectory { get; set; }
+
         private Dictionary<string, IniValue> m_pDicIniValue;
         private List<string> m_pListKeyOrdered;
 
@@ -297,7 +327,7 @@ namespace YoonFactory.Files.Ini
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
+                    throw new InvalidOperationException("Cannot index IniSection using integer key: container was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -309,7 +339,7 @@ namespace YoonFactory.Files.Ini
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index IniSection using integer key: section was not ordered.");
+                    throw new InvalidOperationException("Cannot index IniSection using integer key: container was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -371,11 +401,48 @@ namespace YoonFactory.Files.Ini
             this.m_pDicIniValue = new Dictionary<string, IniValue>(pSection.m_pDicIniValue, pStringComparer);
         }
 
+        public void CopyFrom(IYoonContainer pContainer)
+        {
+            if (pContainer is IniSection pIniContainer)
+            {
+                Clear();
+                foreach (string strKey in pIniContainer.Keys)
+                {
+                    Add(strKey, pIniContainer[strKey]);
+                }
+            }
+        }
+
+        public IYoonContainer Clone()
+        {
+            return new IniSection(this);
+        }
+
+        public void Clear()
+        {
+            if (m_pDicIniValue != null)
+                m_pDicIniValue.Clear();
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Clear();
+            }
+        }
+
+        public bool LoadValue(string strKey)
+        {
+            return false;
+        }
+
+        public bool SaveValue(string strKey)
+        {
+            return false;
+        }
+
         public int IndexOf(string strKey)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string) on IniSection: container was not ordered.");
             }
             return IndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -384,7 +451,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int) on IniSection: container was not ordered.");
             }
             return IndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -393,7 +460,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -422,7 +489,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string) on IniSection: container was not ordered.");
             }
             return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -431,7 +498,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on IniSection: container was not ordered.");
             }
             return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -440,7 +507,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -469,7 +536,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, string, IniValue) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, string, IniValue) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -483,7 +550,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, IniValue>>) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, IniValue>>) on IniSection: container was not ordered.");
             }
             if (pCollection == null)
             {
@@ -504,7 +571,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -519,7 +586,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -543,7 +610,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on IniSection: container was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -552,7 +619,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on IniSection: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -573,7 +640,7 @@ namespace YoonFactory.Files.Ini
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on IniSection: container was not ordered.");
             }
             var list = new List<IniValue>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)
@@ -644,15 +711,6 @@ namespace YoonFactory.Files.Ini
             if (IsOrdered)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
-            }
-        }
-
-        public void Clear()
-        {
-            m_pDicIniValue.Clear();
-            if (IsOrdered)
-            {
-                m_pListKeyOrdered.Clear();
             }
         }
 

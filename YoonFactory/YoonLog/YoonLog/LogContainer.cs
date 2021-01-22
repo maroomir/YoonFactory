@@ -6,8 +6,36 @@ using System.Threading.Tasks;
 
 namespace YoonFactory.Log
 {
-    public class LogRepository : IEnumerable<KeyValuePair<DateTime, string>>, IDictionary<DateTime, string>
+    public class LogContainer : IYoonContainer<DateTime, string>
     {
+        #region IDisposable Support
+        ~LogContainer()
+        {
+            this.Dispose(false);
+        }
+
+        private bool disposed;
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed) return;
+            if (disposing)
+            {
+                ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
+            }
+            //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
+            Clear();
+            m_pDicLog = null;
+            m_pListKeyOrdered = null;
+            this.disposed = true;
+        }
+        #endregion
+
         public static IEqualityComparer<DateTime> DefaultComparer;
 
         class CaseInsensitiveDateTimeComparer : IEqualityComparer<DateTime>
@@ -22,6 +50,8 @@ namespace YoonFactory.Log
                 return obj.GetHashCode();
             }
         }
+
+        public string RootDirectory { get; set; }
 
         private Dictionary<DateTime, string> m_pDicLog;
         private List<DateTime> m_pListKeyOrdered;
@@ -49,7 +79,7 @@ namespace YoonFactory.Log
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index LogRepository using integer key: repository was not ordered.");
+                    throw new InvalidOperationException("Cannot index LogContainer using integer key: container was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -61,7 +91,7 @@ namespace YoonFactory.Log
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index LogRepository using integer key: repository was not ordered.");
+                    throw new InvalidOperationException("Cannot index LogContainer using integer key: container was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -93,44 +123,81 @@ namespace YoonFactory.Log
             }
         }
 
-        public LogRepository()
+        public LogContainer()
             : this(DefaultComparer)
         {
             //
         }
 
-        public LogRepository(IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogContainer(IEqualityComparer<DateTime> pDateTimeComparer)
         {
             this.m_pDicLog = new Dictionary<DateTime, string>(pDateTimeComparer);
         }
 
-        public LogRepository(Dictionary<DateTime, string> pDic)
+        public LogContainer(Dictionary<DateTime, string> pDic)
             : this(pDic, DefaultComparer)
         {
             //
         }
 
-        public LogRepository(Dictionary<DateTime, string> pDic, IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogContainer(Dictionary<DateTime, string> pDic, IEqualityComparer<DateTime> pDateTimeComparer)
         {
             this.m_pDicLog = new Dictionary<DateTime, string>(pDic, pDateTimeComparer);
         }
 
-        public LogRepository(LogRepository pRepo)
-            : this(pRepo, default)
+        public LogContainer(LogContainer pContainer)
+            : this(pContainer, default)
         {
             //
         }
 
-        public LogRepository(LogRepository pRepo, IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogContainer(LogContainer pContainer, IEqualityComparer<DateTime> pDateTimeComparer)
         {
-            this.m_pDicLog = new Dictionary<DateTime, string>(pRepo.m_pDicLog, pDateTimeComparer);
+            this.m_pDicLog = new Dictionary<DateTime, string>(pContainer.m_pDicLog, pDateTimeComparer);
+        }
+
+        public void CopyFrom(IYoonContainer pContainer)
+        {
+            if(pContainer is LogContainer pLogContainer)
+            {
+                Clear();
+                foreach (DateTime pKey in pLogContainer.Keys)
+                {
+                    Add(pKey, pLogContainer[pKey]);
+                }
+            }
+        }
+
+        public IYoonContainer Clone()
+        {
+            return new LogContainer(this, Comparer);
+        }
+
+        public void Clear()
+        {
+            if (m_pDicLog != null)
+                m_pDicLog.Clear();
+            if (IsOrdered)
+            {
+                m_pListKeyOrdered.Clear();
+            }
+        }
+
+        public bool LoadValue(DateTime pKey)
+        {
+            return false;
+        }
+
+        public bool SaveValue(DateTime pKey)
+        {
+            return false;
         }
 
         public int IndexOf(DateTime pKey) 
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime) on LogContainer: container was not ordered.");
             }
             return IndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
@@ -139,7 +206,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int) on LogContainer: container was not ordered.");
             }
             return IndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -148,7 +215,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int, int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int, int) on LogContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -177,7 +244,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: container was not ordered.");
             }
             return LastIndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
@@ -186,7 +253,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: container was not ordered.");
             }
             return LastIndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -195,7 +262,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime, int, int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime, int, int) on LogContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -224,7 +291,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, DateTime, string) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, DateTime, string) on LogContainer: container was not ordered.");
             }
             if(nIndex<0 || nIndex>m_pListKeyOrdered.Count)
             {
@@ -238,7 +305,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<DateTime, string>>) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<DateTime, string>>) on LogContainer: container was not ordered.");
             }
             if (pCollection == null)
             {
@@ -259,7 +326,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on LogContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -274,7 +341,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on LogContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -298,7 +365,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on LogContainer: container was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -307,7 +374,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on LogRepository: repository was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on LogContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -328,7 +395,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on IniSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on LogContainer: container was not ordered.");
             }
             var list = new List<string>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)
@@ -352,13 +419,17 @@ namespace YoonFactory.Log
             return m_pDicLog.ContainsKey(pKey);
         }
 
-
-        /// <summary>
-        /// Returns this IniSection's collection of keys. If the IniSection is ordered, the keys will be returned in order.
-        /// </summary>
         public ICollection<DateTime> Keys
         {
             get { return IsOrdered ? (ICollection<DateTime>)m_pListKeyOrdered : m_pDicLog.Keys; }
+        }
+
+        public ICollection<string> Values
+        {
+            get
+            {
+                return m_pDicLog.Values;
+            }
         }
 
         public bool Remove(DateTime pKey)
@@ -383,15 +454,9 @@ namespace YoonFactory.Log
             return m_pDicLog.TryGetValue(pKey, out strValue);
         }
 
-        /// <summary>
-        /// Returns the values in this IniSection. These values are always out of order. To get ordered values from an IniSection call GetOrderedValues instead.
-        /// </summary>
-        public ICollection<string> Values
+        public int Count
         {
-            get
-            {
-                return m_pDicLog.Values;
-            }
+            get { return m_pDicLog.Count; }
         }
 
         void ICollection<KeyValuePair<DateTime, string>>.Add(KeyValuePair<DateTime, string> pCollection)
@@ -403,15 +468,6 @@ namespace YoonFactory.Log
             }
         }
 
-        public void Clear()
-        {
-            m_pDicLog.Clear();
-            if (IsOrdered)
-            {
-                m_pListKeyOrdered.Clear();
-            }
-        }
-
         bool ICollection<KeyValuePair<DateTime, string>>.Contains(KeyValuePair<DateTime, string> pCollection)
         {
             return ((IDictionary<DateTime, string>)m_pDicLog).Contains(pCollection);
@@ -420,11 +476,6 @@ namespace YoonFactory.Log
         void ICollection<KeyValuePair<DateTime, string>>.CopyTo(KeyValuePair<DateTime, string>[] pArray, int nIndexArray)
         {
             ((IDictionary<DateTime, string>)m_pDicLog).CopyTo(pArray, nIndexArray);
-        }
-
-        public int Count
-        {
-            get { return m_pDicLog.Count; }
         }
 
         bool ICollection<KeyValuePair<DateTime, string>>.IsReadOnly
@@ -474,14 +525,14 @@ namespace YoonFactory.Log
             return GetEnumerator();
         }
 
-        public static implicit operator LogRepository(Dictionary<DateTime, string> pDic)
+        public static implicit operator LogContainer(Dictionary<DateTime, string> pDic)
         {
-            return new LogRepository(pDic);
+            return new LogContainer(pDic);
         }
 
-        public static explicit operator Dictionary<DateTime, string>(LogRepository pRepo)
+        public static explicit operator Dictionary<DateTime, string>(LogContainer pContainer)
         {
-            return pRepo.m_pDicLog;
+            return pContainer.m_pDicLog;
         }
     }
 }
