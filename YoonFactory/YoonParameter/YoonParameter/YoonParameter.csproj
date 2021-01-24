@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{93428CEA-A460-47A6-AE13-50C17EA6727F}</ProjectGuid>
+    <ProjectGuid>{6CE26E92-3505-4992-B407-577A0BE69E82}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>YoonFile</RootNamespace>
-    <AssemblyName>YoonFile</AssemblyName>
+    <RootNamespace>YoonParameter</RootNamespace>
+    <AssemblyName>YoonParameter</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -19,7 +19,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <AssemblyName>YoonFiled</AssemblyName>
+    <AssemblyName>YoonParameterd</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -34,7 +34,7 @@
     <OutputPath>..\..\..\Build\Debug\X64\</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <DebugType>full</DebugType>
-    <AssemblyName>YoonFiled</AssemblyName>
+    <AssemblyName>YoonParameterd</AssemblyName>
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
@@ -53,7 +53,7 @@
     <OutputPath>..\..\..\Build\Debug\X86\</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <DebugType>full</DebugType>
-    <AssemblyName>YoonFiled</AssemblyName>
+    <AssemblyName>YoonParameterd</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
@@ -77,15 +77,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonClass.cs" />
+    <Compile Include="ParameterFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IniFactory.cs" />
-    <Compile Include="CommonInterface.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">
       <Project>{1F8E210E-2C3B-4084-AF34-855673EFEFC0}</Project>
       <Name>YoonCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428cea-a460-47a6-ae13-50c17ea6727f}</Project>
+      <Name>YoonFile</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

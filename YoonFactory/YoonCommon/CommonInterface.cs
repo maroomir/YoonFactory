@@ -172,21 +172,6 @@ namespace YoonFactory
         IYoonObject Clone();
     }
 
-    public interface IYoonParameter
-    {
-        bool IsEqual(IYoonParameter pParam);
-        void CopyFrom(IYoonParameter pParam);
-        IYoonParameter Clone();
-    }
-
-    public interface IYoonResult
-    {
-        bool IsEqual(IYoonResult pResult);
-
-        void CopyFrom(IYoonResult pResult);
-        IYoonResult Clone();
-    }
-
     public interface IYoonMapping : IDisposable
     {
         void CopyFrom(IYoonMapping pMapping);
@@ -203,6 +188,22 @@ namespace YoonFactory
 
         IYoonVector ToPixel(IYoonVector vecRealPos);
         IYoonVector ToReal(IYoonVector vecPixelPos);
+    }
+
+    public interface IYoonParameter
+    {
+        bool Equals(IYoonParameter pParam);
+        void CopyFrom(IYoonParameter pParam);
+        IYoonParameter Clone();
+    }
+
+    public interface IYoonResult
+    {
+        string Combine(string strDelimiter);
+
+        bool Equals(IYoonResult pResult);
+        void CopyFrom(IYoonResult pResult);
+        IYoonResult Clone();
     }
 
     public interface IYoonContainer : IDisposable

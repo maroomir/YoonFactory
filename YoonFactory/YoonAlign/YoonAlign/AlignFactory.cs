@@ -35,7 +35,12 @@ namespace YoonFactory.Align
             fResultT = 0.0;
         }
 
-        public bool IsEqual(IYoonResult pResult)
+        public string Combine(string strDelimiter)
+        {
+            return fResultX.ToString() + strDelimiter + fResultY.ToString() + strDelimiter + fResultT.ToString();
+        }
+
+        public bool Equals(IYoonResult pResult)
         {
             if (pResult == null) return false;
 

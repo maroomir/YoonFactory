@@ -9,7 +9,7 @@ namespace YoonSample.Mono
         public string IPAddress { get; set; } = "192.168.71.1";
         public int Port { get; set; } = 5000;
 
-        public bool IsEqual(IYoonParameter pComparison)
+        public bool Equals(IYoonParameter pComparison)
         {
             if(pComparison is ParameterConnection pParamConnection)
             {
@@ -48,7 +48,7 @@ namespace YoonSample.Mono
         public string[] ActionValues { get; set; } = new string[CommonClass.MAX_ACTION_NUM]
         { "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value"};
 
-        public bool IsEqual(IYoonParameter pComparision)
+        public bool Equals(IYoonParameter pComparision)
         {
             if(pComparision is ParameterAction pParamAction)
             {

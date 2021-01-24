@@ -1443,7 +1443,15 @@ namespace YoonFactory.Cognex
             TotalScore = dScore;
         }
 
-        public bool IsEqual(IYoonResult pResult)
+        public string Combine(string strDelimiter)
+        {
+            return ToolType.ToString() + strDelimiter +
+                CogShapeDictionary.Count.ToString() + strDelimiter +
+                ObjectDictionary.Count.ToString() + strDelimiter +
+                TotalScore.ToString();
+        }
+
+        public bool Equals(IYoonResult pResult)
         {
             if (pResult == null) return false;
 

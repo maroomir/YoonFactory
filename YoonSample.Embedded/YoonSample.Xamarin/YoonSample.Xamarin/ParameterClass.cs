@@ -9,7 +9,7 @@ namespace YoonSample.Xamarin
         public string IPAddress { get; set; } = "192.168.71.1";
         public int Port { get; set; } = 5000;
 
-        public bool IsEqual(IYoonParameter pComparison)
+        public bool Equals(IYoonParameter pComparison)
         {
             if (pComparison is ParameterConnection pParamConnection)
             {

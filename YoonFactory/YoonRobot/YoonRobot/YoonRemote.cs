@@ -5,7 +5,7 @@ using System.Threading;
 using System.Timers;
 using YoonFactory.Comm;
 using YoonFactory.Comm.TCP;
-using YoonFactory.Files.Core;
+using YoonFactory.Param;
 
 namespace YoonFactory.Robot.Remote
 {

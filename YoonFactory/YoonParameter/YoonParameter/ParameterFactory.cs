@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YoonFactory;
 using YoonFactory.Files;
 using System.IO;
 
-namespace YoonFactory.Files.Core
+namespace YoonFactory.Param
 {
     public class YoonParameter
     {
@@ -36,9 +35,9 @@ namespace YoonFactory.Files.Core
             ParameterType = pType;
         }
 
-        public bool IsEqual(YoonParameter pParam)
+        public bool Equals(YoonParameter pParam)
         {
-            if (pParam.Parameter.IsEqual(Parameter) && pParam.ParameterType == ParameterType && pParam.RootDirectory == RootDirectory)
+            if (pParam.Parameter.Equals(Parameter) && pParam.ParameterType == ParameterType && pParam.RootDirectory == RootDirectory)
                 return true;
             else return false;
         }
@@ -85,7 +84,7 @@ namespace YoonFactory.Files.Core
         }
     }
 
-    public class YoonContainer : IYoonContainer, IYoonContainer<string, YoonParameter>
+    public class YoonContainer<T> : IYoonContainer, IYoonContainer<T, YoonParameter>
     {
         #region IDisposable Support
         ~YoonContainer()
@@ -115,25 +114,25 @@ namespace YoonFactory.Files.Core
         }
         #endregion
 
-        public static IEqualityComparer<string> DefaultComparer;
+        public static IEqualityComparer<T> DefaultComparer;
 
-        class CaseInsensitiveStringComparer : IEqualityComparer<string>
+        class CaseInsensitiveComparer : IEqualityComparer<T>
         {
-            public bool Equals(string x, string y)
+            public bool Equals(T x, T y)
             {
-                return string.Compare(x, y) == 0;
+                return x.Equals(y);
             }
 
-            public int GetHashCode(string obj)
+            public int GetHashCode(T obj)
             {
-                return obj.ToLower().GetHashCode();
+                return obj.GetHashCode();
             }
         }
 
         public string RootDirectory { get; set; }
 
-        private Dictionary<string, YoonParameter> m_pDicParam;
-        private List<string> m_pListKeyOrdered;
+        private Dictionary<T, YoonParameter> m_pDicParam;
+        private List<T> m_pListKeyOrdered;
 
         public bool IsOrdered
         {
@@ -145,12 +144,12 @@ namespace YoonFactory.Files.Core
             {
                 if (IsOrdered != value)
                 {
-                    m_pListKeyOrdered = value ? new List<string>(m_pDicParam.Keys) : null;
+                    m_pListKeyOrdered = value ? new List<T>(m_pDicParam.Keys) : null;
                 }
             }
         }
 
-        public IEqualityComparer<string> Comparer { get { return m_pDicParam.Comparer; } }
+        public IEqualityComparer<T> Comparer { get { return m_pDicParam.Comparer; } }
 
         public YoonParameter this[int nIndex]
         {
@@ -181,12 +180,12 @@ namespace YoonFactory.Files.Core
             }
         }
 
-        public YoonParameter this[string strKey]
+        public YoonParameter this[T pKey]
         {
             get
             {
                 YoonParameter pParam;
-                if (m_pDicParam.TryGetValue(strKey, out pParam))
+                if (m_pDicParam.TryGetValue(pKey, out pParam))
                 {
                     return pParam;
                 }
@@ -194,11 +193,11 @@ namespace YoonFactory.Files.Core
             }
             set
             {
-                if (IsOrdered && !m_pListKeyOrdered.Contains(strKey, Comparer))
+                if (IsOrdered && !m_pListKeyOrdered.Contains(pKey, Comparer))
                 {
-                    m_pListKeyOrdered.Add(strKey);
+                    m_pListKeyOrdered.Add(pKey);
                 }
-                m_pDicParam[strKey] = value;
+                m_pDicParam[pKey] = value;
             }
         }
 
@@ -209,48 +208,48 @@ namespace YoonFactory.Files.Core
             //
         }
 
-        public YoonContainer(IEqualityComparer<string> pStringComparer)
+        public YoonContainer(IEqualityComparer<T> pComparer)
         {
-            this.m_pDicParam = new Dictionary<string, YoonParameter>(pStringComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(pComparer);
         }
 
-        public YoonContainer(Dictionary<string, YoonParameter> pDic)
+        public YoonContainer(Dictionary<T, YoonParameter> pDic)
             : this(pDic, DefaultComparer)
         {
             //
         }
 
-        public YoonContainer(Dictionary<string, YoonParameter> pDic, IEqualityComparer<string> pStringComparer)
+        public YoonContainer(Dictionary<T, YoonParameter> pDic, IEqualityComparer<T> pComparer)
         {
-            this.m_pDicParam = new Dictionary<string, YoonParameter>(pDic, pStringComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(pDic, pComparer);
         }
 
-        public YoonContainer(YoonContainer pContainer)
+        public YoonContainer(YoonContainer<T> pContainer)
             : this(pContainer, default)
         {
             //
         }
 
-        public YoonContainer(YoonContainer pContainer, IEqualityComparer<string> pStringComparer)
+        public YoonContainer(YoonContainer<T> pContainer, IEqualityComparer<T> pStringComparer)
         {
-            this.m_pDicParam = new Dictionary<string, YoonParameter>(pContainer.m_pDicParam, pStringComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(pContainer.m_pDicParam, pStringComparer);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
         {
-            if (pContainer is YoonContainer pParamContainer)
+            if (pContainer is YoonContainer<T> pParamContainer)
             {
                 Clear();
-                foreach (string strKey in pParamContainer.Keys)
+                foreach (T pKey in pParamContainer.Keys)
                 {
-                    Add(strKey, pParamContainer[strKey]);
+                    Add(pKey, pParamContainer[pKey]);
                 }
             }
         }
 
         public IYoonContainer Clone()
         {
-            return new YoonContainer(this, Comparer);
+            return new YoonContainer<T>(this, Comparer);
         }
 
         public void Clear()
@@ -262,51 +261,50 @@ namespace YoonFactory.Files.Core
                 m_pListKeyOrdered.Clear();
             }
         }
-        public bool LoadValue(string strKey)
+        public bool LoadValue(T pKey)
         {
-            if (RootDirectory == string.Empty || strKey == string.Empty)
+            if (RootDirectory == string.Empty || pKey == null)
                 return false;
 
-            m_pDicParam[strKey].RootDirectory = RootDirectory;
-            if (!m_pDicParam.ContainsKey(strKey))
-                Add(strKey, new YoonParameter());
-            if (m_pDicParam[strKey].LoadParameter(strKey)) return true;
+            if (!m_pDicParam.ContainsKey(pKey))
+                Add(pKey, new YoonParameter());
+            m_pDicParam[pKey].RootDirectory = RootDirectory;
+            if (m_pDicParam[pKey].LoadParameter(pKey.ToString())) return true;
             else return false;
         }
 
-        public bool SaveValue(string strKey)
+        public bool SaveValue(T pKey)
         {
-            if (RootDirectory == string.Empty || strKey == string.Empty || !m_pDicParam.ContainsKey(strKey))
+            if (RootDirectory == string.Empty || pKey == null || !m_pDicParam.ContainsKey(pKey))
                 return false;
 
-            if (!m_pDicParam.ContainsKey(strKey)) return false;
-            m_pDicParam[strKey].RootDirectory = RootDirectory;
-            return m_pDicParam[strKey].SaveParameter(strKey);
+            m_pDicParam[pKey].RootDirectory = RootDirectory;
+            return m_pDicParam[pKey].SaveParameter(pKey.ToString());
         }
 
-        public int IndexOf(string strKey)
+        public int IndexOf(T pKey)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T) on ParameterContainer: container was not ordered.");
             }
-            return IndexOf(strKey, 0, m_pListKeyOrdered.Count);
+            return IndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
 
-        public int IndexOf(string strKey, int nIndex)
+        public int IndexOf(T pKey, int nIndex)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T, int) on ParameterContainer: container was not ordered.");
             }
-            return IndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
+            return IndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
 
-        public int IndexOf(string strKey, int nIndex, int nCount)
+        public int IndexOf(T pKey, int nIndex, int nCount)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T, int, int) on ParameterContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -323,7 +321,7 @@ namespace YoonFactory.Files.Core
             var end = nIndex + nCount;
             for (int i = nIndex; i < end; i++)
             {
-                if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
+                if(m_pListKeyOrdered[i].Equals(pKey))
                 {
                     return i;
                 }
@@ -331,29 +329,29 @@ namespace YoonFactory.Files.Core
             return -1;
         }
 
-        public int LastIndexOf(string strKey)
+        public int LastIndexOf(T strKey)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T) on ParameterContainer: container was not ordered.");
             }
             return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
 
-        public int LastIndexOf(string strKey, int nIndex)
+        public int LastIndexOf(T strKey, int nIndex)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T, int) on ParameterContainer: container was not ordered.");
             }
             return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
 
-        public int LastIndexOf(string strKey, int nIndex, int nCount)
+        public int LastIndexOf(T pKey, int nIndex, int nCount)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T, int, int) on ParameterContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -370,7 +368,7 @@ namespace YoonFactory.Files.Core
             var end = nIndex + nCount;
             for (int i = end - 1; i >= nIndex; i--)
             {
-                if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
+                if (m_pListKeyOrdered[i].Equals(pKey))
                 {
                     return i;
                 }
@@ -378,25 +376,25 @@ namespace YoonFactory.Files.Core
             return -1;
         }
 
-        public void Insert(int nIndex, string strKey, YoonParameter pValue)
+        public void Insert(int nIndex, T pKey, YoonParameter pValue)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, string, YoonParameter) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, T, YoonParameter) on ParameterContainer: container was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
                 throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
             }
-            m_pDicParam.Add(strKey, pValue);
-            m_pListKeyOrdered.Insert(nIndex, strKey);
+            m_pDicParam.Add(pKey, pValue);
+            m_pListKeyOrdered.Insert(nIndex, pKey);
         }
 
-        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<string, YoonParameter>> pCollection)
+        public void InsertRange(int nIndex, IEnumerable<KeyValuePair<T, YoonParameter>> pCollection)
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, YoonParameter>>) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<T, YoonParameter>>) on ParameterContainer: container was not ordered.");
             }
             if (pCollection == null)
             {
@@ -496,23 +494,23 @@ namespace YoonFactory.Files.Core
             return list;
         }
 
-        public void Add(string strKey, YoonParameter pValue)
+        public void Add(T pKey, YoonParameter pValue)
         {
-            m_pDicParam.Add(strKey, pValue);
+            m_pDicParam.Add(pKey, pValue);
             if (IsOrdered)
             {
-                m_pListKeyOrdered.Add(strKey);
+                m_pListKeyOrdered.Add(pKey);
             }
         }
 
-        public bool ContainsKey(string strKey)
+        public bool ContainsKey(T pKey)
         {
-            return m_pDicParam.ContainsKey(strKey);
+            return m_pDicParam.ContainsKey(pKey);
         }
 
-        public ICollection<string> Keys
+        public ICollection<T> Keys
         {
-            get { return IsOrdered ? (ICollection<string>)m_pListKeyOrdered : m_pDicParam.Keys; }
+            get { return IsOrdered ? (ICollection<T>)m_pListKeyOrdered : m_pDicParam.Keys; }
         }
 
         public ICollection<YoonParameter> Values
@@ -523,14 +521,14 @@ namespace YoonFactory.Files.Core
             }
         }
 
-        public bool Remove(string strKey)
+        public bool Remove(T pKey)
         {
-            var ret = m_pDicParam.Remove(strKey);
+            var ret = m_pDicParam.Remove(pKey);
             if (IsOrdered && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
-                    if (Comparer.Equals(m_pListKeyOrdered[i], strKey))
+                    if (Comparer.Equals(m_pListKeyOrdered[i], pKey))
                     {
                         m_pListKeyOrdered.RemoveAt(i);
                         break;
@@ -540,9 +538,9 @@ namespace YoonFactory.Files.Core
             return ret;
         }
 
-        public bool TryGetValue(string strKey, out YoonParameter pValue)
+        public bool TryGetValue(T pKey, out YoonParameter pValue)
         {
-            return m_pDicParam.TryGetValue(strKey, out pValue);
+            return m_pDicParam.TryGetValue(pKey, out pValue);
         }
 
         public int Count
@@ -550,33 +548,33 @@ namespace YoonFactory.Files.Core
             get { return m_pDicParam.Count; }
         }
 
-        void ICollection<KeyValuePair<string, YoonParameter>>.Add(KeyValuePair<string, YoonParameter> pCollection)
+        void ICollection<KeyValuePair<T, YoonParameter>>.Add(KeyValuePair<T, YoonParameter> pCollection)
         {
-            ((IDictionary<string, YoonParameter>)m_pDicParam).Add(pCollection);
+            ((IDictionary<T, YoonParameter>)m_pDicParam).Add(pCollection);
             if (IsOrdered)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
         }
 
-        bool ICollection<KeyValuePair<string, YoonParameter>>.Contains(KeyValuePair<string, YoonParameter> pCollection)
+        bool ICollection<KeyValuePair<T, YoonParameter>>.Contains(KeyValuePair<T, YoonParameter> pCollection)
         {
-            return ((IDictionary<string, YoonParameter>)m_pDicParam).Contains(pCollection);
+            return ((IDictionary<T, YoonParameter>)m_pDicParam).Contains(pCollection);
         }
 
-        void ICollection<KeyValuePair<string, YoonParameter>>.CopyTo(KeyValuePair<string, YoonParameter>[] pArray, int nIndexArray)
+        void ICollection<KeyValuePair<T, YoonParameter>>.CopyTo(KeyValuePair<T, YoonParameter>[] pArray, int nIndexArray)
         {
-            ((IDictionary<string, YoonParameter>)m_pDicParam).CopyTo(pArray, nIndexArray);
+            ((IDictionary<T, YoonParameter>)m_pDicParam).CopyTo(pArray, nIndexArray);
         }
 
-        bool ICollection<KeyValuePair<string, YoonParameter>>.IsReadOnly
+        bool ICollection<KeyValuePair<T, YoonParameter>>.IsReadOnly
         {
-            get { return ((IDictionary<string, YoonParameter>)m_pDicParam).IsReadOnly; }
+            get { return ((IDictionary<T, YoonParameter>)m_pDicParam).IsReadOnly; }
         }
 
-        bool ICollection<KeyValuePair<string, YoonParameter>>.Remove(KeyValuePair<string, YoonParameter> pCollection)
+        bool ICollection<KeyValuePair<T, YoonParameter>>.Remove(KeyValuePair<T, YoonParameter> pCollection)
         {
-            var ret = ((IDictionary<string, YoonParameter>)m_pDicParam).Remove(pCollection);
+            var ret = ((IDictionary<T, YoonParameter>)m_pDicParam).Remove(pCollection);
             if (IsOrdered && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
@@ -591,7 +589,7 @@ namespace YoonFactory.Files.Core
             return ret;
         }
 
-        public IEnumerator<KeyValuePair<string, YoonParameter>> GetEnumerator()
+        public IEnumerator<KeyValuePair<T, YoonParameter>> GetEnumerator()
         {
             if (IsOrdered)
             {
@@ -603,11 +601,11 @@ namespace YoonFactory.Files.Core
             }
         }
 
-        private IEnumerator<KeyValuePair<string, YoonParameter>> GetOrderedEnumerator()
+        private IEnumerator<KeyValuePair<T, YoonParameter>> GetOrderedEnumerator()
         {
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)
             {
-                yield return new KeyValuePair<string, YoonParameter>(m_pListKeyOrdered[i], m_pDicParam[m_pListKeyOrdered[i]]);
+                yield return new KeyValuePair<T, YoonParameter>(m_pListKeyOrdered[i], m_pDicParam[m_pListKeyOrdered[i]]);
             }
         }
 
@@ -616,12 +614,12 @@ namespace YoonFactory.Files.Core
             return GetEnumerator();
         }
 
-        public static implicit operator YoonContainer(Dictionary<string, YoonParameter> pDic)
+        public static implicit operator YoonContainer<T>(Dictionary<T, YoonParameter> pDic)
         {
-            return new YoonContainer(pDic);
+            return new YoonContainer<T>(pDic);
         }
 
-        public static explicit operator Dictionary<string, YoonParameter>(YoonContainer pContainer)
+        public static explicit operator Dictionary<T, YoonParameter>(YoonContainer<T> pContainer)
         {
             return pContainer.m_pDicParam;
         }
@@ -668,7 +666,7 @@ namespace YoonFactory.Files.Core
             No = 0;
             Name = "Default";
             RootDirectory = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
-            Container = new YoonContainer();
+            Container = new YoonContainer<string>();
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)
@@ -681,7 +679,7 @@ namespace YoonFactory.Files.Core
                 No = pTempOrigin.No;
                 Name = pTempOrigin.Name;
                 RootDirectory = pTempOrigin.RootDirectory;
-                Container = pTempOrigin.Container.Clone() as YoonContainer;
+                Container = pTempOrigin.Container.Clone() as YoonContainer<string>;
             }
         }
 
@@ -691,7 +689,7 @@ namespace YoonFactory.Files.Core
             pTemplate.No = No;
             pTemplate.Name = Name;
             pTemplate.RootDirectory = RootDirectory;
-            pTemplate.Container = Container.Clone() as YoonContainer;
+            pTemplate.Container = Container.Clone() as YoonContainer<string>;
 
             return pTemplate;
         }

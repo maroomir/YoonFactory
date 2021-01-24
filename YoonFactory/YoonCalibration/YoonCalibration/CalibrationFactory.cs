@@ -97,7 +97,16 @@ namespace YoonFactory.Align.Calibration
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
         }
 
-        public bool IsEqual(IYoonResult pResult)
+        public string Combine(string strDelimiter)
+        {
+            return AverageResolution.X.ToString() + strDelimiter +
+                AverageResolution.Y.ToString() + strDelimiter +
+                ResolutionOfParts.Count.ToString() + strDelimiter +
+                DeviceCenterPos.X.ToString() + strDelimiter +
+                DeviceCenterPos.Y.ToString() + strDelimiter;
+        }
+
+        public bool Equals(IYoonResult pResult)
         {
             if(pResult is RotationCalibResult pResultCalib)
             {
@@ -147,7 +156,14 @@ namespace YoonFactory.Align.Calibration
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
         }
 
-        public bool IsEqual(IYoonResult pResult)
+        public string Combine(string strDelimiter)
+        {
+            return AverageResolution.X.ToString() + strDelimiter +
+                AverageResolution.Y.ToString() + strDelimiter +
+                ResolutionOfParts.Count.ToString() + strDelimiter;
+        }
+
+        public bool Equals(IYoonResult pResult)
         {
             if (pResult is StaticCalibResult pResultCalib)
             {

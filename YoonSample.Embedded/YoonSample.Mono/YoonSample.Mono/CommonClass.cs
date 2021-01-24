@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 using YoonFactory.Comm.TCP;
-using YoonFactory.Files.Core;
+using YoonFactory.Param;
 using YoonFactory.Log;
 using YoonFactory.Mono.Log;
 

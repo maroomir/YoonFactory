@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{B54DB1F9-10A9-4582-B1C4-45791698D8E5}</ProjectGuid>
@@ -61,7 +61,8 @@
     <Platform Condition=" '$(Platform)' == '' ">X64</Platform>
     <Optimize>true</Optimize>
     <OutputPath>..\Release\X64</OutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <IntermediateOutputPath>obj\anycpu\Release</IntermediateOutputPath>
@@ -125,6 +126,10 @@
     <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj">
       <Project>{93428CEA-A460-47A6-AE13-50C17EA6727F}</Project>
       <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>
+      <Name>YoonParameter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -803,6 +803,26 @@ namespace YoonFactory.Files
             writer.Close();
             return bResult;
         }
+
+        // Csv의 Data를 1개 Line만 저장한다.
+        public bool SetLine(string strLine)
+        {
+            FileStream fileStream = new FileStream(FilePath, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream, Encoding.Default);
+            if (strLine.Split(',').Length == 0) return false;
+
+            bool bResult = true;
+            try
+            {
+                writer.WriteLine(strLine);
+            }
+            catch
+            {
+                bResult = false;
+            }
+            writer.Close();
+            return bResult;
+        }
     }
 
     /* XML Control Class to Class @2020*/

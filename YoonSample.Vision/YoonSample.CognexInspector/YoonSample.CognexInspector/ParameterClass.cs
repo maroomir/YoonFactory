@@ -21,7 +21,7 @@ namespace YoonSample.CognexInspector
         [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Image Filtering (true/false)")]
         public bool IsUseImageFilter { get; set; } = false;
 
-        public bool IsEqual(IYoonParameter pParam)
+        public bool Equals(IYoonParameter pParam)
         {
             if(pParam is ParameterInspectionPreprocessing pParamPre)
             {
@@ -97,7 +97,7 @@ namespace YoonSample.CognexInspector
         [CategoryAttribute("Align"), DescriptionAttribute("Handling NG Condition with 'OR' component (true/false)")]
         public bool IsAlignCheckWithOR { get; set; } = true;
 
-        public bool IsEqual(IYoonParameter pParam)
+        public bool Equals(IYoonParameter pParam)
         {
             if (pParam is ParameterInspectionPatternMatching pParamPattern)
             {
@@ -110,7 +110,16 @@ namespace YoonSample.CognexInspector
                     IsCheckAlign == pParamPattern.IsCheckAlign &&
                     IsUseMultiPatternAlign == pParamPattern.IsUseMultiPatternAlign &&
                     AlignType == pParamPattern.AlignType &&
-
+                    Array.Equals(IsOriginTeachedFlags, pParamPattern.IsOriginTeachedFlags) &&
+                    Array.Equals(OriginPixelXs, pParamPattern.OriginPixelXs) &&
+                    Array.Equals(OriginPixelYs, pParamPattern.OriginPixelYs) &&
+                    Array.Equals(OriginRealXs, pParamPattern.OriginRealXs) &&
+                    Array.Equals(OriginRealYs, pParamPattern.OriginRealYs) &&
+                    Array.Equals(OriginThetas, pParamPattern.OriginThetas) &&
+                    OffsetX == pParamPattern.OffsetX &&
+                    OffsetY == pParamPattern.OffsetY &&
+                    OffsetT == pParamPattern.OffsetT &&
+                    IsAlignCheckWithOR == pParamPattern.IsAlignCheckWithOR
                     )
                     return true;
             }
@@ -119,12 +128,27 @@ namespace YoonSample.CognexInspector
 
         public void CopyFrom(IYoonParameter pParam)
         {
-            if (pParam is ParameterInspectionPatternMatching pParamPre)
+            if (pParam is ParameterInspectionPatternMatching pParamPattern)
             {
-                IsUse = pParamPre.IsUse;
-                IsUseImageConvert = pParamPre.IsUseImageConvert;
-                IsUseSobelEdge = pParamPre.IsUseSobelEdge;
-                IsUseImageFilter = pParamPre.IsUseImageFilter;
+                IsUse = pParamPattern.IsUse;
+                IsUseEachPatterns = pParamPattern.IsUseEachPatterns;
+                IsUseMultiPatternInspection = pParamPattern.IsUseMultiPatternInspection;
+                SelectedSourceLevel = pParamPattern.SelectedSourceLevel;
+                SelectedSourceNo = pParamPattern.SelectedSourceNo;
+                SelectedSourceType = pParamPattern.SelectedSourceType;
+                IsCheckAlign = pParamPattern.IsCheckAlign;
+                IsUseMultiPatternAlign = pParamPattern.IsUseMultiPatternAlign;
+                AlignType = pParamPattern.AlignType;
+                Array.Copy(pParamPattern.IsOriginTeachedFlags, IsOriginTeachedFlags, CommonClass.MAX_PATTERN_NUM);
+                Array.Copy(pParamPattern.OriginPixelXs, OriginPixelXs, CommonClass.MAX_PATTERN_NUM);
+                Array.Copy(pParamPattern.OriginPixelYs, OriginPixelYs, CommonClass.MAX_PATTERN_NUM);
+                Array.Copy(pParamPattern.OriginRealXs, OriginRealXs, CommonClass.MAX_PATTERN_NUM);
+                Array.Copy(pParamPattern.OriginRealYs, OriginRealYs, CommonClass.MAX_PATTERN_NUM);
+                Array.Copy(pParamPattern.OriginThetas, OriginThetas, CommonClass.MAX_PATTERN_NUM);
+                OffsetX = pParamPattern.OffsetX;
+                OffsetY = pParamPattern.OffsetY;
+                OffsetT = pParamPattern.OffsetT;
+                IsAlignCheckWithOR = pParamPattern.IsAlignCheckWithOR;
             }
         }
 
@@ -132,9 +156,24 @@ namespace YoonSample.CognexInspector
         {
             ParameterInspectionPatternMatching pParam = new ParameterInspectionPatternMatching();
             pParam.IsUse = IsUse;
-            pParam.IsUseImageFilter = IsUseImageFilter;
-            pParam.IsUseImageConvert = IsUseImageConvert;
-            pParam.IsUseSobelEdge = IsUseSobelEdge;
+            pParam.IsUseEachPatterns = IsUseEachPatterns;
+            pParam.IsUseMultiPatternInspection = IsUseMultiPatternInspection;
+            pParam.SelectedSourceLevel = SelectedSourceLevel;
+            pParam.SelectedSourceNo = SelectedSourceNo;
+            pParam.SelectedSourceType = SelectedSourceType;
+            pParam.IsCheckAlign = IsCheckAlign;
+            pParam.IsUseMultiPatternAlign = IsUseMultiPatternAlign;
+            pParam.AlignType = AlignType;
+            Array.Copy(IsOriginTeachedFlags, pParam.IsOriginTeachedFlags, CommonClass.MAX_PATTERN_NUM);
+            Array.Copy(OriginPixelXs, pParam.OriginPixelXs, CommonClass.MAX_PATTERN_NUM);
+            Array.Copy(OriginPixelYs, pParam.OriginPixelYs, CommonClass.MAX_PATTERN_NUM);
+            Array.Copy(OriginRealXs, pParam.OriginRealXs, CommonClass.MAX_PATTERN_NUM);
+            Array.Copy(OriginRealYs, pParam.OriginRealYs, CommonClass.MAX_PATTERN_NUM);
+            Array.Copy(OriginThetas, pParam.OriginThetas, CommonClass.MAX_PATTERN_NUM);
+            pParam.OffsetX = OffsetX;
+            pParam.OffsetY = OffsetY;
+            pParam.OffsetT = OffsetT;
+            pParam.IsAlignCheckWithOR = IsAlignCheckWithOR;
             return pParam;
         }
     }
@@ -143,7 +182,6 @@ namespace YoonSample.CognexInspector
     {
         [CategoryAttribute("Common"), DescriptionAttribute("Object Extract 사용 여부 (true/false)")]
         public bool IsUse { get; set; } = true;
-
         [CategoryAttribute("Common"), DescriptionAttribute("Blob 사용 여부 (true/false)")]
         public bool IsUseBlob { get; set; } = false;
         [CategoryAttribute("Common"), DescriptionAttribute("Color 추출 사용 여부 (true/false)")]
@@ -162,6 +200,59 @@ namespace YoonSample.CognexInspector
         public int SelectedColorSegmentImageNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedColorSegmentImageType { get; set; } = eTypeInspect.None;
+
+        public bool Equals(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionObjectExtract pParamObjExtract)
+            {
+                if (IsUse == pParamObjExtract.IsUse &&
+                    IsUseBlob == pParamObjExtract.IsUseBlob &&
+                    IsUseColorSegment == pParamObjExtract.IsUseColorSegment &&
+                    CombineType == pParamObjExtract.CombineType &&
+                    SelectedBlobImageLevel == pParamObjExtract.SelectedBlobImageLevel &&
+                    SelectedBlobImageNo == pParamObjExtract.SelectedBlobImageNo &&
+                    SelectedBlobImageType == pParamObjExtract.SelectedBlobImageType &&
+                    SelectedColorSegmentImageLevel == pParamObjExtract.SelectedColorSegmentImageLevel &&
+                    SelectedColorSegmentImageNo == pParamObjExtract.SelectedColorSegmentImageNo &&
+                    SelectedColorSegmentImageType == pParamObjExtract.SelectedColorSegmentImageType
+                    )
+                    return true;
+            }
+            return false;
+        }
+
+        public void CopyFrom(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionObjectExtract pParamObjExtract)
+            {
+                IsUse = pParamObjExtract.IsUse;
+                IsUseBlob = pParamObjExtract.IsUseBlob;
+                IsUseColorSegment = pParamObjExtract.IsUseColorSegment;
+                CombineType = pParamObjExtract.CombineType;
+                SelectedBlobImageLevel = pParamObjExtract.SelectedBlobImageLevel;
+                SelectedBlobImageNo = pParamObjExtract.SelectedBlobImageNo;
+                SelectedBlobImageType = pParamObjExtract.SelectedBlobImageType;
+                SelectedColorSegmentImageLevel = pParamObjExtract.SelectedColorSegmentImageLevel;
+                SelectedColorSegmentImageNo = pParamObjExtract.SelectedColorSegmentImageNo;
+                SelectedColorSegmentImageType = pParamObjExtract.SelectedColorSegmentImageType;
+            }
+        }
+
+        public IYoonParameter Clone()
+        {
+            ParameterInspectionObjectExtract pParam = new ParameterInspectionObjectExtract();
+            pParam.IsUse = IsUse;
+            pParam.IsUseBlob = IsUseBlob;
+            pParam.IsUseColorSegment = IsUseColorSegment;
+            pParam.CombineType = CombineType;
+            pParam.SelectedBlobImageLevel = SelectedBlobImageLevel;
+            pParam.SelectedBlobImageNo = SelectedBlobImageNo;
+            pParam.SelectedBlobImageType = SelectedBlobImageType;
+            pParam.SelectedColorSegmentImageLevel = SelectedColorSegmentImageLevel;
+            pParam.SelectedColorSegmentImageNo = SelectedColorSegmentImageNo;
+            pParam.SelectedColorSegmentImageType = SelectedColorSegmentImageType;
+            return pParam;
+        }
     }
 
     public class ParameterInspectionCombine : IYoonParameter
@@ -182,6 +273,52 @@ namespace YoonSample.CognexInspector
         public int SelectedObjectNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedObjectType { get; set; } = eTypeInspect.None;
-    }
 
+        public bool Equals(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionCombine pParamCombine)
+            {
+                if (IsUse == pParamCombine.IsUse &&
+                    CombineType == pParamCombine.CombineType &&
+                    SelectedSourceLevel == pParamCombine.SelectedSourceLevel &&
+                    SelectedSourceNo == pParamCombine.SelectedSourceNo &&
+                    SelectedSourceType == pParamCombine.SelectedSourceType &&
+                    SelectedObjectLevel == pParamCombine.SelectedObjectLevel &&
+                    SelectedObjectNo == pParamCombine.SelectedObjectNo &&
+                    SelectedObjectType == pParamCombine.SelectedObjectType
+                    )
+                    return true;
+            }
+            return false;
+        }
+
+        public void CopyFrom(IYoonParameter pParam)
+        {
+            if (pParam is ParameterInspectionCombine pParamCombine)
+            {
+                IsUse = pParamCombine.IsUse;
+                CombineType = pParamCombine.CombineType;
+                SelectedSourceLevel = pParamCombine.SelectedSourceLevel;
+                SelectedSourceNo = pParamCombine.SelectedSourceNo;
+                SelectedSourceType = pParamCombine.SelectedSourceType;
+                SelectedObjectLevel = pParamCombine.SelectedObjectLevel;
+                SelectedObjectNo = pParamCombine.SelectedObjectNo;
+                SelectedObjectType = pParamCombine.SelectedObjectType;
+            }
+        }
+
+        public IYoonParameter Clone()
+        {
+            ParameterInspectionCombine pParam = new ParameterInspectionCombine();
+            pParam.IsUse = IsUse;
+            pParam.CombineType = CombineType;
+            pParam.SelectedSourceLevel = SelectedSourceLevel;
+            pParam.SelectedSourceNo = SelectedSourceNo;
+            pParam.SelectedSourceType = SelectedSourceType;
+            pParam.SelectedObjectLevel = SelectedObjectLevel;
+            pParam.SelectedObjectNo = SelectedObjectNo;
+            pParam.SelectedObjectType = SelectedObjectType;
+            return pParam;
+        }
+    }
 }

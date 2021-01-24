@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using System.IO;
-using YoonFactory.Files.Core;
+using YoonFactory.Param;
 using YoonFactory.Log;
 using YoonFactory.Comm;
 
