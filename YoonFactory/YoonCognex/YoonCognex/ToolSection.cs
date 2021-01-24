@@ -47,7 +47,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<string> DefaultComparer;
+        public static IEqualityComparer<string> DefaultComparer = new CaseInsensitiveStringComparer();
 
         class CaseInsensitiveStringComparer : IEqualityComparer<string>
         {
@@ -171,7 +171,7 @@ namespace YoonFactory.Cognex
         }
 
         public ToolSection(ToolSection pSection)
-            : this(pSection, default)
+            : this(pSection, DefaultComparer)
         {
             //
         }

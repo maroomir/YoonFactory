@@ -36,7 +36,7 @@ namespace YoonFactory.Log
         }
         #endregion
 
-        public static IEqualityComparer<DateTime> DefaultComparer;
+        public static IEqualityComparer<DateTime> DefaultComparer = new CaseInsensitiveDateTimeComparer();
 
         class CaseInsensitiveDateTimeComparer : IEqualityComparer<DateTime>
         {
@@ -146,7 +146,7 @@ namespace YoonFactory.Log
         }
 
         public LogContainer(LogContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }

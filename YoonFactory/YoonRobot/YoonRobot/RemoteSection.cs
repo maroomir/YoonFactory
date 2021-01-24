@@ -44,7 +44,7 @@ namespace YoonFactory.Robot
         }
         #endregion
 
-        public static IEqualityComparer<eYoonRemoteType> DefaultComparer;
+        public static IEqualityComparer<eYoonRemoteType> DefaultComparer = new CaseInsensitiveRemoteTypeComparer();
 
         class CaseInsensitiveRemoteTypeComparer : IEqualityComparer<eYoonRemoteType>
         {
@@ -190,7 +190,7 @@ namespace YoonFactory.Robot
         }
 
         public RemoteSection(RemoteSection pSection)
-            : this(pSection, default)
+            : this(pSection, DefaultComparer)
         {
             //
         }

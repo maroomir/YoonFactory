@@ -74,7 +74,7 @@ namespace YoonSample.CognexInspector
         public const int MAX_SOURCE_NUM = 4;
         public const int MAX_PATTERN_NUM = 4;
 
-        public static YoonContainer<eParamInspect> pParamContainer = new YoonContainer<eParamInspect>();
+        public static YoonTemplate<eParamInspect> pParamTemplate = new YoonTemplate<eParamInspect>();
         public static ToolContainer pCogToolContainer = new ToolContainer();
         public static ResultContainer pCogResultContainer = new ResultContainer();
         public static YoonConsoler pCLM;

@@ -256,7 +256,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
@@ -368,7 +368,7 @@ namespace YoonFactory.Cognex
         }
 
         public ToolContainer(ToolContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
@@ -815,7 +815,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
@@ -926,7 +926,7 @@ namespace YoonFactory.Cognex
         }
 
         public ResultContainer(ResultContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }

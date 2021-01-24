@@ -160,7 +160,7 @@ namespace YoonFactory.Robot
         }
         #endregion
 
-        public static IEqualityComparer<eYoonRobotType> DefaultComparer;
+        public static IEqualityComparer<eYoonRobotType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonRobotType>
         {
@@ -282,7 +282,7 @@ namespace YoonFactory.Robot
         }
 
         public RemoteContainer(RemoteContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
