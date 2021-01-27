@@ -83,6 +83,10 @@
       <Project>{1f8e210e-2c3b-4084-af34-855673efefc0}</Project>
       <Name>YoonCommon</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>
+      <Name>YoonParameter</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

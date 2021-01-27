@@ -88,12 +88,12 @@ namespace YoonFactory.Robot.Remote
             // Remote Info 가져오기
             m_strYoonFactoryDir = Path.Combine(Directory.GetCurrentDirectory(), @"YoonFactory");
             RemoteInfo = RemoteContainer.Default;
-            RemoteInfo.RootDirectory = m_strYoonFactoryDir;
+            RemoteInfo.FilesDirectory = m_strYoonFactoryDir;
             if (!RemoteInfo.LoadAll())
             {
                 Console.WriteLine("RemoteFactory : Load Failure, Create New Data In Default");
                 RemoteInfo = new RemoteContainer();
-                RemoteInfo.RootDirectory = m_strYoonFactoryDir;
+                RemoteInfo.FilesDirectory = m_strYoonFactoryDir;
                 RemoteInfo.SaveAll();
             }
             // 내부 Event 구독
@@ -115,12 +115,12 @@ namespace YoonFactory.Robot.Remote
             // Remote_Info 가져오기
             m_strYoonFactoryDir = strDirectory;
             RemoteInfo = new RemoteContainer();
-            RemoteInfo.RootDirectory = m_strYoonFactoryDir;
+            RemoteInfo.FilesDirectory = m_strYoonFactoryDir;
             if (!RemoteInfo.LoadAll())
             {
                 Console.WriteLine("RemoteFactory : Load Failure, Create New Data In Default");
                 RemoteInfo = new RemoteContainer();
-                RemoteInfo.RootDirectory = m_strYoonFactoryDir;
+                RemoteInfo.FilesDirectory = m_strYoonFactoryDir;
                 RemoteInfo.SaveAll();
             }
             // 내부 Event 구독
@@ -215,7 +215,7 @@ namespace YoonFactory.Robot.Remote
             if (RemoteInfo == null)
                 RemoteInfo = new RemoteContainer();
             RemoteInfo.CopyFrom(pRemoteInfo);
-            RemoteInfo.RootDirectory = m_strYoonFactoryDir;
+            RemoteInfo.FilesDirectory = m_strYoonFactoryDir;
             if (RemoteInfo.SaveAll())
                 IsInit = true;
             else

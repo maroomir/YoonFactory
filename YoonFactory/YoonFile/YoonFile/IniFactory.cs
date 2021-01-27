@@ -37,16 +37,33 @@ namespace YoonFactory.Files.Ini
             return false;
         }
 
-        private static bool TryParseEnum<T>(string text, out T value) where T : struct
+        private static bool TryParseEnum<T>(string text, out T value) where T : struct, IFormattable
         {
             T res;
             if (Enum.TryParse(text, out res))
             {
-                value = (T)Enum.Parse(typeof(T), text);
+                value = res;
                 return true;
             }
             value = default(T);
             return false;
+        }
+
+        private static bool TryParse<T>(string text, out T value) where T : IConvertible
+        {
+            try
+            {
+                value = (T)Convert.ChangeType(text, typeof(T));
+                if (value == null)
+                    return false;
+                else
+                    return true;
+            }
+            catch
+            {
+                value = default(T);
+                return false;
+            }
         }
 
         public string Value;
@@ -149,7 +166,7 @@ namespace YoonFactory.Files.Ini
             return false;
         }
 
-        public T ToEnum<T>(T valueIfInvalue) where T : struct
+        public T ToEnum<T>(T valueIfInvalue) where T : struct, IFormattable
         {
             T res;
             if (TryConvertEnum(out res))
@@ -159,7 +176,7 @@ namespace YoonFactory.Files.Ini
             return valueIfInvalue;
         }
 
-        public bool TryConvertEnum<T>(out T result) where T : struct
+        public bool TryConvertEnum<T>(out T result) where T : struct, IFormattable
         {
             if (Value == null)
             {
@@ -167,6 +184,30 @@ namespace YoonFactory.Files.Ini
                 return false;
             }
             if (TryParseEnum<T>(Value.Trim(), out result))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public T To<T>(T valueIfInvalid) where T : IConvertible
+        {
+            T res;
+            if (TryConvert(out res))
+            {
+                return res;
+            }
+            return valueIfInvalid;
+        }
+
+        public bool TryConvert<T>(out T result) where T : IConvertible
+        {
+            if (Value == null)
+            {
+                result = default(T);
+                return false;
+            }
+            if (TryParse<T>(Value.Trim(), out result))
             {
                 return true;
             }
@@ -269,7 +310,8 @@ namespace YoonFactory.Files.Ini
         public static IniValue Default { get { return _default; } }
     }
 
-    public class IniSection : IYoonContainer<string, IniValue>
+
+    public class IniSection : IYoonSection<string, IniValue>
     {
         #region IDisposable Support
         ~IniSection()
@@ -401,23 +443,6 @@ namespace YoonFactory.Files.Ini
             this.m_pDicIniValue = new Dictionary<string, IniValue>(pSection.m_pDicIniValue, pStringComparer);
         }
 
-        public void CopyFrom(IYoonContainer pContainer)
-        {
-            if (pContainer is IniSection pIniContainer)
-            {
-                Clear();
-                foreach (string strKey in pIniContainer.Keys)
-                {
-                    Add(strKey, pIniContainer[strKey]);
-                }
-            }
-        }
-
-        public IYoonContainer Clone()
-        {
-            return new IniSection(this);
-        }
-
         public void Clear()
         {
             if (m_pDicIniValue != null)
@@ -426,16 +451,6 @@ namespace YoonFactory.Files.Ini
             {
                 m_pListKeyOrdered.Clear();
             }
-        }
-
-        public bool LoadValue(string strKey)
-        {
-            return false;
-        }
-
-        public bool SaveValue(string strKey)
-        {
-            return false;
         }
 
         public int IndexOf(string strKey)

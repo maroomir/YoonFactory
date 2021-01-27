@@ -71,7 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LogFactory.cs" />
-    <Compile Include="LogContainer.cs" />
+    <Compile Include="LogSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +82,10 @@
     <ProjectReference Include="..\..\YoonFile\YoonFile\YoonFile.csproj">
       <Project>{93428CEA-A460-47A6-AE13-50C17EA6727F}</Project>
       <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>
+      <Name>YoonParameter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

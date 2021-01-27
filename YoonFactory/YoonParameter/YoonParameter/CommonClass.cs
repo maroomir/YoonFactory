@@ -84,7 +84,7 @@ namespace YoonFactory.Param
         }
     }
 
-    public class YoonContainer<T> : IYoonContainer, IYoonContainer<T, YoonParameter>
+    public class YoonContainer<T> : IYoonContainer, IYoonContainer<T, YoonParameter> where T : IConvertible
     {
         #region IDisposable Support
         ~YoonContainer()
@@ -114,7 +114,7 @@ namespace YoonFactory.Param
         }
         #endregion
 
-        public static IEqualityComparer<T> DefaultComparer;
+        public static IEqualityComparer<T> DefaultComparer = new CaseInsensitiveComparer();
 
         class CaseInsensitiveComparer : IEqualityComparer<T>
         {
@@ -123,16 +123,21 @@ namespace YoonFactory.Param
                 return x.Equals(y);
             }
 
+            public bool Equals(string str, T obj)
+            {
+                return (str == obj.ToString());
+            }
+
             public int GetHashCode(T obj)
             {
                 return obj.GetHashCode();
             }
         }
 
-        public string RootDirectory { get; set; }
+        public string FilesDirectory { get; set; }
 
-        private Dictionary<T, YoonParameter> m_pDicParam;
-        private List<T> m_pListKeyOrdered;
+        protected Dictionary<T, YoonParameter> m_pDicParam;
+        protected List<T> m_pListKeyOrdered;
 
         public bool IsOrdered
         {
@@ -201,38 +206,19 @@ namespace YoonFactory.Param
             }
         }
 
-
         public YoonContainer()
-            : this(DefaultComparer)
         {
-            //
-        }
-
-        public YoonContainer(IEqualityComparer<T> pComparer)
-        {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(pComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(DefaultComparer);
         }
 
         public YoonContainer(Dictionary<T, YoonParameter> pDic)
-            : this(pDic, DefaultComparer)
         {
-            //
-        }
-
-        public YoonContainer(Dictionary<T, YoonParameter> pDic, IEqualityComparer<T> pComparer)
-        {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(pDic, pComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(pDic, DefaultComparer);
         }
 
         public YoonContainer(YoonContainer<T> pContainer)
-            : this(pContainer, default)
         {
-            //
-        }
-
-        public YoonContainer(YoonContainer<T> pContainer, IEqualityComparer<T> pStringComparer)
-        {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(pContainer.m_pDicParam, pStringComparer);
+            this.m_pDicParam = new Dictionary<T, YoonParameter>(pContainer.m_pDicParam, DefaultComparer);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
@@ -247,9 +233,28 @@ namespace YoonFactory.Param
             }
         }
 
-        public IYoonContainer Clone()
+        IYoonContainer IYoonContainer.Clone()
         {
-            return new YoonContainer<T>(this, Comparer);
+            return new YoonContainer<T>(this);
+        }
+
+        public IYoonContainer<T, YoonParameter> Clone()
+        {
+            return new YoonContainer<T>(this);
+        }
+
+        private bool IsContainsStrKey(string strKey, out T pParseKey)
+        {
+            pParseKey = default(T);
+            foreach (T pKey in m_pDicParam.Keys)
+            {
+                if ((DefaultComparer as CaseInsensitiveComparer).Equals(strKey, pKey))
+                {
+                    pParseKey = pKey;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void Clear()
@@ -261,24 +266,46 @@ namespace YoonFactory.Param
                 m_pListKeyOrdered.Clear();
             }
         }
+
+        public bool LoadValue(string strKey)
+        {
+            if (FilesDirectory == string.Empty || strKey == string.Empty)
+                return false;
+            T pParseKey;
+            if (!IsContainsStrKey(strKey, out pParseKey))
+                return false;
+            return LoadValue(pParseKey);
+        }
+
         public bool LoadValue(T pKey)
         {
-            if (RootDirectory == string.Empty || pKey == null)
+            if (FilesDirectory == string.Empty || pKey == null)
                 return false;
 
             if (!m_pDicParam.ContainsKey(pKey))
                 Add(pKey, new YoonParameter());
-            m_pDicParam[pKey].RootDirectory = RootDirectory;
+            m_pDicParam[pKey].RootDirectory = FilesDirectory;
             if (m_pDicParam[pKey].LoadParameter(pKey.ToString())) return true;
             else return false;
         }
 
+        public bool SaveValue(string strKey)
+        {
+            if (FilesDirectory == string.Empty || strKey == string.Empty)
+                return false;
+            T pParseKey;
+            if (!IsContainsStrKey(strKey, out pParseKey))
+                return false;
+            return SaveValue(pParseKey);
+        }
+
+
         public bool SaveValue(T pKey)
         {
-            if (RootDirectory == string.Empty || pKey == null || !m_pDicParam.ContainsKey(pKey))
+            if (FilesDirectory == string.Empty || pKey == null || !m_pDicParam.ContainsKey(pKey))
                 return false;
 
-            m_pDicParam[pKey].RootDirectory = RootDirectory;
+            m_pDicParam[pKey].RootDirectory = FilesDirectory;
             return m_pDicParam[pKey].SaveParameter(pKey.ToString());
         }
 
@@ -321,7 +348,7 @@ namespace YoonFactory.Param
             var end = nIndex + nCount;
             for (int i = nIndex; i < end; i++)
             {
-                if(m_pListKeyOrdered[i].Equals(pKey))
+                if(Comparer.Equals(m_pListKeyOrdered[i], pKey))
                 {
                     return i;
                 }
@@ -368,7 +395,7 @@ namespace YoonFactory.Param
             var end = nIndex + nCount;
             for (int i = end - 1; i >= nIndex; i--)
             {
-                if (m_pListKeyOrdered[i].Equals(pKey))
+                if (Comparer.Equals(m_pListKeyOrdered[i], pKey))
                 {
                     return i;
                 }
@@ -625,10 +652,107 @@ namespace YoonFactory.Param
         }
     }
 
-    public class YoonTemplate : IYoonTemplate, IYoonTemplate<string, YoonParameter>
+    public class YoonTemplate<T> : YoonContainer<T>, IYoonTemplate where T : IConvertible
+    {
+        public int No { get; set; }
+        public string Name { get; set; }
+        public string RootDirectory { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0:D2}_{1}", No, Name);
+        }
+
+        public YoonTemplate()
+        {
+            No = 0;
+            Name = "Default";
+            RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
+            m_pDicParam = new Dictionary<T, YoonParameter>(DefaultComparer);
+        }
+
+        public void CopyFrom(IYoonTemplate pTemplate)
+        {
+            if (pTemplate is YoonTemplate<T> pTempOrigin)
+            {
+                Clear();
+
+                No = pTempOrigin.No;
+                Name = pTempOrigin.Name;
+                RootDirectory = pTempOrigin.RootDirectory;
+                foreach (T pKey in pTempOrigin.Keys)
+                {
+                    Add(pKey, pTempOrigin[pKey]);
+                }
+            }
+        }
+
+        public new IYoonTemplate Clone()
+        {
+            YoonTemplate<T> pTemplate = new YoonTemplate<T>();
+            {
+                pTemplate.No = No;
+                pTemplate.Name = Name;
+                pTemplate.RootDirectory = RootDirectory;
+                pTemplate.m_pDicParam = new Dictionary<T, YoonParameter>(m_pDicParam, DefaultComparer);
+            }
+            return pTemplate;
+        }
+
+        public bool LoadTemplate()
+        {
+            if (RootDirectory == string.Empty || m_pDicParam == null)
+                return false;
+
+            string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
+            {
+                pIni.LoadFile();
+                No = pIni["HEAD"]["No"].ToInt(No);
+                Name = pIni["HEAD"]["Name"].ToString(Name);
+                int nCount = pIni["HEAD"]["Count"].ToInt(0);
+                for (int iParam = 0; iParam < nCount; iParam++)
+                {
+                    T pKey = pIni["KEY"][iParam.ToString()].To(default(T));
+                    if (!LoadValue(pKey))
+                        bResult = false;
+                }
+            }
+            return bResult;
+        }
+
+        public bool SaveTemplate()
+        {
+            if (RootDirectory == string.Empty || m_pDicParam == null)
+                return false;
+
+            string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
+            {
+                int iParam = 0;
+                pIni["HEAD"]["No"] = No;
+                pIni["HEAD"]["Name"] = Name;
+                pIni["HEAD"]["Count"] = Count;
+                foreach (T pKey in Keys)
+                {
+                    pIni["KEY"][(iParam++).ToString()] = pKey.ToString();
+                    if (!SaveValue(pKey))
+                        bResult = false;
+                }
+                pIni.SaveFile();
+            }
+            return bResult;
+        }
+    }
+
+    public class CommonTemplate<TKey, TValue> : IYoonTemplate<TKey, TValue> where TKey : IConvertible
     {
         #region IDisposable Support
-        ~YoonTemplate()
+        ~CommonTemplate()
         {
             this.Dispose(false);
         }
@@ -659,19 +783,26 @@ namespace YoonFactory.Param
         public int No { get; set; }
         public string Name { get; set; }
         public string RootDirectory { get; set; }
-        public IYoonContainer<string, YoonParameter> Container { get; set; }
 
-        public YoonTemplate()
+        public override string ToString()
+        {
+            return string.Format("{0:D2}_{1}", No, Name);
+        }
+
+        public IYoonContainer<TKey, TValue> Container { get; set; }
+
+
+        public CommonTemplate(IYoonContainer<TKey, TValue> pContainer)
         {
             No = 0;
             Name = "Default";
-            RootDirectory = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
-            Container = new YoonContainer<string>();
+            RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
+            Container = pContainer;
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)
         {
-            if (pTemplate is YoonTemplate pTempOrigin)
+            if (pTemplate is CommonTemplate<TKey, TValue> pTempOrigin)
             {
                 Container.Dispose();
                 Container = null;
@@ -679,17 +810,16 @@ namespace YoonFactory.Param
                 No = pTempOrigin.No;
                 Name = pTempOrigin.Name;
                 RootDirectory = pTempOrigin.RootDirectory;
-                Container = pTempOrigin.Container.Clone() as YoonContainer<string>;
+                Container = pTempOrigin.Container.Clone();
             }
         }
 
         public IYoonTemplate Clone()
         {
-            YoonTemplate pTemplate = new YoonTemplate();
+            CommonTemplate<TKey, TValue> pTemplate = new CommonTemplate<TKey, TValue>(Container);
             pTemplate.No = No;
             pTemplate.Name = Name;
             pTemplate.RootDirectory = RootDirectory;
-            pTemplate.Container = Container.Clone() as YoonContainer<string>;
 
             return pTemplate;
         }
@@ -699,18 +829,21 @@ namespace YoonFactory.Param
             if (RootDirectory == string.Empty || Container == null)
                 return false;
 
+            string strIniFilePath = Path.Combine(RootDirectory, @"CommonTemplate.ini");
+            Container.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            string strSection = string.Format("{0}_{1}", No, Name);
-            string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
-            Container.RootDirectory = Path.Combine(RootDirectory, strSection);
             YoonIni pIni = new YoonIni(strIniFilePath);
             {
                 pIni.LoadFile();
-                int nCount = pIni[strSection]["Count"].ToInt(0);
+                string strHeadName = "HEAD:" + typeof(TValue).ToString();
+                No = pIni[strHeadName]["No"].ToInt(No);
+                Name = pIni[strHeadName]["Name"].ToString(Name);
+                int nCount = pIni[strHeadName]["Count"].ToInt(0);
                 for (int iParam = 0; iParam < nCount; iParam++)
                 {
-                    string strKey = pIni[strSection][iParam].ToString(string.Empty);
-                    if (!Container.LoadValue(strKey))
+                    string strKeyName = "KEY:" + typeof(TValue).ToString();
+                    TKey pKey = pIni[strKeyName][iParam.ToString()].To(default(TKey));
+                    if (!Container.LoadValue(pKey))
                         bResult = false;
                 }
             }
@@ -722,22 +855,27 @@ namespace YoonFactory.Param
             if (RootDirectory == string.Empty || Container == null)
                 return false;
 
+            string strIniFilePath = Path.Combine(RootDirectory, @"CommonTemplate.ini");
+            Container.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            int iParam = 0;
-            string strSection = string.Format("{0}_{1}", No, Name);
-            string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
-            Container.RootDirectory = Path.Combine(RootDirectory, strSection);
             YoonIni pIni = new YoonIni(strIniFilePath);
-            pIni[strSection]["Count"] = Container.Count;
-            foreach (string strKey in Container.Keys)
             {
-                pIni[strSection][iParam] = strKey;
-                if (!Container.SaveValue(strKey))
-                    bResult = false;
-                iParam++;
+                int iParam = 0;
+                string strHeadName = "HEAD:" + typeof(TValue).ToString();
+                pIni[strHeadName]["No"] = No;
+                pIni[strHeadName]["Name"] = Name;
+                pIni[strHeadName]["Count"] = Container.Count;
+                foreach (TKey pKey in Container.Keys)
+                {
+                    string strKeyName = "KEY:" + typeof(TValue).ToString();
+                    pIni[strKeyName][(iParam++).ToString()] = pKey.ToString();
+                    if (!Container.SaveValue(pKey))
+                        bResult = false;
+                }
+                pIni.SaveFile();
             }
-            pIni.SaveFile();
             return bResult;
         }
     }
+
 }

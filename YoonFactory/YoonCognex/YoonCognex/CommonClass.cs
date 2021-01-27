@@ -256,7 +256,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
@@ -271,9 +271,9 @@ namespace YoonFactory.Cognex
             }
         }
 
-        public string RootDirectory { get; set; }
+        public string FilesDirectory { get; set; }
 
-        private Dictionary<eYoonCognexType, ToolSection> m_pDicSection;
+        protected Dictionary<eYoonCognexType, ToolSection> m_pDicSection;
         private List<eYoonCognexType> m_pListKeyOrdered;
 
         public bool IsOrdered
@@ -368,7 +368,7 @@ namespace YoonFactory.Cognex
         }
 
         public ToolContainer(ToolContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
@@ -390,7 +390,12 @@ namespace YoonFactory.Cognex
             }
         }
 
-        public IYoonContainer Clone()
+        IYoonContainer IYoonContainer.Clone()
+        {
+            return new ToolContainer(this, Comparer);
+        }
+
+        public IYoonContainer<eYoonCognexType, ToolSection> Clone()
         {
             return new ToolContainer(this, Comparer);
         }
@@ -407,7 +412,7 @@ namespace YoonFactory.Cognex
 
         public bool LoadValue(eYoonCognexType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             bool bResult = true;
             if (!m_pDicSection.ContainsKey(nKey))
@@ -426,7 +431,7 @@ namespace YoonFactory.Cognex
 
         public bool SaveValue(eYoonCognexType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             if (!m_pDicSection.ContainsKey(nKey))
                 return false;
@@ -784,6 +789,103 @@ namespace YoonFactory.Cognex
         }
     }
 
+    public class ToolTemplate : ToolContainer, IYoonTemplate
+    {
+        public int No { get; set; }
+        public string Name { get; set; }
+        public string RootDirectory { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0:D2}_{1}", No, Name);
+        }
+
+        public ToolTemplate()
+        {
+            No = 0;
+            Name = "Default";
+            RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
+            m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(DefaultComparer);
+        }
+
+        public void CopyFrom(IYoonTemplate pTemplate)
+        {
+            if (pTemplate is ToolTemplate pTempOrigin)
+            {
+                Clear();
+
+                No = pTempOrigin.No;
+                Name = pTempOrigin.Name;
+                RootDirectory = pTempOrigin.RootDirectory;
+                foreach (eYoonCognexType pKey in pTempOrigin.Keys)
+                {
+                    Add(pKey, pTempOrigin[pKey]);
+                }
+            }
+        }
+
+        public new IYoonTemplate Clone()
+        {
+            ToolTemplate pTemplate = new ToolTemplate();
+            {
+                pTemplate.No = No;
+                pTemplate.Name = Name;
+                pTemplate.RootDirectory = RootDirectory;
+                pTemplate.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(m_pDicSection, DefaultComparer);
+            }
+            return pTemplate;
+        }
+
+        public bool LoadTemplate()
+        {
+            if (RootDirectory == string.Empty || m_pDicSection == null)
+                return false;
+
+            string strIniFilePath = Path.Combine(RootDirectory, @"ToolTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
+            {
+                pIni.LoadFile();
+                No = pIni["HEAD"]["No"].ToInt(No);
+                Name = pIni["HEAD"]["Name"].ToString(Name);
+                int nCount = pIni["HEAD"]["Count"].ToInt(0);
+                for (int iParam = 0; iParam < nCount; iParam++)
+                {
+                    eYoonCognexType pKey = pIni["KEY"][iParam.ToString()].To(eYoonCognexType.None);
+                    if (!LoadValue(pKey))
+                        bResult = false;
+                }
+            }
+            return bResult;
+        }
+
+        public bool SaveTemplate()
+        {
+            if (RootDirectory == string.Empty || m_pDicSection == null)
+                return false;
+
+            string strIniFilePath = Path.Combine(RootDirectory, @"ToolTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
+            {
+                int iParam = 0;
+                pIni["HEAD"]["No"] = No;
+                pIni["HEAD"]["Name"] = Name;
+                pIni["HEAD"]["Count"] = Count;
+                foreach (eYoonCognexType pKey in Keys)
+                {
+                    pIni["KEY"][(iParam++).ToString()] = pKey.ToString();
+                    if (!SaveValue(pKey))
+                        bResult = false;
+                }
+                pIni.SaveFile();
+            }
+            return bResult;
+        }
+    }
+
     public class ResultContainer : IYoonContainer, IYoonContainer<eYoonCognexType, ResultSection>
     {
         #region Supported IDisposable Pattern
@@ -815,7 +917,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<eYoonCognexType> DefaultComparer;
+        public static IEqualityComparer<eYoonCognexType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonCognexType>
         {
@@ -830,9 +932,9 @@ namespace YoonFactory.Cognex
             }
         }
 
-        public string RootDirectory { get; set; }
+        public string FilesDirectory { get; set; }
 
-        private Dictionary<eYoonCognexType, ResultSection> m_pDicSection;
+        protected Dictionary<eYoonCognexType, ResultSection> m_pDicSection;
         private List<eYoonCognexType> m_pListKeyOrdered;
 
         public bool IsOrdered
@@ -926,7 +1028,7 @@ namespace YoonFactory.Cognex
         }
 
         public ResultContainer(ResultContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
@@ -948,7 +1050,12 @@ namespace YoonFactory.Cognex
             }
         }
 
-        public IYoonContainer Clone()
+        IYoonContainer IYoonContainer.Clone()
+        {
+            return new ResultContainer(this, Comparer);
+        }
+
+        public IYoonContainer<eYoonCognexType, ResultSection> Clone()
         {
             return new ResultContainer(this, Comparer);
         }
@@ -965,7 +1072,7 @@ namespace YoonFactory.Cognex
 
         public bool LoadValue(eYoonCognexType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             bool bResult = true;
             if (!m_pDicSection.ContainsKey(nKey))
@@ -984,7 +1091,7 @@ namespace YoonFactory.Cognex
 
         public bool SaveValue(eYoonCognexType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             if (!m_pDicSection.ContainsKey(nKey))
                 return false;
@@ -1342,196 +1449,100 @@ namespace YoonFactory.Cognex
         }
     }
 
-    public class CognexResult : IYoonResult
+    public class ResultTemplate : ResultContainer, IYoonTemplate
     {
-        public ICogImage ResultImage { get; private set; } = null;
-        public eYoonCognexType ToolType { get; private set; } = eYoonCognexType.None;
-        public Dictionary<int, ICogShape> CogShapeDictionary { get; private set; } = new Dictionary<int, ICogShape>();
-        public Dictionary<int, IYoonObject> ObjectDictionary { get; private set; } = new Dictionary<int, IYoonObject>();
-        public double TotalScore { get; private set; } = 0.0;
+        public int No { get; set; }
+        public string Name { get; set; }
+        public string RootDirectory { get; set; }
 
-        public CognexResult(eYoonCognexType nType)
+        public override string ToString()
         {
-            ToolType = nType;
-            ResultImage = new CogImage8Grey();
+            return string.Format("{0:D2}_{1}", No, Name);
         }
 
-        public CognexResult(eYoonCognexType nType, ICogImage pImageResult)
+        public ResultTemplate()
         {
-            ToolType = nType;
-            if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+            No = 0;
+            Name = "Default";
+            RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
+            m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(DefaultComparer);
         }
 
-        public CognexResult(eYoonCognexType nType, ICogImage pImageResult, double dScore)
+        public void CopyFrom(IYoonTemplate pTemplate)
         {
-            ToolType = nType;
-            if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
-            TotalScore = dScore;
-        }
-
-        public CognexResult(ICogImage pImageResult, CogBlobResultCollection pListResult)
-        {
-            ToolType = eYoonCognexType.Blob;
-            if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
-
-            foreach (CogBlobResult pResult in pListResult)
+            if (pTemplate is ResultTemplate pTempOrigin)
             {
-                CogRectangleAffine pCogRect = pResult.GetBoundingBox(CogBlobAxisConstants.Principal);
-                CogShapeDictionary.Add(pResult.ID, new CogRectangleAffine(pCogRect));
-                YoonObjectRect pObject = new YoonObjectRect();
+                Clear();
+
+                No = pTempOrigin.No;
+                Name = pTempOrigin.Name;
+                RootDirectory = pTempOrigin.RootDirectory;
+                foreach (eYoonCognexType pKey in pTempOrigin.Keys)
                 {
-                    pObject.LabelNo = pResult.ID;
-                    pObject.FeaturePos = new YoonVector2D(pResult.CenterOfMassX, pResult.CenterOfMassY);
-                    pObject.PixelCount = (int)pResult.Area;
-                    pObject.PickArea = new YoonRect2D(pCogRect.CenterX - pCogRect.SideXLength / 2, pCogRect.CenterY - pCogRect.SideYLength / 2, pCogRect.SideXLength, pCogRect.SideYLength);
+                    Add(pKey, pTempOrigin[pKey]);
                 }
-                ObjectDictionary.Add(pResult.ID, pObject);
             }
         }
 
-        public CognexResult(ICogImage pImageResult, CogLineSegment pLine)
+        public new IYoonTemplate Clone()
         {
-            ToolType = eYoonCognexType.LineFitting;
-            if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
-
-            YoonObjectLine pObject = new YoonObjectLine();
+            ResultTemplate pTemplate = new ResultTemplate();
             {
-                pObject.StartPos = new YoonVector2D();
-                (pObject.StartPos as YoonVector2D).X = pLine.StartX;
-                (pObject.StartPos as YoonVector2D).Y = pLine.StartY;
-                pObject.EndPos = new YoonVector2D();
-                (pObject.EndPos as YoonVector2D).X = pLine.EndX;
-                (pObject.EndPos as YoonVector2D).Y = pLine.EndY;
+                pTemplate.No = No;
+                pTemplate.Name = Name;
+                pTemplate.RootDirectory = RootDirectory;
+                pTemplate.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(m_pDicSection, DefaultComparer);
             }
-            ObjectDictionary.Add(0, pObject);
+            return pTemplate;
         }
 
-        public CognexResult(ICogImage pImageResult, CogTransform2DLinear pResult, ICogRegion pPattern, double dScore)
+        public bool LoadTemplate()
         {
-            ToolType = eYoonCognexType.PMAlign;
-            if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+            if (RootDirectory == string.Empty || m_pDicSection == null)
+                return false;
 
-            YoonObjectRect pObject = new YoonObjectRect();
+            string strIniFilePath = Path.Combine(RootDirectory, @"ToolTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
             {
-                pObject.LabelNo = 0;
-                pObject.FeaturePos = new YoonVector2D(pResult.TranslationX, pResult.TranslationY);
-                double dScaleX = pResult.ScalingX;
-                double dScaleY = pResult.ScalingY;
-                double dWidth = 0.0, dHeight = 0.0;
-                switch (pPattern)
+                pIni.LoadFile();
+                No = pIni["HEAD"]["No"].ToInt(No);
+                Name = pIni["HEAD"]["Name"].ToString(Name);
+                int nCount = pIni["HEAD"]["Count"].ToInt(0);
+                for (int iParam = 0; iParam < nCount; iParam++)
                 {
-                    case CogRectangle pPatternRect:
-                        dWidth = pPatternRect.Width * dScaleX;
-                        dHeight = pPatternRect.Height * dScaleY;
-                        break;
-                    case CogRectangleAffine pPatternRectAffine:
-                        dWidth = pPatternRectAffine.SideXLength * dScaleX;
-                        dHeight = pPatternRectAffine.SideYLength * dScaleY;
-                        break;
-                    default:
-                        break;
+                    eYoonCognexType pKey = pIni["KEY"][iParam.ToString()].To(eYoonCognexType.None);
+                    if (!LoadValue(pKey))
+                        bResult = false;
                 }
-                pObject.PickArea = new YoonRectAffine2D(pObject.FeaturePos as YoonVector2D, dWidth, dHeight, pResult.Rotation);
-                pObject.Score = dScore * 100;
             }
-            ObjectDictionary.Add(0, pObject);
-            TotalScore = dScore;
+            return bResult;
         }
 
-        public string Combine(string strDelimiter)
+        public bool SaveTemplate()
         {
-            return ToolType.ToString() + strDelimiter +
-                CogShapeDictionary.Count.ToString() + strDelimiter +
-                ObjectDictionary.Count.ToString() + strDelimiter +
-                TotalScore.ToString();
-        }
+            if (RootDirectory == string.Empty || m_pDicSection == null)
+                return false;
 
-        public bool Equals(IYoonResult pResult)
-        {
-            if (pResult == null) return false;
-
-            if (pResult is CognexResult pResultCognex)
+            string strIniFilePath = Path.Combine(RootDirectory, @"ToolTemplate.ini");
+            base.FilesDirectory = Path.Combine(RootDirectory, ToString());
+            bool bResult = true;
+            YoonIni pIni = new YoonIni(strIniFilePath);
             {
-                if (!ResultImage.Equals(pResultCognex.ResultImage) || ToolType != pResultCognex.ToolType || TotalScore != pResultCognex.TotalScore)
-                    return false;
-
-                foreach(int nNo in CogShapeDictionary.Keys)
-                    if (!pResultCognex.CogShapeDictionary.ContainsKey(nNo) || pResultCognex.CogShapeDictionary[nNo] != CogShapeDictionary[nNo])
-                        return false;
-                foreach (int nNo in ObjectDictionary.Keys)
-                    if (!pResultCognex.ObjectDictionary.ContainsKey(nNo) || pResultCognex.ObjectDictionary[nNo] != ObjectDictionary[nNo])
-                        return false;
-
-                return true;
+                int iParam = 0;
+                pIni["HEAD"]["No"] = No;
+                pIni["HEAD"]["Name"] = Name;
+                pIni["HEAD"]["Count"] = Count;
+                foreach (eYoonCognexType pKey in Keys)
+                {
+                    pIni["KEY"][(iParam++).ToString()] = pKey.ToString();
+                    if (!SaveValue(pKey))
+                        bResult = false;
+                }
+                pIni.SaveFile();
             }
-            return false;
-        }
-
-        public void CopyFrom(IYoonResult pResult)
-        {
-            if (pResult == null) return;
-
-            if(pResult is CognexResult pResultCognex)
-            {
-                if (pResultCognex.ResultImage != null)
-                    ResultImage = pResultCognex.ResultImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
-                ToolType = pResultCognex.ToolType;
-                CogShapeDictionary = new Dictionary<int, ICogShape>(pResultCognex.CogShapeDictionary);
-                ObjectDictionary = new Dictionary<int, IYoonObject>(pResultCognex.ObjectDictionary);
-                TotalScore = pResultCognex.TotalScore;
-            }
-        }
-
-        public IYoonResult Clone()
-        {
-            CognexResult pTargetResult = new CognexResult(ToolType);
-
-            if (ResultImage != null)
-                pTargetResult.ResultImage = ResultImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
-            pTargetResult.CogShapeDictionary = new Dictionary<int, ICogShape>(CogShapeDictionary);
-            pTargetResult.ObjectDictionary = new Dictionary<int, IYoonObject>(ObjectDictionary);
-            pTargetResult.TotalScore = TotalScore;
-            return pTargetResult;
-        }
-
-        public YoonVector2D GetPatternMatchPoint()
-        {
-            if (ToolType != eYoonCognexType.PMAlign) return new YoonVector2D();
-
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
-                return pObject.FeaturePos as YoonVector2D;
-            else
-                return new YoonVector2D();
-        }
-
-        public YoonRectAffine2D GetPatternMatchArea()
-        {
-            if (ToolType != eYoonCognexType.PMAlign) return new YoonRectAffine2D(0, 0, 0);
-
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
-                return pObject.PickArea as YoonRectAffine2D;
-            else
-                return new YoonRectAffine2D(0, 0, 0);
-        }
-
-        public double GetPatternRotation()
-        {
-            if (ToolType != eYoonCognexType.PMAlign) return 0.0;
-
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
-            {
-                if (pObject.PickArea is YoonRectAffine2D pRect)
-                    return pRect.Rotation;
-                else
-                    return 0.0;
-            }
-            else
-                return 0.0;
+            return bResult;
         }
     }
 }

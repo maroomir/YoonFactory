@@ -74,9 +74,9 @@ namespace YoonSample.CognexInspector
         public const int MAX_SOURCE_NUM = 4;
         public const int MAX_PATTERN_NUM = 4;
 
-        public static YoonContainer<eParamInspect> pParamContainer = new YoonContainer<eParamInspect>();
-        public static ToolContainer pCogToolContainer = new ToolContainer();
-        public static ResultContainer pCogResultContainer = new ResultContainer();
+        public static YoonTemplate<eParamInspect> pParamTemplate = new YoonTemplate<eParamInspect>();
+        public static CommonTemplate<eParamInspect, ToolTemplate> pDicCogToolTemplate = new CommonTemplate<eParamInspect, ToolTemplate>(new ToolTemplate());
+        public static CommonTemplate<eParamInspect, ResultTemplate> pDicCogResultTemplate = new CommonTemplate<eParamInspect, ResultTemplate>(new ResultTemplate());
         public static YoonConsoler pCLM;
         public static YoonDisplayer pDLM;
 

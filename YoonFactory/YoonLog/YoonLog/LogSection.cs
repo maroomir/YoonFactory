@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace YoonFactory.Log
 {
-    public class LogContainer : IYoonContainer<DateTime, string>
+    public class LogSection : IYoonSection<DateTime, string>
     {
         #region IDisposable Support
-        ~LogContainer()
+        ~LogSection()
         {
             this.Dispose(false);
         }
@@ -36,7 +36,7 @@ namespace YoonFactory.Log
         }
         #endregion
 
-        public static IEqualityComparer<DateTime> DefaultComparer;
+        public static IEqualityComparer<DateTime> DefaultComparer = new CaseInsensitiveDateTimeComparer();
 
         class CaseInsensitiveDateTimeComparer : IEqualityComparer<DateTime>
         {
@@ -51,7 +51,7 @@ namespace YoonFactory.Log
             }
         }
 
-        public string RootDirectory { get; set; }
+        public string FilesDirectory { get; set; }
 
         private Dictionary<DateTime, string> m_pDicLog;
         private List<DateTime> m_pListKeyOrdered;
@@ -123,54 +123,37 @@ namespace YoonFactory.Log
             }
         }
 
-        public LogContainer()
+        public LogSection()
             : this(DefaultComparer)
         {
             //
         }
 
-        public LogContainer(IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogSection(IEqualityComparer<DateTime> pDateTimeComparer)
         {
             this.m_pDicLog = new Dictionary<DateTime, string>(pDateTimeComparer);
         }
 
-        public LogContainer(Dictionary<DateTime, string> pDic)
+        public LogSection(Dictionary<DateTime, string> pDic)
             : this(pDic, DefaultComparer)
         {
             //
         }
 
-        public LogContainer(Dictionary<DateTime, string> pDic, IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogSection(Dictionary<DateTime, string> pDic, IEqualityComparer<DateTime> pDateTimeComparer)
         {
             this.m_pDicLog = new Dictionary<DateTime, string>(pDic, pDateTimeComparer);
         }
 
-        public LogContainer(LogContainer pContainer)
-            : this(pContainer, default)
+        public LogSection(LogSection pContainer)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
 
-        public LogContainer(LogContainer pContainer, IEqualityComparer<DateTime> pDateTimeComparer)
+        public LogSection(LogSection pContainer, IEqualityComparer<DateTime> pDateTimeComparer)
         {
             this.m_pDicLog = new Dictionary<DateTime, string>(pContainer.m_pDicLog, pDateTimeComparer);
-        }
-
-        public void CopyFrom(IYoonContainer pContainer)
-        {
-            if(pContainer is LogContainer pLogContainer)
-            {
-                Clear();
-                foreach (DateTime pKey in pLogContainer.Keys)
-                {
-                    Add(pKey, pLogContainer[pKey]);
-                }
-            }
-        }
-
-        public IYoonContainer Clone()
-        {
-            return new LogContainer(this, Comparer);
         }
 
         public void Clear()
@@ -181,16 +164,6 @@ namespace YoonFactory.Log
             {
                 m_pListKeyOrdered.Clear();
             }
-        }
-
-        public bool LoadValue(DateTime pKey)
-        {
-            return false;
-        }
-
-        public bool SaveValue(DateTime pKey)
-        {
-            return false;
         }
 
         public int IndexOf(DateTime pKey) 
@@ -525,12 +498,12 @@ namespace YoonFactory.Log
             return GetEnumerator();
         }
 
-        public static implicit operator LogContainer(Dictionary<DateTime, string> pDic)
+        public static implicit operator LogSection(Dictionary<DateTime, string> pDic)
         {
-            return new LogContainer(pDic);
+            return new LogSection(pDic);
         }
 
-        public static explicit operator Dictionary<DateTime, string>(LogContainer pContainer)
+        public static explicit operator Dictionary<DateTime, string>(LogSection pContainer)
         {
             return pContainer.m_pDicLog;
         }

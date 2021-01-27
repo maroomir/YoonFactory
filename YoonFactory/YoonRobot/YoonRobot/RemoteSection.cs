@@ -13,7 +13,7 @@ namespace YoonFactory.Robot
         public eYoonCommType TCPMode { get; set; } = eYoonCommType.TCPServer;
     }
 
-    public class RemoteSection : IYoonContainer, IYoonContainer<eYoonRemoteType, ParameterRemote>
+    public class RemoteSection : IYoonSection<eYoonRemoteType, ParameterRemote>
     {
         #region IDisposable Support
         ~RemoteSection()
@@ -44,7 +44,7 @@ namespace YoonFactory.Robot
         }
         #endregion
 
-        public static IEqualityComparer<eYoonRemoteType> DefaultComparer;
+        public static IEqualityComparer<eYoonRemoteType> DefaultComparer = new CaseInsensitiveRemoteTypeComparer();
 
         class CaseInsensitiveRemoteTypeComparer : IEqualityComparer<eYoonRemoteType>
         {
@@ -190,7 +190,7 @@ namespace YoonFactory.Robot
         }
 
         public RemoteSection(RemoteSection pSection)
-            : this(pSection, default)
+            : this(pSection, DefaultComparer)
         {
             //
         }
@@ -198,23 +198,6 @@ namespace YoonFactory.Robot
         public RemoteSection(RemoteSection pSection, IEqualityComparer<eYoonRemoteType> pTypeComparer)
         {
             this.m_pDicParam = new Dictionary<eYoonRemoteType, ParameterRemote>(pSection.m_pDicParam, pTypeComparer);
-        }
-
-        public void CopyFrom(IYoonContainer pContainer)
-        {
-            if (pContainer is RemoteSection pSection)
-            {
-                Clear();
-                foreach (eYoonRemoteType nKey in pSection.Keys)
-                {
-                    Add(nKey, pSection[nKey]);
-                }
-            }
-        }
-
-        public IYoonContainer Clone()
-        {
-            return new RemoteSection(this, Comparer);
         }
 
         public void Clear()

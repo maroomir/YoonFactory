@@ -14,17 +14,11 @@ namespace YoonSample.CognexInspector
 {
     public partial class TabCombine : Form, IInspectionTab
     {
-        private int m_nIndex, m_nIndexModel, m_nIndexJob;
-        private int m_nModelNo, m_nJobNo;
-        private string m_strModelName, m_strJobName;
-        private InspectionInfo m_pInspectionInfo;
         private ICogImage m_pCogImageOrigin;
         private ICogImage m_pCogImagePreprocessing;
         private ICogImage m_pCogImageSourceSelected;
         private ICogImage m_pCogImageObjectSelected;
         private ICogImage m_pCogImageResult;
-        // Source Image Selecter 관련
-        private List<KeyValuePair<int, eTypeInspect>> m_pListTotalInspFlag;
         public event PassImageCallback OnUpdateResultImageEvent;
 
         public TabCombine(int nIndexModel, int nIndexJob, int nIndex)

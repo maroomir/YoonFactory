@@ -160,7 +160,7 @@ namespace YoonFactory.Robot
         }
         #endregion
 
-        public static IEqualityComparer<eYoonRobotType> DefaultComparer;
+        public static IEqualityComparer<eYoonRobotType> DefaultComparer = new CaseInsensitiveTypeComparer();
 
         class CaseInsensitiveTypeComparer : IEqualityComparer<eYoonRobotType>
         {
@@ -175,7 +175,7 @@ namespace YoonFactory.Robot
             }
         }
 
-        public string RootDirectory { get; set; }
+        public string FilesDirectory { get; set; }
 
         private Dictionary<eYoonRobotType, RemoteSection> m_pDicSection;
         private List<eYoonRobotType> m_pListKeyOrdered;
@@ -282,7 +282,7 @@ namespace YoonFactory.Robot
         }
 
         public RemoteContainer(RemoteContainer pContainer)
-            : this(pContainer, default)
+            : this(pContainer, DefaultComparer)
         {
             //
         }
@@ -304,7 +304,12 @@ namespace YoonFactory.Robot
             }
         }
 
-        public IYoonContainer Clone()
+        IYoonContainer IYoonContainer.Clone()
+        {
+            return new RemoteContainer(this, Comparer);
+        }
+
+        public IYoonContainer<eYoonRobotType, RemoteSection> Clone()
         {
             return new RemoteContainer(this, Comparer);
         }
@@ -321,7 +326,7 @@ namespace YoonFactory.Robot
 
         public bool LoadAll()
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
             bool bResult = true;
             foreach (eYoonRobotType nKey in m_pDicSection.Keys)
             {
@@ -333,7 +338,7 @@ namespace YoonFactory.Robot
 
         public bool LoadValue(eYoonRobotType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             bool bResult = true;
             if (!m_pDicSection.ContainsKey(nKey))
@@ -352,7 +357,7 @@ namespace YoonFactory.Robot
 
         public bool SaveAll()
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
             bool bResult = true;
             foreach (eYoonRobotType nKey in m_pDicSection.Keys)
             {
@@ -364,7 +369,7 @@ namespace YoonFactory.Robot
 
         public bool SaveValue(eYoonRobotType nKey)
         {
-            if (RootDirectory == string.Empty) return false;
+            if (FilesDirectory == string.Empty) return false;
 
             if (!m_pDicSection.ContainsKey(nKey))
                 return false;

@@ -190,39 +190,12 @@ namespace YoonFactory
         IYoonVector ToReal(IYoonVector vecPixelPos);
     }
 
-    public interface IYoonParameter
-    {
-        bool Equals(IYoonParameter pParam);
-        void CopyFrom(IYoonParameter pParam);
-        IYoonParameter Clone();
-    }
-
-    public interface IYoonResult
-    {
-        string Combine(string strDelimiter);
-
-        bool Equals(IYoonResult pResult);
-        void CopyFrom(IYoonResult pResult);
-        IYoonResult Clone();
-    }
-
-    public interface IYoonContainer : IDisposable
-    {
-        string RootDirectory { get; set; }  // \\<CONTAINER> (Save On this Folder)
-
-        void CopyFrom(IYoonContainer pContainer);
-        IYoonContainer Clone();
-        void Clear();
-    }
-
-    public interface IYoonContainer<TKey, TValue> : IYoonContainer, IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>
+    public interface IYoonSection<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>
     {
         bool IsOrdered { get; set; }
         IEqualityComparer<TKey> Comparer { get; }
         TValue this[int nIndex] { get; set; }
 
-        bool LoadValue(TKey pKey);
-        bool SaveValue(TKey pKey);
         int IndexOf(TKey pKey);
         int IndexOf(TKey pKey, int nIndex);
         int IndexOf(TKey pKey, int nIndex, int nCount);
@@ -236,23 +209,5 @@ namespace YoonFactory
         void Reverse();
         void Reverse(int nIndex, int nCount);
         ICollection<TValue> GetOrderedValues();
-    }
-
-    public interface IYoonTemplate : IDisposable
-    {
-        int No { get; set; }
-        string Name { get; set; }
-        string RootDirectory { get; set; }
-
-        void CopyFrom(IYoonTemplate pTemplate);
-        IYoonTemplate Clone();
-
-        bool SaveTemplate();
-        bool LoadTemplate();
-    }
-
-    public interface IYoonTemplate<TKey, TValue> : IYoonTemplate
-    {
-        IYoonContainer<TKey, TValue> Container { get; set; }
     }
 }

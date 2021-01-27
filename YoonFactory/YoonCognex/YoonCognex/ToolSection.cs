@@ -16,7 +16,7 @@ using Cognex.VisionPro.ColorSegmenter;
 
 namespace YoonFactory.Cognex
 {
-    public class ToolSection : IYoonContainer, IYoonContainer<string, ICogTool>
+    public class ToolSection : IYoonSection<string, ICogTool>
     {
         #region Supported IDisposable Pattern
         ~ToolSection()
@@ -47,7 +47,7 @@ namespace YoonFactory.Cognex
         }
         #endregion
 
-        public static IEqualityComparer<string> DefaultComparer;
+        public static IEqualityComparer<string> DefaultComparer = new CaseInsensitiveStringComparer();
 
         class CaseInsensitiveStringComparer : IEqualityComparer<string>
         {
@@ -171,7 +171,7 @@ namespace YoonFactory.Cognex
         }
 
         public ToolSection(ToolSection pSection)
-            : this(pSection, default)
+            : this(pSection, DefaultComparer)
         {
             //
         }
@@ -179,23 +179,6 @@ namespace YoonFactory.Cognex
         public ToolSection(ToolSection pSection, IEqualityComparer<string> pStringComparer)
         {
             this.m_pDicCogTool = new Dictionary<string, ICogTool>(pSection.m_pDicCogTool, pStringComparer);
-        }
-
-        public void CopyFrom(IYoonContainer pContainer)
-        {
-            if (pContainer is ToolSection pSection)
-            {
-                Clear();
-                foreach (string strKey in pSection.Keys)
-                {
-                    Add(strKey, pSection[strKey]);
-                }
-            }
-        }
-
-        public IYoonContainer Clone()
-        {
-            return new ToolSection(this, Comparer);
         }
 
         public void Clear()
