@@ -123,11 +123,6 @@ namespace YoonFactory.Param
                 return x.Equals(y);
             }
 
-            public bool Equals(string str, T obj)
-            {
-                return (str == obj.ToString());
-            }
-
             public int GetHashCode(T obj)
             {
                 return obj.GetHashCode();
@@ -243,20 +238,6 @@ namespace YoonFactory.Param
             return new YoonContainer<T>(this);
         }
 
-        private bool IsContainsStrKey(string strKey, out T pParseKey)
-        {
-            pParseKey = default(T);
-            foreach (T pKey in m_pDicParam.Keys)
-            {
-                if ((DefaultComparer as CaseInsensitiveComparer).Equals(strKey, pKey))
-                {
-                    pParseKey = pKey;
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public void Clear()
         {
             if (m_pDicParam != null)
@@ -265,16 +246,6 @@ namespace YoonFactory.Param
             {
                 m_pListKeyOrdered.Clear();
             }
-        }
-
-        public bool LoadValue(string strKey)
-        {
-            if (FilesDirectory == string.Empty || strKey == string.Empty)
-                return false;
-            T pParseKey;
-            if (!IsContainsStrKey(strKey, out pParseKey))
-                return false;
-            return LoadValue(pParseKey);
         }
 
         public bool LoadValue(T pKey)
@@ -288,17 +259,6 @@ namespace YoonFactory.Param
             if (m_pDicParam[pKey].LoadParameter(pKey.ToString())) return true;
             else return false;
         }
-
-        public bool SaveValue(string strKey)
-        {
-            if (FilesDirectory == string.Empty || strKey == string.Empty)
-                return false;
-            T pParseKey;
-            if (!IsContainsStrKey(strKey, out pParseKey))
-                return false;
-            return SaveValue(pParseKey);
-        }
-
 
         public bool SaveValue(T pKey)
         {
@@ -798,6 +758,7 @@ namespace YoonFactory.Param
             Name = "Default";
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             Container = pContainer;
+            RootDirectory = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)
