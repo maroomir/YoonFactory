@@ -157,7 +157,7 @@ namespace YoonFactory.Param
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ParameterContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ParameterContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -169,7 +169,7 @@ namespace YoonFactory.Param
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ParameterContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ParameterContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -273,7 +273,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(T) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T) on ParameterContainer: section was not ordered.");
             }
             return IndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
@@ -282,7 +282,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(T, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T, int) on ParameterContainer: section was not ordered.");
             }
             return IndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -291,7 +291,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(T, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(T, int, int) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -320,7 +320,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(T) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T) on ParameterContainer: section was not ordered.");
             }
             return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -329,7 +329,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(T, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T, int) on ParameterContainer: section was not ordered.");
             }
             return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -338,7 +338,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(T, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(T, int, int) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -367,7 +367,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, T, YoonParameter) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, T, YoonParameter) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -381,7 +381,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<T, YoonParameter>>) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<T, YoonParameter>>) on ParameterContainer: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -402,7 +402,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -417,7 +417,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -441,7 +441,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on ParameterContainer: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -450,7 +450,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -471,7 +471,7 @@ namespace YoonFactory.Param
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterContainer: section was not ordered.");
             }
             var list = new List<YoonParameter>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)
@@ -667,7 +667,7 @@ namespace YoonFactory.Param
             string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
             base.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            YoonIni pIni = new YoonIni(strIniFilePath);
+            using (YoonIni pIni = new YoonIni(strIniFilePath))
             {
                 pIni.LoadFile();
                 No = pIni["HEAD"]["No"].ToInt(No);
@@ -691,7 +691,7 @@ namespace YoonFactory.Param
             string strIniFilePath = Path.Combine(RootDirectory, @"YoonTemplate.ini");
             base.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            YoonIni pIni = new YoonIni(strIniFilePath);
+            using (YoonIni pIni = new YoonIni(strIniFilePath))
             {
                 int iParam = 0;
                 pIni["HEAD"]["No"] = No;
@@ -709,7 +709,7 @@ namespace YoonFactory.Param
         }
     }
 
-    public class CommonTemplate<TKey, TValue> : IYoonTemplate<TKey, TValue> where TKey : IConvertible
+    public class CommonTemplate<TKey, TValue> : IYoonTemplate where TKey : IConvertible
     {
         #region IDisposable Support
         ~CommonTemplate()
@@ -793,7 +793,7 @@ namespace YoonFactory.Param
             string strIniFilePath = Path.Combine(RootDirectory, @"CommonTemplate.ini");
             Container.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            YoonIni pIni = new YoonIni(strIniFilePath);
+            using (YoonIni pIni = new YoonIni(strIniFilePath))
             {
                 pIni.LoadFile();
                 string strHeadName = "HEAD:" + typeof(TValue).ToString();
@@ -819,7 +819,7 @@ namespace YoonFactory.Param
             string strIniFilePath = Path.Combine(RootDirectory, @"CommonTemplate.ini");
             Container.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
-            YoonIni pIni = new YoonIni(strIniFilePath);
+            using (YoonIni pIni = new YoonIni(strIniFilePath))
             {
                 int iParam = 0;
                 string strHeadName = "HEAD:" + typeof(TValue).ToString();

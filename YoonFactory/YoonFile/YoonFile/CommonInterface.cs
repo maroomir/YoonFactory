@@ -4,7 +4,7 @@ using System.IO;
 
 namespace YoonFactory.Files
 {
-    public interface IYoonFile
+    public interface IYoonFile : IDisposable
     {
         string FilePath { get; }
 

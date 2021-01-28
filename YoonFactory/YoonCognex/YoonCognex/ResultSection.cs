@@ -285,7 +285,7 @@ namespace YoonFactory.Cognex
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ResultSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ResultSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -297,7 +297,7 @@ namespace YoonFactory.Cognex
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ResultSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ResultSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -419,7 +419,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: section was not ordered.");
             }
             return IndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -428,7 +428,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int) on ResultSection: section was not ordered.");
             }
             return IndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -437,7 +437,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -466,7 +466,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string) on ResultSection: section was not ordered.");
             }
             return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -475,7 +475,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ResultSection: section was not ordered.");
             }
             return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -484,7 +484,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -513,7 +513,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, string, CognexResult) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, string, CognexResult) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -527,7 +527,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, CognexResult>>) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, CognexResult>>) on ResultSection: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -548,7 +548,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -563,7 +563,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -587,7 +587,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on ResultSection: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -596,7 +596,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ResultSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -617,7 +617,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on ResultSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ResultSection: section was not ordered.");
             }
             var list = new List<CognexResult>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)

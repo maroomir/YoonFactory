@@ -32,7 +32,7 @@ namespace YoonFactory
         void Clear();
     }
 
-    public interface IYoonContainer<TKey, TValue> : IYoonContainer, IYoonSection<TKey, TValue>
+    public interface IYoonContainer<TKey, TValue> : IYoonContainer, IYoonSection<TKey, TValue> where TKey : IConvertible
     {
         new IYoonContainer<TKey, TValue> Clone();
         bool LoadValue(TKey pKey);
@@ -51,10 +51,5 @@ namespace YoonFactory
 
         bool SaveTemplate();
         bool LoadTemplate();
-    }
-
-    public interface IYoonTemplate<TKey, TValue> : IYoonTemplate
-    {
-        IYoonContainer<TKey, TValue> Container { get; set; }
     }
 }

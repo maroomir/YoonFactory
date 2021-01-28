@@ -91,7 +91,7 @@ namespace YoonFactory.Cognex
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ToolSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ToolSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -103,7 +103,7 @@ namespace YoonFactory.Cognex
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ToolSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ToolSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -257,7 +257,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string) on ToolSection: section was not ordered.");
             }
             return IndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -266,7 +266,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int) on ToolSection: section was not ordered.");
             }
             return IndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -275,7 +275,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -304,7 +304,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string) on ToolSection: section was not ordered.");
             }
             return LastIndexOf(strKey, 0, m_pListKeyOrdered.Count);
         }
@@ -313,7 +313,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ToolSection: section was not ordered.");
             }
             return LastIndexOf(strKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -322,7 +322,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -351,7 +351,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, string, ICogTool) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, string, ICogTool) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -365,7 +365,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, YoonParameter>>) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, YoonParameter>>) on ToolSection: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -386,7 +386,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -401,7 +401,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -425,7 +425,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on ToolSection: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -434,7 +434,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ToolSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -455,7 +455,7 @@ namespace YoonFactory.Cognex
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on ToolSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ToolSection: section was not ordered.");
             }
             var list = new List<ICogTool>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)

@@ -14,6 +14,9 @@ namespace YoonSample.CognexInspector
 {
     public partial class TabCombine : Form, IInspectionTab
     {
+        private int m_nIndex = -1;
+        private eTypeInspect m_nType = eTypeInspect.None;
+
         private ICogImage m_pCogImageOrigin;
         private ICogImage m_pCogImagePreprocessing;
         private ICogImage m_pCogImageSourceSelected;
@@ -21,19 +24,12 @@ namespace YoonSample.CognexInspector
         private ICogImage m_pCogImageResult;
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public TabCombine(int nIndexModel, int nIndexJob, int nIndex)
+        public TabCombine(int nIndex)
         {
             InitializeComponent();
 
-            m_nIndexModel = nIndexModel;
-            m_nIndexJob = nIndexJob;
             m_nIndex = nIndex;
-
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-            m_nModelNo = CommonClass.pListModel[m_nIndexModel].No;
-            m_strModelName = CommonClass.pListModel[m_nIndexModel].Name;
-            m_nJobNo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].No;
-            m_strJobName = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].Name;
+            m_nType = eTypeInspect.Combine;
         }
 
         private void FormTab_Combine_Load(object sender, EventArgs e)
@@ -43,18 +39,16 @@ namespace YoonSample.CognexInspector
             cogDisplay_CombineView.AutoFit = true;
 
             //// 유효성 체크
-            if(m_pInspectionInfo == null)
+            if(!CommonClass.pParamTemplate.ContainsKey(m_nType)
+                && !CommonClass.pCogToolTemplate.ContainsKey(m_nType))
             {
                 CommonClass.pCLM.Write("Combine Load Failure : Inspection Info isnot valid");
                 Close();
                 return;
             }
 
-            ////  변수 초기화
-            m_pListTotalInspFlag = CommonFunction.GetTotalInspectFlagList(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName);
-
             ////  Form 초기화
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             checkBox_IsUseCombine.Checked = pParam.IsUse;
             switch(pParam.CombineType)
             {
@@ -101,10 +95,6 @@ namespace YoonSample.CognexInspector
             cogDisplay_CombineView.InteractiveGraphics.Clear();
             cogDisplay_CombineView.Dispose();
 
-            //// 변수 삭제
-            m_pListTotalInspFlag.Clear();
-            m_pListTotalInspFlag = null;
-
             //// 이벤트 해제
             checkBox_IsUseCombine.Click -= OnCheckBoxEnableClick;
             radioButton_CombineAdd.Click -= OnRadioButtonCombineClick;
@@ -115,17 +105,17 @@ namespace YoonSample.CognexInspector
 
         private void InitComboBoxSource()
         {
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
 
             ////  Source Image 초기화
             comboBox_SelectSourceImage.Items.Clear();
             comboBox_SelectSourceImage.Items.Add("Origin");
             comboBox_SelectSourceImage.Items.Add("CurrentProcessing");
-            foreach (KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
+                string strSelectBoxContents = pTemplate.ToString();
                 comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             switch (pParam.SelectedSourceLevel)
@@ -137,7 +127,7 @@ namespace YoonSample.CognexInspector
                     comboBox_SelectSourceImage.SelectedIndex = 1;
                     break;
                 case eLevelImageSelection.Custom:
-                    comboBox_SelectSourceImage.SelectedItem = CommonFunction.SetInspectFlagToStringTag(pParam.SelectedSourceNo, pParam.SelectedSourceType);
+                    comboBox_SelectSourceImage.SelectedItem = CommonClass.pCogToolTemplate[pParam.SelectedSourceType].ToString();
                     break;
             }
 
@@ -145,12 +135,12 @@ namespace YoonSample.CognexInspector
             comboBox_SelectObjectImage.Items.Clear();
             comboBox_SelectObjectImage.Items.Add("Origin");
             comboBox_SelectObjectImage.Items.Add("CurrentProcessing");
-            foreach (KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
-                comboBox_SelectObjectImage.Items.Add(strSelectBoxContents);
+                string strSelectBoxContents = pTemplate.ToString();
+                comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             switch (pParam.SelectedObjectLevel)
             {
@@ -161,7 +151,7 @@ namespace YoonSample.CognexInspector
                     comboBox_SelectObjectImage.SelectedIndex = 1;
                     break;
                 case eLevelImageSelection.Custom:
-                    comboBox_SelectObjectImage.SelectedItem = CommonFunction.SetInspectFlagToStringTag(pParam.SelectedObjectNo, pParam.SelectedObjectType);
+                    comboBox_SelectSourceImage.SelectedItem = CommonClass.pCogToolTemplate[pParam.SelectedObjectType].ToString();
                     break;
             }
         }
@@ -169,7 +159,7 @@ namespace YoonSample.CognexInspector
         public void OnCheckBoxEnableClick(object sender, EventArgs e)
         {
             CheckBox pBox = (CheckBox)sender;
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             switch (pBox.Name)
             {
                 case "checkBox_IsUseCombine":
@@ -180,14 +170,14 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
         public void OnRadioButtonCombineClick(object sender, EventArgs e)
         {
             RadioButton pButton = (RadioButton)sender;
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             switch (pButton.Name)
             {
                 case "radioButton_CombineAdd":
@@ -211,7 +201,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -223,7 +213,6 @@ namespace YoonSample.CognexInspector
         public void OnCognexImageDownload(object sender, CogImageArgs e)
         {
             if (e.InspectType != eTypeInspect.Combine) return;
-            if (m_pListTotalInspFlag == null) return;   // ComboBox가 초기화되지 않은 경우
 
             switch (sender)
             {
@@ -248,9 +237,8 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterUpdate(object sender, EventArgs e)
         {
-            CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex] = m_pInspectionInfo;
-            CommonClass.pConfig.SelectedInspectionNo = m_pInspectionInfo.No;
-            CommonClass.pConfig.SelectedInspectionType = m_pInspectionInfo.InspectType;
+            CommonClass.pConfig.SelectedInspectionNo = m_nIndex;
+            CommonClass.pConfig.SelectedInspectionType = m_nType;
         }
 
         private void button_UpdateSetting_Click(object sender, EventArgs e)
@@ -261,9 +249,7 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterDownload(object sender, EventArgs e)
         {
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             {
                 checkBox_IsUseCombine.Checked = pParam.IsUse;
                 switch (pParam.CombineType)
@@ -292,13 +278,13 @@ namespace YoonSample.CognexInspector
 
         private void button_ProcessCombine_Click(object sender, EventArgs e)
         {
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             if (!pParam.IsUse) return;
 
             ////  공용으로 사용하기 전 Process 초기화
             OnInspectionParameterUpdate(sender, e);
 
-            if (CommonFunction.ProcessImageCombine(m_pCogImageSourceSelected, m_pCogImageObjectSelected, ref m_pCogImageResult)) // 선택된 Source Image와 Object Image가 들어감
+            if (CommonClass.ProcessImageCombine(m_pCogImageSourceSelected, m_pCogImageObjectSelected, ref m_pCogImageResult)) // 선택된 Source Image와 Object Image가 들어감
             {
                 //// Inspection Info Download
                 OnInspectionParameterDownload(sender, e);
@@ -307,13 +293,13 @@ namespace YoonSample.CognexInspector
                 cogDisplay_CombineView.InteractiveGraphics.Clear();
                 cogDisplay_CombineView.Image = m_pCogImageResult;
                 //// Result Image를 다른 Tab으로 넘기기
-                OnUpdateResultImageEvent(this, new CogImageArgs(m_pInspectionInfo.No, m_pInspectionInfo.InspectType, m_pCogImageResult));
+                OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
         }
 
         private void button_SetSourceImage_Click(object sender, EventArgs e)
         {
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             if (m_pCogImageOrigin == null || m_pCogImagePreprocessing == null)
                 return;
 
@@ -330,8 +316,8 @@ namespace YoonSample.CognexInspector
                     pParam.SelectedSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
-                    KeyValuePair<int, eTypeInspect> pPair = CommonFunction.GetInspectFlagFromStringTag(strSourceSelected);
-                    m_pCogImageSourceSelected = CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, pPair.Key, pPair.Value);
+                    KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
+                    m_pCogImageSourceSelected = CommonClass.pCogResultTemplate[pPair.Value][eYoonCognexType.None][0].ResultImage; // ??
                     pParam.SelectedSourceLevel = eLevelImageSelection.Custom;
                     pParam.SelectedSourceNo = pPair.Key;
                     pParam.SelectedSourceType = pPair.Value;
@@ -342,13 +328,13 @@ namespace YoonSample.CognexInspector
             cogDisplay_SourceView.Image = m_pCogImageSourceSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
         private void button_SetObjectImage_Click(object sender, EventArgs e)
         {
-            ParameterInspectionCombine pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionCombine;
+            ParameterInspectionCombine pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionCombine;
             if (m_pCogImageOrigin == null || m_pCogImagePreprocessing == null)
                 return;
 
@@ -365,8 +351,8 @@ namespace YoonSample.CognexInspector
                     pParam.SelectedObjectLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
-                    KeyValuePair<int, eTypeInspect> pPair = CommonFunction.GetInspectFlagFromStringTag(strObjectSelected);
-                    m_pCogImageObjectSelected = CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, pPair.Key, pPair.Value);
+                    KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strObjectSelected);
+                    m_pCogImageSourceSelected = CommonClass.pCogResultTemplate[pPair.Value][eYoonCognexType.None][0].ResultImage; // ??
                     pParam.SelectedObjectLevel = eLevelImageSelection.Custom;
                     pParam.SelectedObjectNo = pPair.Key;
                     pParam.SelectedObjectType = pPair.Value;
@@ -377,7 +363,7 @@ namespace YoonSample.CognexInspector
             cogDisplay_ObjectView.Image = m_pCogImageObjectSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
     }

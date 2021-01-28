@@ -214,7 +214,7 @@ namespace YoonFactory.Robot
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -226,7 +226,7 @@ namespace YoonFactory.Robot
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ToolContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -388,7 +388,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType) on RemoteContainer: section was not ordered.");
             }
             return IndexOf(nKey, 0, m_pListKeyOrdered.Count);
         }
@@ -397,7 +397,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int) on RemoteContainer: section was not ordered.");
             }
             return IndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -406,7 +406,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int, int) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -435,7 +435,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType) on RemoteContainer: section was not ordered.");
             }
             return LastIndexOf(nKey, 0, m_pListKeyOrdered.Count);
         }
@@ -444,7 +444,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int) on RemoteContainer: section was not ordered.");
             }
             return LastIndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -453,7 +453,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int, int) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -482,7 +482,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, eYoonRobotType, ParameterSection) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, eYoonRobotType, ParameterSection) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -496,7 +496,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRobotType, ParameterSection>>) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRobotType, RemoteSection>>) on RemoteContainer: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -517,7 +517,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -532,7 +532,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -556,7 +556,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on RemoteContainer: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -565,7 +565,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on RemoteContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -586,7 +586,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on RemoteContainer: section was not ordered.");
             }
             var list = new List<RemoteSection>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)

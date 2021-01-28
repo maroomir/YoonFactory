@@ -10,6 +10,39 @@ using YoonFactory.Cognex;
 
 namespace YoonSample.CognexInspector
 {
+    public class ParameterConfig : IYoonParameter
+    {
+        public int SelectedInspectionNo { get; set; } = 0;
+        public eTypeInspect SelectedInspectionType { get; set; } = eTypeInspect.Preprocessing;
+        public bool Equals(IYoonParameter pParam)
+        {
+            if (pParam is ParameterConfig pConfig)
+            {
+                if (SelectedInspectionNo == pConfig.SelectedInspectionNo &&
+                    SelectedInspectionType == pConfig.SelectedInspectionType)
+                    return true;
+            }
+            return false;
+        }
+
+        public void CopyFrom(IYoonParameter pParam)
+        {
+            if (pParam is ParameterConfig pConfig)
+            {
+                SelectedInspectionNo = pConfig.SelectedInspectionNo;
+                SelectedInspectionType = pConfig.SelectedInspectionType;
+            }
+        }
+
+        public IYoonParameter Clone()
+        {
+            ParameterConfig pParam = new ParameterConfig();
+            pParam.SelectedInspectionNo = SelectedInspectionNo;
+            pParam.SelectedInspectionType = SelectedInspectionType;
+            return pParam;
+        }
+    }
+
     public class ParameterInspectionPreprocessing : IYoonParameter
     {
         [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Preprocessing (true/false)")]

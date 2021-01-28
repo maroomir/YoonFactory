@@ -79,7 +79,7 @@ namespace YoonFactory.Log
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index LogContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index LogContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -91,7 +91,7 @@ namespace YoonFactory.Log
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index LogContainer using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index LogContainer using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -170,7 +170,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime) on LogContainer: section was not ordered.");
             }
             return IndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
@@ -179,7 +179,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int) on LogContainer: section was not ordered.");
             }
             return IndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -188,7 +188,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int, int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(DateTime, int, int) on LogContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -217,7 +217,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: section was not ordered.");
             }
             return LastIndexOf(pKey, 0, m_pListKeyOrdered.Count);
         }
@@ -226,7 +226,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: section was not ordered.");
             }
             return LastIndexOf(pKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -235,7 +235,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime, int, int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(DateTime, int, int) on LogContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -264,7 +264,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, DateTime, string) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, DateTime, string) on LogContainer: section was not ordered.");
             }
             if(nIndex<0 || nIndex>m_pListKeyOrdered.Count)
             {
@@ -278,7 +278,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<DateTime, string>>) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<DateTime, string>>) on LogContainer: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -299,7 +299,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on LogContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -314,7 +314,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on LogContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -338,7 +338,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on LogContainer: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -347,7 +347,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on LogContainer: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -368,7 +368,7 @@ namespace YoonFactory.Log
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on LogContainer: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on LogContainer: section was not ordered.");
             }
             var list = new List<string>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)

@@ -268,27 +268,31 @@ namespace YoonFactory.Comm.TCP
         public void LoadParam()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            YoonIni ic = new YoonIni(strFilePath);
-            ic.LoadFile();
-            Param.fIP = ic["Client"]["IP"].ToString("127.0.0.1");
-            Param.fPort = ic["Client"]["Port"].ToString("1234");
-            Param.fRetryConnect = ic["Client"]["RetryConnect"].ToString("true");
-            Param.fRetryCount = ic["Client"]["RetryCount"].ToString("100");
-            Param.fTimeout = ic["Client"]["TimeOut"].ToString("10000");
-            Param.fElapsedTime = ic["Client"]["ElapsedTime"].ToString("5000");
+            using (YoonIni ic = new YoonIni(strFilePath))
+            {
+                ic.LoadFile();
+                Param.fIP = ic["Client"]["IP"].ToString("127.0.0.1");
+                Param.fPort = ic["Client"]["Port"].ToString("1234");
+                Param.fRetryConnect = ic["Client"]["RetryConnect"].ToString("true");
+                Param.fRetryCount = ic["Client"]["RetryCount"].ToString("100");
+                Param.fTimeout = ic["Client"]["TimeOut"].ToString("10000");
+                Param.fElapsedTime = ic["Client"]["ElapsedTime"].ToString("5000");
+            }
         }
 
         public void SaveParam()
         {
             string strFilePath = Path.Combine(RootDirectory, "IPClient.ini");
-            YoonIni ic = new YoonIni(strFilePath);
-            ic["Client"]["IP"] = Param.fIP;
-            ic["Client"]["Port"] = Param.fPort;
-            ic["Client"]["RetryConnect"] = Param.fRetryConnect;
-            ic["Client"]["RetryCount"] = Param.fRetryCount;
-            ic["Client"]["TimeOut"] = Param.fTimeout;
-            ic["Client"]["ElapsedTime"] = Param.fElapsedTime;
-            ic.SaveFile();
+            using (YoonIni ic = new YoonIni(strFilePath))
+            {
+                ic["Client"]["IP"] = Param.fIP;
+                ic["Client"]["Port"] = Param.fPort;
+                ic["Client"]["RetryConnect"] = Param.fRetryConnect;
+                ic["Client"]["RetryCount"] = Param.fRetryCount;
+                ic["Client"]["TimeOut"] = Param.fTimeout;
+                ic["Client"]["ElapsedTime"] = Param.fElapsedTime;
+                ic.SaveFile();
+            }
         }
 
         public bool IsConnected
@@ -901,25 +905,29 @@ namespace YoonFactory.Comm.TCP
         public void LoadParam()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            YoonIni ic = new YoonIni(strParamFilePath);
-            ic.LoadFile();
-            Param.fPort = ic["Server"]["Port"].ToString("1234");
-            Param.fBacklog = ic["Server"]["Backlog"].ToString("5");
-            Param.fRetryListen = ic["Server"]["RetryListen"].ToString("true");
-            Param.fRetryCount = ic["Server"]["RetryCount"].ToString("10");
-            Param.fTimeout = ic["Server"]["TimeOut"].ToString("10000");
+            using (YoonIni ic = new YoonIni(strParamFilePath))
+            {
+                ic.LoadFile();
+                Param.fPort = ic["Server"]["Port"].ToString("1234");
+                Param.fBacklog = ic["Server"]["Backlog"].ToString("5");
+                Param.fRetryListen = ic["Server"]["RetryListen"].ToString("true");
+                Param.fRetryCount = ic["Server"]["RetryCount"].ToString("10");
+                Param.fTimeout = ic["Server"]["TimeOut"].ToString("10000");
+            }
         }
 
         public void SaveParam()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            YoonIni ic = new YoonIni(strParamFilePath);
-            ic["Server"]["Port"] = Param.fPort;
-            ic["Server"]["Backlog"] = Param.fBacklog;
-            ic["Server"]["RetryListen"] = Param.fRetryListen;
-            ic["Server"]["RetryCount"] = Param.fRetryCount;
-            ic["Server"]["TimeOut"] = Param.fTimeout;
-            ic.SaveFile();
+            using (YoonIni ic = new YoonIni(strParamFilePath))
+            {
+                ic["Server"]["Port"] = Param.fPort;
+                ic["Server"]["Backlog"] = Param.fBacklog;
+                ic["Server"]["RetryListen"] = Param.fRetryListen;
+                ic["Server"]["RetryCount"] = Param.fRetryCount;
+                ic["Server"]["TimeOut"] = Param.fTimeout;
+                ic.SaveFile();
+            }
         }
 
         public void LoadTarget()

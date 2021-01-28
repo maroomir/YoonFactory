@@ -111,7 +111,7 @@ namespace YoonFactory.Robot
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ParameterSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ParameterSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -123,7 +123,7 @@ namespace YoonFactory.Robot
             {
                 if (!IsOrdered)
                 {
-                    throw new InvalidOperationException("Cannot index ParameterSection using integer key: container was not ordered.");
+                    throw new InvalidOperationException("Cannot index ParameterSection using integer key: section was not ordered.");
                 }
                 if (nIndex < 0 || nIndex >= m_pListKeyOrdered.Count)
                 {
@@ -234,11 +234,13 @@ namespace YoonFactory.Robot
 
             ParameterRemote pRemote = new ParameterRemote();
             string strKey = nKey.ToString();
-            YoonIni ic = new YoonIni(strFilePath);
-            ic.LoadFile();
-            pRemote.IPAddress = ic[strKey]["IP"].ToString("127.0.0.1");
-            pRemote.Port = ic[strKey]["Port"].ToString("1234");
-            pRemote.TCPMode = ic[strKey]["Mode"].ToEnum<eYoonCommType>(eYoonCommType.TCPClient);
+            using (YoonIni ic = new YoonIni(strFilePath))
+            {
+                ic.LoadFile();
+                pRemote.IPAddress = ic[strKey]["IP"].ToString("127.0.0.1");
+                pRemote.Port = ic[strKey]["Port"].ToString("1234");
+                pRemote.TCPMode = ic[strKey]["Mode"].ToEnum<eYoonCommType>(eYoonCommType.TCPClient);
+            }
             return pRemote;
         }
 
@@ -247,11 +249,13 @@ namespace YoonFactory.Robot
             if (RootDirectory == string.Empty) return false;
 
             string strKey = nKey.ToString();
-            YoonIni ic = new YoonIni(strFilePath);
-            ic[strKey]["IP"] = pRemote.IPAddress;
-            ic[strKey]["Port"] = pRemote.Port;
-            ic[strKey]["Mode"] = pRemote.TCPMode.ToString();
-            ic.SaveFile();
+            using (YoonIni ic = new YoonIni(strFilePath))
+            {
+                ic[strKey]["IP"] = pRemote.IPAddress;
+                ic[strKey]["Port"] = pRemote.Port;
+                ic[strKey]["Mode"] = pRemote.TCPMode.ToString();
+                ic.SaveFile();
+            }
             return true;
         }
 
@@ -283,7 +287,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType) on ParameterSection: section was not ordered.");
             }
             return IndexOf(nKey, 0, m_pListKeyOrdered.Count);
         }
@@ -292,7 +296,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType, int) on ParameterSection: section was not ordered.");
             }
             return IndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -301,7 +305,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType, int, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonRemoteType, int, int) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -330,7 +334,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType) on ParameterSection: section was not ordered.");
             }
             return LastIndexOf(nKey, 0, m_pListKeyOrdered.Count);
         }
@@ -339,7 +343,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType, int) on ParameterSection: section was not ordered.");
             }
             return LastIndexOf(nKey, nIndex, m_pListKeyOrdered.Count - nIndex);
         }
@@ -348,7 +352,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType, int, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRemoteType, int, int) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -377,7 +381,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Insert(int, eYoonRemoteType, ParameterRemote) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Insert(int, eYoonRemoteType, ParameterRemote) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -391,7 +395,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRemoteType, ParameterRemote>>) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRemoteType, ParameterRemote>>) on ParameterSection: section was not ordered.");
             }
             if (pCollection == null)
             {
@@ -412,7 +416,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -427,7 +431,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -451,7 +455,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse() on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse() on ParameterSection: section was not ordered.");
             }
             m_pListKeyOrdered.Reverse();
         }
@@ -460,7 +464,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterSection: section was not ordered.");
             }
             if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
             {
@@ -481,7 +485,7 @@ namespace YoonFactory.Robot
         {
             if (!IsOrdered)
             {
-                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterSection: container was not ordered.");
+                throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterSection: section was not ordered.");
             }
             var list = new List<ParameterRemote>();
             for (int i = 0; i < m_pListKeyOrdered.Count; i++)
