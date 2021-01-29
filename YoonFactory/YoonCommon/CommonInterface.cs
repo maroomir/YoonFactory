@@ -192,7 +192,6 @@ namespace YoonFactory
 
     public interface IYoonSection<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>
     {
-        bool IsOrdered { get; set; }
         IEqualityComparer<TKey> Comparer { get; }
         TValue this[int nIndex] { get; set; }
 

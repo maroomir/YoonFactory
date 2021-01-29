@@ -19,34 +19,21 @@ namespace YoonSample.CognexInspector
 {
     public partial class TabPatternMatching : Form, IInspectionTab
     {
-        private int m_nModelNo, m_nJobNo;
-        private int m_nIndexModel, m_nIndexJob, m_nIndex;
-        private string m_strModelName, m_strJobName;
-        private InspectionInfo m_pInspectionInfo;
+        private int m_nIndex = -1;
+        private eTypeInspect m_nType = eTypeInspect.None;
         private ICogImage m_pCogImageOrigin;
         private ICogImage m_pCogImagePreprocessing;
         private ICogImage m_pCogImageSourceSelected;
         private CogImage8Grey m_pCogImageResult;
-        // Source Image Selecter 관련
-        private List<KeyValuePair<int, eTypeInspect>> m_pListTotalInspFlag;
-        // Align Result 관련
         private DataTable m_pTableResult = null;
-
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public TabPatternMatching(int nIndexModel, int nIndexJob, int nIndex)
+        public TabPatternMatching(int nIndex)
         {
             InitializeComponent();
 
-            m_nIndexModel = nIndexModel;
-            m_nIndexJob = nIndexJob;
             m_nIndex = nIndex;
-
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-            m_nModelNo = CommonClass.pListModel[m_nIndexModel].No;
-            m_strModelName = CommonClass.pListModel[m_nIndexModel].Name;
-            m_nJobNo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].No;
-            m_strJobName = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].Name;
+            m_nType = eTypeInspect.PatternMatching;
         }
 
         private void FormTab_PatternMatching_Load(object sender, EventArgs e)
@@ -58,23 +45,21 @@ namespace YoonSample.CognexInspector
             cogDisplay_ForthPattern.AutoFit = true;
 
             //// 유효성 체크
-            if (m_pInspectionInfo == null)
+            if (!CommonClass.pParamTemplate.ContainsKey(m_nType)
+                && !CommonClass.pCogToolTemplate.ContainsKey(m_nType))
             {
                 CommonClass.pCLM.Write("Pattern Matching Load Failure : Inspection Info isnot valid");
                 Close();
                 return;
             }
 
-            ////  변수 초기화
-            m_pListTotalInspFlag = CommonFunction.GetTotalInspectFlagList(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName);
-
             ////  Form 초기화
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
             checkBox_IsUsePM.Checked = pParam.IsUse;
-            checkBox_IsUseMainPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Main)];
-            checkBox_IsUseSecondPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Second)];
-            checkBox_IsUseThirdPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Third)];
-            checkBox_IsUseForthPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Forth)];
+            checkBox_IsUseMainPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Main.ToInt()];
+            checkBox_IsUseSecondPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Second.ToInt()];
+            checkBox_IsUseThirdPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Third.ToInt()];
+            checkBox_IsUseForthPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Forth.ToInt()];
             checkBox_IsUseMultiPatternInspection.Checked = pParam.IsUseMultiPatternInspection;
             checkBox_IsCheckAlignOffset.Checked = pParam.IsCheckAlign;
 
@@ -116,10 +101,6 @@ namespace YoonSample.CognexInspector
             cogDisplay_ForthPattern.InteractiveGraphics.Clear();
             cogDisplay_ForthPattern.Dispose();
 
-            //// 변수 삭제
-            m_pListTotalInspFlag.Clear();
-            m_pListTotalInspFlag = null;
-
             ////  이벤트 해제
             checkBox_IsUsePM.Click -= OnCheckBoxEnableClick;
             checkBox_IsUseMainPattern.Click -= OnCheckBoxEnableClick;
@@ -130,17 +111,17 @@ namespace YoonSample.CognexInspector
 
         private void InitComboBoxSource()
         {
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
 
             ////  Source Image
             comboBox_SelectSourceImage.Items.Clear();
             comboBox_SelectSourceImage.Items.Add("Origin");
             comboBox_SelectSourceImage.Items.Add("CurrentProcessing");
-            foreach (KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
+                string strSelectBoxContents = pTemplate.ToString();
                 comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             switch (pParam.SelectedSourceLevel)
@@ -152,7 +133,7 @@ namespace YoonSample.CognexInspector
                     comboBox_SelectSourceImage.SelectedIndex = 1;
                     break;
                 case eLevelImageSelection.Custom:
-                    comboBox_SelectSourceImage.SelectedItem = CommonFunction.SetInspectFlagToStringTag(pParam.SelectedSourceNo, pParam.SelectedSourceType);
+                    comboBox_SelectSourceImage.SelectedItem = CommonClass.pCogToolTemplate[pParam.SelectedSourceType].ToString();
                     break;
                 default:
                     break;
@@ -196,7 +177,7 @@ namespace YoonSample.CognexInspector
 
         private void InitPatternView(eLabelInspect nLabel)
         {
-            CogPMAlignTool pCogToolPM = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.PMAlign, nLabel.ToString()) as CogPMAlignTool;
+            CogPMAlignTool pCogToolPM = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             ICogRegion pCogRegion = pCogToolPM.Pattern.TrainRegion;
             switch(nLabel)
             {
@@ -228,23 +209,23 @@ namespace YoonSample.CognexInspector
         public void OnCheckBoxEnableClick(object sender, EventArgs e)
         {
             CheckBox pBox = (CheckBox)sender;
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
             switch (pBox.Name)
             {
                 case "checkBox_IsUsePM":
                     pParam.IsUse = pBox.Checked;
                     break;
                 case "checkBox_IsUseMainPattern":
-                    pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Main)] = pBox.Checked;
+                    pParam.IsUseEachPatterns[eLabelInspect.Main.ToInt()] = pBox.Checked;
                     break;
                 case "checkBox_IsUseSecondPattern":
-                    pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Second)] = pBox.Checked;
+                    pParam.IsUseEachPatterns[eLabelInspect.Second.ToInt()] = pBox.Checked;
                     break;
                 case "checkBox_IsUseThirdPattern":
-                    pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Third)] = pBox.Checked;
+                    pParam.IsUseEachPatterns[eLabelInspect.Third.ToInt()] = pBox.Checked;
                     break;
                 case "checkBox_IsUseForthPattern":
-                    pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Forth)] = pBox.Checked;
+                    pParam.IsUseEachPatterns[eLabelInspect.Forth.ToInt()] = pBox.Checked;
                     break;
                 case "checkBox_IsUseMultiPatternInspection":
                     pParam.IsUseMultiPatternInspection = pBox.Checked;
@@ -257,7 +238,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -269,7 +250,6 @@ namespace YoonSample.CognexInspector
         public void OnCognexImageDownload(object sender, CogImageArgs e)
         {
             if (e.InspectType != eTypeInspect.PatternMatching) return;
-            if (m_pListTotalInspFlag == null) return;   // ComboBox가 초기화되지 않은 경우
 
             switch (sender)
             {
@@ -284,12 +264,7 @@ namespace YoonSample.CognexInspector
 
         public void OnCognexToolUpdate(object sender, CogToolArgs e)
         {
-            int nModelNo = CommonClass.pConfig.SelectedModelNo;
-            int nJobNo = CommonClass.pConfig.SelectedJobNo;
-            string strModelName = CommonClass.pConfig.SelectedModelName;
-            string strJobName = CommonClass.pConfig.SelectedJobName;
-
-            m_pInspectionInfo.CogToolContainer.SetValue(eYoonCognexType.PMAlign, e.Label.ToString(), e.CogTool);
+            CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][e.Label.ToString()] = e.CogTool;
             OnInspectionParameterUpdate(sender, e);
 
             InitPatternView(e.Label);
@@ -302,22 +277,19 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterUpdate(object sender, EventArgs e)
         {
-            CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex] = m_pInspectionInfo;
-            CommonClass.pConfig.SelectedInspectionNo = m_pInspectionInfo.No;
-            CommonClass.pConfig.SelectedInspectionType = m_pInspectionInfo.InspectType;
+            CommonClass.pConfig.SelectedInspectionNo = m_nIndex;
+            CommonClass.pConfig.SelectedInspectionType = m_nType;
         }
 
         public void OnInspectionParameterDownload(object sender, EventArgs e)
         {
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
             {
                 checkBox_IsUsePM.Checked = pParam.IsUse;
-                checkBox_IsUseMainPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Main)];
-                checkBox_IsUseSecondPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Second)];
-                checkBox_IsUseThirdPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Third)];
-                checkBox_IsUseForthPattern.Checked = pParam.IsUseEachPatterns[CommonFunction.GetPatternIndex(eLevelPattern.Forth)];
+                checkBox_IsUseMainPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Main.ToInt()];
+                checkBox_IsUseSecondPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Second.ToInt()];
+                checkBox_IsUseThirdPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Third.ToInt()];
+                checkBox_IsUseForthPattern.Checked = pParam.IsUseEachPatterns[eLabelInspect.Forth.ToInt()];
                 checkBox_IsUseMultiPatternInspection.Checked = pParam.IsUseMultiPatternInspection;
                 checkBox_IsCheckAlignOffset.Checked = pParam.IsCheckAlign;
                 //// Grid 초기화
@@ -329,7 +301,7 @@ namespace YoonSample.CognexInspector
 
         private void button_ProcessPM_Click(object sender, EventArgs e)
         {
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
             AlignResult pResultAlign = new AlignResult();
             YoonVector2D pResultPos = new YoonVector2D();
             double dTheta = 0.0;
@@ -339,7 +311,7 @@ namespace YoonSample.CognexInspector
             //// 공용으로 사용하기 전 Parameter 갱신 및 Process 초기화
             OnInspectionParameterUpdate(sender, e);
 
-            if (CommonFunction.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign) > 0)
+            if (CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign) > 0)
             {
                 //// Inspection Info Download
                 OnInspectionParameterDownload(sender, e);
@@ -348,8 +320,8 @@ namespace YoonSample.CognexInspector
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
                 cogDisplay_ProcessView.Image = m_pCogImageResult;
                 //// Result에 맞게 Display 위에 결과 그리기
-                CommonFunction.SetPMOriginToDisplay(cogDisplay_ProcessView, m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, m_pInspectionInfo.No, m_pInspectionInfo.InspectType);
-                CommonFunction.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, m_pInspectionInfo.No, m_pInspectionInfo.InspectType);
+                CommonClass.SetPatternOriginRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
+                CommonClass.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                 //// Align 결과 Grid에 반영
                 try
                 {
@@ -365,7 +337,7 @@ namespace YoonSample.CognexInspector
                     Console.WriteLine(ex.ToString());
                 }
                 //// Result Image를 다른 Tab으로 넘기기
-                OnUpdateResultImageEvent(this, new CogImageArgs(m_pInspectionInfo.No, m_pInspectionInfo.InspectType, m_pCogImageResult));
+                OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
         }
 
@@ -381,10 +353,10 @@ namespace YoonSample.CognexInspector
                 AlignResult pResultAlign = null;
                 YoonVector2D pResultPos = null;
                 double dTheta = 0.0;
-                int nInspPattern = CommonFunction.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign);
+                int nInspPattern = CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign);
                 if (nInspPattern < 0) return;
                 //// Origin Setting 시작
-                if(CommonFunction.ProcessPatternMatchOrigin(nInspPattern))
+                if(CommonClass.ProcessPatternMatchOrigin(nInspPattern))
                 {
                     //// Inspection Info Download
                     OnInspectionParameterDownload(sender, e);
@@ -393,16 +365,16 @@ namespace YoonSample.CognexInspector
                     cogDisplay_ProcessView.InteractiveGraphics.Clear();
                     cogDisplay_ProcessView.Image = m_pCogImageResult;
                     //// Display Origin 표시하기
-                    CommonFunction.SetPMOriginToDisplay(cogDisplay_ProcessView, m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, m_pInspectionInfo.No, m_pInspectionInfo.InspectType);
+                    CommonClass.SetPatternOriginRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                     //// Result Image를 다른 Tab으로 넘기기
-                    OnUpdateResultImageEvent(this, new CogImageArgs(m_pInspectionInfo.No, m_pInspectionInfo.InspectType, m_pCogImageResult));
+                    OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
                 }
             }
         }
 
         private void button_SetSourceImage_Click(object sender, EventArgs e)
         {
-            ParameterInspectionPatternMatching pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPatternMatching;
+            ParameterInspectionPatternMatching pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPatternMatching;
             if (m_pCogImageOrigin == null || m_pCogImagePreprocessing == null)
                 return;
 
@@ -419,8 +391,8 @@ namespace YoonSample.CognexInspector
                     pParam.SelectedSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
-                    KeyValuePair<int, eTypeInspect> pPair = CommonFunction.GetInspectFlagFromStringTag(strSourceSelected);
-                    m_pCogImageSourceSelected = CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, pPair.Key, pPair.Value);
+                    KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
+                    m_pCogImageSourceSelected = CommonClass.GetResultImage(pPair.Key, pPair.Value);
                     pParam.SelectedSourceLevel = eLevelImageSelection.Custom;
                     pParam.SelectedSourceNo = pPair.Key;
                     pParam.SelectedSourceType = pPair.Value;
@@ -431,7 +403,7 @@ namespace YoonSample.CognexInspector
             cogDisplay_ProcessView.Image = m_pCogImageSourceSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -450,7 +422,7 @@ namespace YoonSample.CognexInspector
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
             pCogForm.CogImageSource = m_pCogImagePreprocessing;
             pCogForm.CogToolLabel = nLabel;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.PMAlign, nLabel.ToString()) as CogPMAlignTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -466,7 +438,7 @@ namespace YoonSample.CognexInspector
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
             pCogForm.CogImageSource = m_pCogImagePreprocessing;
             pCogForm.CogToolLabel = nLabel;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.PMAlign, nLabel.ToString()) as CogPMAlignTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -482,7 +454,7 @@ namespace YoonSample.CognexInspector
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
             pCogForm.CogImageSource = m_pCogImagePreprocessing;
             pCogForm.CogToolLabel = nLabel;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.PMAlign, nLabel.ToString()) as CogPMAlignTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -498,7 +470,7 @@ namespace YoonSample.CognexInspector
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
             pCogForm.CogImageSource = m_pCogImagePreprocessing;
             pCogForm.CogToolLabel = nLabel;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.PMAlign, nLabel.ToString()) as CogPMAlignTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 

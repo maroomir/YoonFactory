@@ -68,28 +68,13 @@ namespace YoonFactory.Cognex
         private Dictionary<string, ICogTool> m_pDicCogTool;
         private List<string> m_pListKeyOrdered;
 
-        public bool IsOrdered
-        {
-            get
-            {
-                return m_pListKeyOrdered != null;
-            }
-            set
-            {
-                if (IsOrdered != value)
-                {
-                    m_pListKeyOrdered = value ? new List<string>(m_pDicCogTool.Keys) : null;
-                }
-            }
-        }
-
         public IEqualityComparer<string> Comparer { get { return m_pDicCogTool.Comparer; } }
 
         public ICogTool this[int nIndex]
         {
             get
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ToolSection using integer key: section was not ordered.");
                 }
@@ -101,7 +86,7 @@ namespace YoonFactory.Cognex
             }
             set
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ToolSection using integer key: section was not ordered.");
                 }
@@ -127,7 +112,7 @@ namespace YoonFactory.Cognex
             }
             set
             {
-                if (IsOrdered && !m_pListKeyOrdered.Contains(strKey, Comparer))
+                if (m_pListKeyOrdered != null && !m_pListKeyOrdered.Contains(strKey, Comparer))
                 {
                     m_pListKeyOrdered.Add(strKey);
                 }
@@ -185,7 +170,7 @@ namespace YoonFactory.Cognex
         {
             if (m_pDicCogTool != null)
                 m_pDicCogTool.Clear();
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Clear();
             }
@@ -255,7 +240,7 @@ namespace YoonFactory.Cognex
 
         public int IndexOf(string strKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string) on ToolSection: section was not ordered.");
             }
@@ -264,7 +249,7 @@ namespace YoonFactory.Cognex
 
         public int IndexOf(string strKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string, int) on ToolSection: section was not ordered.");
             }
@@ -273,7 +258,7 @@ namespace YoonFactory.Cognex
 
         public int IndexOf(string strKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ToolSection: section was not ordered.");
             }
@@ -302,7 +287,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string) on ToolSection: section was not ordered.");
             }
@@ -311,7 +296,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ToolSection: section was not ordered.");
             }
@@ -320,7 +305,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ToolSection: section was not ordered.");
             }
@@ -349,7 +334,7 @@ namespace YoonFactory.Cognex
 
         public void Insert(int nIndex, string strKey, ICogTool pValue)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Insert(int, string, ICogTool) on ToolSection: section was not ordered.");
             }
@@ -363,7 +348,7 @@ namespace YoonFactory.Cognex
 
         public void InsertRange(int nIndex, IEnumerable<KeyValuePair<string, ICogTool>> pCollection)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, YoonParameter>>) on ToolSection: section was not ordered.");
             }
@@ -384,7 +369,7 @@ namespace YoonFactory.Cognex
 
         public void RemoveAt(int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveAt(int) on ToolSection: section was not ordered.");
             }
@@ -399,7 +384,7 @@ namespace YoonFactory.Cognex
 
         public void RemoveRange(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ToolSection: section was not ordered.");
             }
@@ -423,7 +408,7 @@ namespace YoonFactory.Cognex
 
         public void Reverse()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse() on ToolSection: section was not ordered.");
             }
@@ -432,7 +417,7 @@ namespace YoonFactory.Cognex
 
         public void Reverse(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse(int, int) on ToolSection: section was not ordered.");
             }
@@ -453,7 +438,7 @@ namespace YoonFactory.Cognex
 
         public ICollection<ICogTool> GetOrderedValues()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call GetOrderedValues() on ToolSection: section was not ordered.");
             }
@@ -468,7 +453,7 @@ namespace YoonFactory.Cognex
         public void Add(string strKey, ICogTool pValue)
         {
             m_pDicCogTool.Add(strKey, pValue);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(strKey);
             }
@@ -481,7 +466,7 @@ namespace YoonFactory.Cognex
 
         public ICollection<string> Keys
         {
-            get { return IsOrdered ? (ICollection<string>)m_pListKeyOrdered : m_pDicCogTool.Keys; }
+            get { return (m_pListKeyOrdered != null) ? (ICollection<string>)m_pListKeyOrdered : m_pDicCogTool.Keys; }
         }
 
         public ICollection<ICogTool> Values
@@ -495,7 +480,7 @@ namespace YoonFactory.Cognex
         public bool Remove(string strKey)
         {
             var ret = m_pDicCogTool.Remove(strKey);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -522,7 +507,7 @@ namespace YoonFactory.Cognex
         void ICollection<KeyValuePair<string, ICogTool>>.Add(KeyValuePair<string, ICogTool> pCollection)
         {
             ((IDictionary<string, ICogTool>)m_pDicCogTool).Add(pCollection);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
@@ -546,7 +531,7 @@ namespace YoonFactory.Cognex
         bool ICollection<KeyValuePair<string, ICogTool>>.Remove(KeyValuePair<string, ICogTool> pCollection)
         {
             var ret = ((IDictionary<string, ICogTool>)m_pDicCogTool).Remove(pCollection);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -562,7 +547,7 @@ namespace YoonFactory.Cognex
 
         public IEnumerator<KeyValuePair<string, ICogTool>> GetEnumerator()
         {
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 return GetOrderedEnumerator();
             }

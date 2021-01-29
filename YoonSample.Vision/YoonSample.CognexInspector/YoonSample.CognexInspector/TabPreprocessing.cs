@@ -16,8 +16,8 @@ namespace YoonSample.CognexInspector
 {
     public partial class TabPreprocessing : Form, IInspectionTab
     {
-        private int m_nIndex, m_nIndexModel, m_nIndexJob;
-        private InspectionInfo m_pInspectionInfo;
+        private int m_nIndex = -1;
+        private eTypeInspect m_nType = eTypeInspect.None;
         private ICogImage m_pCogImageSource = null;
         private ICogImage m_pCogImageProcessing = null;
         private ICogImage m_pCogImageResult = null;
@@ -28,11 +28,8 @@ namespace YoonSample.CognexInspector
         {
             InitializeComponent();
 
-            m_nIndexModel = nIndexModel;
-            m_nIndexJob = nIndexJob;
             m_nIndex = nIndex;
-
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
+            m_nType = eTypeInspect.Preprocessing;
         }
 
         private void FormTab_Preprocessing_Load(object sender, EventArgs e)
@@ -41,7 +38,8 @@ namespace YoonSample.CognexInspector
             cogDisplay_ProcessView.AutoFit = true;
 
             //// 유효성 체크
-            if (m_pInspectionInfo == null)
+            if (!CommonClass.pParamTemplate.ContainsKey(m_nType)
+                && !CommonClass.pCogToolTemplate.ContainsKey(m_nType))
             {
                 CommonClass.pCLM.Write("Preprocessing Load Failure : Inspection Info isnot valid");
                 Close();
@@ -49,7 +47,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// Form 초기화
-            ParameterInspectionPreprocessing pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPreprocessing;
+            ParameterInspectionPreprocessing pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPreprocessing;
             checkBox_IsUsePreprocessing.Checked = pParam.IsUse;
             checkBox_IsUseImageConvert.Checked = pParam.IsUseImageConvert;
             checkBox_IsUseSobel.Checked = pParam.IsUseSobelEdge;
@@ -73,7 +71,7 @@ namespace YoonSample.CognexInspector
         public void OnCheckBoxEnableClick(object sender, EventArgs e)
         {
             CheckBox pBox = (CheckBox)sender;
-            ParameterInspectionPreprocessing pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPreprocessing;
+            ParameterInspectionPreprocessing pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPreprocessing;
             switch (pBox.Name)
             {
                 case "checkBox_IsUsePreprocessing":
@@ -93,7 +91,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -129,7 +127,7 @@ namespace YoonSample.CognexInspector
 
         public void OnCognexToolUpdate(object sender, CogToolArgs e)
         {
-            m_pInspectionInfo.CogToolContainer.SetValue(e.ToolType, string.Empty, e.CogTool);
+            CommonClass.pCogToolTemplate[m_nType][e.ToolType][string.Empty] = e.CogTool;
             OnInspectionParameterUpdate(sender, e);
 
             m_pCogImageProcessing = e.ContainImage;
@@ -137,16 +135,13 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterUpdate(object sender, EventArgs e)
         {
-            CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex] = m_pInspectionInfo;
-            CommonClass.pConfig.SelectedInspectionNo = m_pInspectionInfo.No;
-            CommonClass.pConfig.SelectedInspectionType = m_pInspectionInfo.InspectType;
+            CommonClass.pConfig.SelectedInspectionNo = m_nIndex;
+            CommonClass.pConfig.SelectedInspectionType = m_nType;
         }
 
         public void OnInspectionParameterDownload(object sender, EventArgs e)
         {
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-
-            ParameterInspectionPreprocessing pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPreprocessing;
+            ParameterInspectionPreprocessing pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPreprocessing;
             {
                 checkBox_IsUsePreprocessing.Checked = pParam.IsUse;
                 checkBox_IsUseImageConvert.Checked = pParam.IsUseImageConvert;
@@ -158,13 +153,13 @@ namespace YoonSample.CognexInspector
         }
         private void button_ProcessPreprocess_Click(object sender, EventArgs e)
         {
-            ParameterInspectionPreprocessing pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionPreprocessing;
+            ParameterInspectionPreprocessing pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionPreprocessing;
             if (!pParam.IsUse) return;
 
             //// 공용으로 사용하기 전 Process 초기화
             OnInspectionParameterUpdate(sender, e);
 
-            if (CommonFunction.ProcessPreprocessing(m_pCogImageSource, ref m_pCogImageResult))
+            if (CommonClass.ProcessPreprocessing(m_pCogImageSource, ref m_pCogImageResult))
             {
                 //// Inspection Info Download
                 OnInspectionParameterDownload(sender, e);
@@ -173,7 +168,7 @@ namespace YoonSample.CognexInspector
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
                 cogDisplay_ProcessView.Image = m_pCogImageResult;
                 //// Result Image를 다른 Tab으로 넘기기
-                OnUpdateResultImageEvent(this, new CogImageArgs(m_pInspectionInfo.No, m_pInspectionInfo.InspectType, m_pCogImageResult));
+                OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
         }
 
@@ -185,7 +180,7 @@ namespace YoonSample.CognexInspector
             Form_CogImageConvert pCogForm = new Form_CogImageConvert();
             pCogForm.CogImageSource = m_pCogImageSource;    // Convert는 무조건 Source 입력
             pCogForm.CogToolLabel = eLabelInspect.None;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.Convert, string.Empty) as CogImageConvertTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Convert][string.Empty] as CogImageConvertTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -206,7 +201,7 @@ namespace YoonSample.CognexInspector
             Form_CogIPOneImage pCogForm = new Form_CogIPOneImage();
             pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing : m_pCogImageSource;
             pCogForm.CogToolLabel = eLabelInspect.None;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.Filtering, string.Empty) as CogIPOneImageTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Filtering][string.Empty] as CogIPOneImageTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -221,7 +216,7 @@ namespace YoonSample.CognexInspector
             Form_CogImageSobelEdge pCogForm = new Form_CogImageSobelEdge();
             pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing as CogImage8Grey : m_pCogImageSource as CogImage8Grey;
             pCogForm.CogToolLabel = eLabelInspect.None;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.Sobel, string.Empty) as CogSobelEdgeTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Sobel][string.Empty] as CogSobelEdgeTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 

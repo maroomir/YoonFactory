@@ -433,18 +433,9 @@ namespace YoonFactory.Files
 
         public bool SaveEmptySections;
 
-        public YoonIni(string strPath) : this(DefaultComparer)
+        public YoonIni(string strPath) : this(strPath, DefaultComparer)
         {
-            if (FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
-                FilePath = strPath;
-            else
-                FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "YoonFactory.ini");
-        }
-
-        public YoonIni(IEqualityComparer<string> stringComparer)
-        {
-            StrComparer = stringComparer;
-            m_dicSections = new Dictionary<string, IniSection>(StrComparer);
+            //
         }
 
         public YoonIni(string strPath, IEqualityComparer<string> stringComparer)
@@ -525,7 +516,7 @@ namespace YoonFactory.Files
             return true;
         }
 
-        public bool LoadFile(bool ordered = false)
+        public bool LoadFile()
         {
             string strPath = FilePath;
             if (!FileFactory.VerifyFileExtension(ref strPath, ".ini"))
@@ -553,7 +544,7 @@ namespace YoonFactory.Files
                                     if (nSectionEnd > 0)
                                     {
                                         string strSectionName = strTrimStart.Substring(1, nSectionEnd - 1).Trim();
-                                        section = new IniSection(StrComparer) { IsOrdered = ordered };
+                                        section = new IniSection(StrComparer);
                                         m_dicSections[strSectionName] = section;
                                     }
                                 }
@@ -612,9 +603,9 @@ namespace YoonFactory.Files
             return m_dicSections.Remove(section);
         }
 
-        public IniSection Add(string section, Dictionary<string, IniValue> values, bool ordered = false)
+        public IniSection Add(string section, Dictionary<string, IniValue> values)
         {
-            return Add(section, new IniSection(values, StrComparer) { IsOrdered = ordered });
+            return Add(section, new IniSection(values, StrComparer));
         }
 
         public IniSection Add(string section, IniSection value)
@@ -627,9 +618,9 @@ namespace YoonFactory.Files
             return value;
         }
 
-        public IniSection Add(string section, bool ordered = false)
+        public IniSection Add(string section)
         {
-            IniSection value = new IniSection(StrComparer) { IsOrdered = ordered };
+            IniSection value = new IniSection(StrComparer);
             m_dicSections.Add(section, value);
             return value;
         }

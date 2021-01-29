@@ -18,31 +18,20 @@ namespace YoonSample.CognexInspector
 {
     public partial class TabObjectExtract : Form, IInspectionTab
     {
-        private int m_nIndex, m_nIndexModel, m_nIndexJob;
-        private int m_nModelNo, m_nJobNo;
-        private string m_strModelName, m_strJobName;
-        private InspectionInfo m_pInspectionInfo;
+        private int m_nIndex = -1;
+        private eTypeInspect m_nType = eTypeInspect.None;
         private ICogImage m_pCogImageOrigin;
         private ICogImage m_pCogImagePreprocessing;
         private ICogImage m_pCogImageSourceSelected;
         private ICogImage m_pCogImageResult;
-        // Source Image Selecter 관련
-        private List<KeyValuePair<int, eTypeInspect>> m_pListTotalInspFlag;
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public TabObjectExtract(int nIndexModel, int nIndexJob, int nIndex)
+        public TabObjectExtract(int nIndex)
         {
             InitializeComponent();
 
-            m_nIndexModel = nIndexModel;
-            m_nIndexJob = nIndexJob;
             m_nIndex = nIndex;
-
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-            m_nModelNo = CommonClass.pListModel[m_nIndexModel].No;
-            m_strModelName = CommonClass.pListModel[m_nIndexModel].Name;
-            m_nJobNo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].No;
-            m_strJobName = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].Name;
+            m_nType = eTypeInspect.ObjectExtract;
         }
 
         private void FormTab_ObjectExtract_Load(object sender, EventArgs e)
@@ -51,18 +40,16 @@ namespace YoonSample.CognexInspector
             cogDisplay_ProcessView.AutoFit = true;
 
             //// 유효성 체크
-            if (m_pInspectionInfo == null)
+            if (!CommonClass.pParamTemplate.ContainsKey(m_nType)
+                && !CommonClass.pCogToolTemplate.ContainsKey(m_nType))
             {
                 CommonClass.pCLM.Write("Object Extract Load Failure : Inspection Info isnot valid");
                 Close();
                 return;
             }
 
-            ////  변수 초기화
-            m_pListTotalInspFlag = CommonFunction.GetTotalInspectFlagList(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName);
-
             ////  Form 초기화
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             checkBox_IsUseObjectExtract.Checked = pParam.IsUse;
             checkBox_IsUseBlob.Checked = pParam.IsUseBlob;
             checkBox_IsUseColorSegment.Checked = pParam.IsUseColorSegment;
@@ -95,10 +82,6 @@ namespace YoonSample.CognexInspector
             cogDisplay_ProcessView.InteractiveGraphics.Clear();
             cogDisplay_ProcessView.Dispose();
 
-            //// 변수 삭제
-            m_pListTotalInspFlag.Clear();
-            m_pListTotalInspFlag = null;
-
             //// 이벤트 해제
             checkBox_IsUseObjectExtract.Click -= OnCheckBoxEnableClick;
             checkBox_IsUseBlob.Click -= OnCheckBoxEnableClick;
@@ -113,26 +96,26 @@ namespace YoonSample.CognexInspector
             comboBox_SelectSourceImage.Items.Clear();
             comboBox_SelectSourceImage.Items.Add("Origin");
             comboBox_SelectSourceImage.Items.Add("CurrentProcessing");
-            foreach(KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
+                string strSelectBoxContents = pTemplate.ToString();
                 comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             comboBox_SelectSourceImage.SelectedIndex = 0;
 
             //// Blob 설정 Image
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             comboBox_SelectBlobSource.Items.Clear();
             comboBox_SelectBlobSource.Items.Add("Origin");
             comboBox_SelectBlobSource.Items.Add("CurrentProcessing");
-            foreach (KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
-                comboBox_SelectBlobSource.Items.Add(strSelectBoxContents);
+                string strSelectBoxContents = pTemplate.ToString();
+                comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             switch (pParam.SelectedBlobImageLevel)
             {
@@ -143,7 +126,7 @@ namespace YoonSample.CognexInspector
                     comboBox_SelectBlobSource.SelectedIndex = 1;
                     break;
                 case eLevelImageSelection.Custom:
-                    comboBox_SelectBlobSource.SelectedItem = CommonFunction.SetInspectFlagToStringTag(pParam.SelectedBlobImageNo, pParam.SelectedBlobImageType);
+                    comboBox_SelectBlobSource.SelectedItem = CommonClass.pCogToolTemplate[pParam.SelectedBlobImageType].ToString();
                     break;
                 default:
                     break;
@@ -153,12 +136,12 @@ namespace YoonSample.CognexInspector
             comboBox_SelectColorSegmentSource.Items.Clear();
             comboBox_SelectColorSegmentSource.Items.Add("Origin");
             comboBox_SelectColorSegmentSource.Items.Add("CurrentProcessing");
-            foreach (KeyValuePair<int, eTypeInspect> pPair in m_pListTotalInspFlag)
+            foreach (ToolTemplate pTemplate in CommonClass.pCogToolTemplate.Values)
             {
-                if (pPair.Key == m_pInspectionInfo.No && pPair.Value == m_pInspectionInfo.InspectType)
+                if (pTemplate.No == m_nIndex && pTemplate.Name == m_nType.ToString())
                     break;
-                string strSelectBoxContents = CommonFunction.SetInspectFlagToStringTag(pPair.Key, pPair.Value);
-                comboBox_SelectColorSegmentSource.Items.Add(strSelectBoxContents);
+                string strSelectBoxContents = pTemplate.ToString();
+                comboBox_SelectSourceImage.Items.Add(strSelectBoxContents);
             }
             switch (pParam.SelectedColorSegmentImageLevel)
             {
@@ -169,7 +152,7 @@ namespace YoonSample.CognexInspector
                     comboBox_SelectColorSegmentSource.SelectedIndex = 1;
                     break;
                 case eLevelImageSelection.Custom:
-                    comboBox_SelectColorSegmentSource.SelectedItem = CommonFunction.SetInspectFlagToStringTag(pParam.SelectedColorSegmentImageNo, pParam.SelectedColorSegmentImageType);
+                    comboBox_SelectColorSegmentSource.SelectedItem = CommonClass.pCogToolTemplate[pParam.SelectedColorSegmentImageType].ToString();
                     break;
                 default:
                     break;
@@ -179,7 +162,7 @@ namespace YoonSample.CognexInspector
         public void OnCheckBoxEnableClick(object sender, EventArgs e)
         {
             CheckBox pBox = (CheckBox)sender;
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             switch (pBox.Name)
             {
                 case "checkBox_IsUseObjectExtract":
@@ -196,15 +179,15 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
         public void OnRadioButtonCombineClick(object sender, EventArgs e)
         {
             RadioButton pButton = (RadioButton)sender;
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
-            switch(pButton.Name)
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
+            switch (pButton.Name)
             {
                 case "radioButton_CombineOverlapMax":
                     if (pButton.Checked)
@@ -219,7 +202,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -231,7 +214,6 @@ namespace YoonSample.CognexInspector
         public void OnCognexImageDownload(object sender, CogImageArgs e)
         {
             if (e.InspectType != eTypeInspect.ObjectExtract || e.CogImage == null) return;
-            if (m_pListTotalInspFlag == null) return;   // ComboBox가 초기화되지 않은 경우
 
             switch (sender)
             {
@@ -246,12 +228,7 @@ namespace YoonSample.CognexInspector
 
         public void OnCognexToolUpdate(object sender, CogToolArgs e)
         {
-            int nModelNo = CommonClass.pConfig.SelectedModelNo;
-            int nJobNo = CommonClass.pConfig.SelectedJobNo;
-            string strModelName = CommonClass.pConfig.SelectedModelName;
-            string strJobName = CommonClass.pConfig.SelectedJobName;
-
-            m_pInspectionInfo.CogToolContainer.SetValue(e.ToolType, string.Empty, e.CogTool);
+            CommonClass.pCogToolTemplate[m_nType][e.ToolType][string.Empty] = e.CogTool;
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -262,16 +239,13 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterUpdate(object sender, EventArgs e)
         {
-            CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex] = m_pInspectionInfo;
-            CommonClass.pConfig.SelectedInspectionNo = m_pInspectionInfo.No;
-            CommonClass.pConfig.SelectedInspectionType = m_pInspectionInfo.InspectType;
+            CommonClass.pConfig.SelectedInspectionNo = m_nIndex;
+            CommonClass.pConfig.SelectedInspectionType = m_nType;
         }
 
         public void OnInspectionParameterDownload(object sender, EventArgs e)
         {
-            m_pInspectionInfo = CommonClass.pListModel[m_nIndexModel].JobList[m_nIndexJob].InspectionList[m_nIndex];
-
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             {
                 checkBox_IsUseObjectExtract.Checked = pParam.IsUse;
 
@@ -291,7 +265,7 @@ namespace YoonSample.CognexInspector
 
         private void button_ProcessObjectExtract_Click(object sender, EventArgs e)
         {
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             if (!pParam.IsUse) return;
 
             //// 공용으로 사용하기 전 Process 초기화
@@ -301,7 +275,7 @@ namespace YoonSample.CognexInspector
             CogImage8Grey pImageBlob = GetSourceImage(pParam.SelectedBlobImageLevel, pParam.SelectedBlobImageNo, pParam.SelectedBlobImageType) as CogImage8Grey;
             CogImage24PlanarColor pImageColorExtract = GetSourceImage(pParam.SelectedColorSegmentImageLevel, pParam.SelectedColorSegmentImageNo, pParam.SelectedColorSegmentImageType) as CogImage24PlanarColor;
 
-            if (CommonFunction.ProcessObjectExtract(pImageBlob, pImageColorExtract, ref m_pCogImageResult))  // 선택된 Source Image가 들어감
+            if (CommonClass.ProcessObjectExtract(pImageBlob, pImageColorExtract, ref m_pCogImageResult))  // 선택된 Source Image가 들어감
             {
                 //// Inspection Info Download
                 OnInspectionParameterDownload(sender, e);
@@ -310,9 +284,9 @@ namespace YoonSample.CognexInspector
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
                 cogDisplay_ProcessView.Image = m_pCogImageResult;
                 //// Result에 맞게 Display 위에 결과 그리기
-                CommonFunction.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, m_pInspectionInfo.No, m_pInspectionInfo.InspectType);
+                CommonClass.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                 //// Result Image를 다른 Tab으로 넘기기
-                OnUpdateResultImageEvent(this, new CogImageArgs(m_pInspectionInfo.No, m_pInspectionInfo.InspectType, m_pCogImageResult));
+                OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
         }
 
@@ -332,8 +306,8 @@ namespace YoonSample.CognexInspector
                     m_pCogImageSourceSelected = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
                     break;
                 default:
-                    KeyValuePair<int, eTypeInspect> pPair = CommonFunction.GetInspectFlagFromStringTag(strSourceSelected);
-                    m_pCogImageSourceSelected = CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, pPair.Key, pPair.Value);
+                    KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
+                    m_pCogImageSourceSelected = CommonClass.GetResultImage(pPair.Key, pPair.Value);
                     break;
             }
             cogDisplay_PrevView.StaticGraphics.Clear();
@@ -357,20 +331,20 @@ namespace YoonSample.CognexInspector
             eLevelImageSelection nLevelSource = eLevelImageSelection.None;
             string strSourceSelected = (string)comboBox_SelectBlobSource.SelectedItem;
             ICogImage pImageBlob = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             pParam.SelectedBlobImageLevel = nLevelSource;
             pParam.SelectedBlobImageNo = nInspNoSelected;
             pParam.SelectedBlobImageType = nInspTypeSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
 
             ////  Form 생성하기
             Form_CogBlob pCogForm = new Form_CogBlob();
             pCogForm.CogImageSource = pImageBlob;
             pCogForm.CogToolLabel = eLabelInspect.None;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.Blob, string.Empty) as CogBlobTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Blob][string.Empty] as CogBlobTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -387,20 +361,20 @@ namespace YoonSample.CognexInspector
             eLevelImageSelection nLevelSource = eLevelImageSelection.None;
             string strSourceSelected = (string)comboBox_SelectColorSegmentSource.SelectedItem;
             ICogImage pImageColorSegment = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
-            ParameterInspectionObjectExtract pParam = m_pInspectionInfo.InspectionParam as ParameterInspectionObjectExtract;
+            ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             pParam.SelectedColorSegmentImageLevel = nLevelSource;
             pParam.SelectedColorSegmentImageNo = nInspNoSelected;
             pParam.SelectedColorSegmentImageType = nInspTypeSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            m_pInspectionInfo.InspectionParam = pParam;
+            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
             OnInspectionParameterUpdate(sender, e);
 
             ////  Form 생성하기
             Form_CogColorSegment pCogForm = new Form_CogColorSegment();
             pCogForm.CogImageSource = pImageColorSegment as CogImage24PlanarColor;
             pCogForm.CogToolLabel = eLabelInspect.None;
-            pCogForm.CogTool = m_pInspectionInfo.CogToolContainer.GetValue(eYoonCognexType.ColorSegment, string.Empty) as CogColorSegmenterTool;
+            pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.ColorSegment][string.Empty] as CogColorSegmenterTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
             pCogForm.Show();
 
@@ -421,8 +395,8 @@ namespace YoonSample.CognexInspector
                     nSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
-                    KeyValuePair<int, eTypeInspect> pPair = CommonFunction.GetInspectFlagFromStringTag(strSourceSelected);
-                    pImageResult = CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, pPair.Key, pPair.Value);
+                    KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
+                    pImageResult = CommonClass.GetResultImage(pPair.Key, pPair.Value);
                     nSourceLevel = eLevelImageSelection.Custom;
                     nInspNoSelected = pPair.Key;
                     nInspTypeSelected = pPair.Value;
@@ -440,7 +414,7 @@ namespace YoonSample.CognexInspector
                 case eLevelImageSelection.CurrentProcessing:
                     return m_pCogImagePreprocessing;
                 case eLevelImageSelection.Custom:
-                    return CommonFunction.GetResultImage(m_nModelNo, m_strModelName, m_nJobNo, m_strJobName, nInspNo, nTypeInsp);
+                    return CommonClass.GetResultImage(nInspNo, nTypeInsp);
                 default:
                     return null;
             }

@@ -180,21 +180,6 @@ namespace YoonFactory.Robot
         private Dictionary<eYoonRobotType, RemoteSection> m_pDicSection;
         private List<eYoonRobotType> m_pListKeyOrdered;
 
-        public bool IsOrdered
-        {
-            get
-            {
-                return m_pListKeyOrdered != null;
-            }
-            set
-            {
-                if (IsOrdered != value)
-                {
-                    m_pListKeyOrdered = value ? new List<eYoonRobotType>(m_pDicSection.Keys) : null;
-                }
-            }
-        }
-
         public IEqualityComparer<eYoonRobotType> Comparer { get { return m_pDicSection.Comparer; } }
 
         public static RemoteContainer Default
@@ -212,7 +197,7 @@ namespace YoonFactory.Robot
         {
             get
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ToolContainer using integer key: section was not ordered.");
                 }
@@ -224,7 +209,7 @@ namespace YoonFactory.Robot
             }
             set
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ToolContainer using integer key: section was not ordered.");
                 }
@@ -250,7 +235,7 @@ namespace YoonFactory.Robot
             }
             set
             {
-                if (IsOrdered && !m_pListKeyOrdered.Contains(nKey))
+                if (m_pListKeyOrdered != null && !m_pListKeyOrdered.Contains(nKey))
                 {
                     m_pListKeyOrdered.Add(nKey);
                 }
@@ -318,7 +303,7 @@ namespace YoonFactory.Robot
         {
             if (m_pDicSection != null)
                 m_pDicSection.Clear();
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Clear();
             }
@@ -386,7 +371,7 @@ namespace YoonFactory.Robot
 
         public int IndexOf(eYoonRobotType nKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType) on RemoteContainer: section was not ordered.");
             }
@@ -395,7 +380,7 @@ namespace YoonFactory.Robot
 
         public int IndexOf(eYoonRobotType nKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int) on RemoteContainer: section was not ordered.");
             }
@@ -404,7 +389,7 @@ namespace YoonFactory.Robot
 
         public int IndexOf(eYoonRobotType nKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(eYoonRobotType, int, int) on RemoteContainer: section was not ordered.");
             }
@@ -433,7 +418,7 @@ namespace YoonFactory.Robot
 
         public int LastIndexOf(eYoonRobotType nKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType) on RemoteContainer: section was not ordered.");
             }
@@ -442,7 +427,7 @@ namespace YoonFactory.Robot
 
         public int LastIndexOf(eYoonRobotType nKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int) on RemoteContainer: section was not ordered.");
             }
@@ -451,7 +436,7 @@ namespace YoonFactory.Robot
 
         public int LastIndexOf(eYoonRobotType nKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(eYoonRobotType, int, int) on RemoteContainer: section was not ordered.");
             }
@@ -480,7 +465,7 @@ namespace YoonFactory.Robot
 
         public void Insert(int nIndex, eYoonRobotType nKey, RemoteSection pValue)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Insert(int, eYoonRobotType, ParameterSection) on RemoteContainer: section was not ordered.");
             }
@@ -494,7 +479,7 @@ namespace YoonFactory.Robot
 
         public void InsertRange(int nIndex, IEnumerable<KeyValuePair<eYoonRobotType, RemoteSection>> pCollection)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<eYoonRobotType, RemoteSection>>) on RemoteContainer: section was not ordered.");
             }
@@ -515,7 +500,7 @@ namespace YoonFactory.Robot
 
         public void RemoveAt(int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveAt(int) on RemoteContainer: section was not ordered.");
             }
@@ -530,7 +515,7 @@ namespace YoonFactory.Robot
 
         public void RemoveRange(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveRange(int, int) on RemoteContainer: section was not ordered.");
             }
@@ -554,7 +539,7 @@ namespace YoonFactory.Robot
 
         public void Reverse()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse() on RemoteContainer: section was not ordered.");
             }
@@ -563,7 +548,7 @@ namespace YoonFactory.Robot
 
         public void Reverse(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse(int, int) on RemoteContainer: section was not ordered.");
             }
@@ -584,7 +569,7 @@ namespace YoonFactory.Robot
 
         public ICollection<RemoteSection> GetOrderedValues()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call GetOrderedValues() on RemoteContainer: section was not ordered.");
             }
@@ -599,7 +584,7 @@ namespace YoonFactory.Robot
         public void Add(eYoonRobotType nkey, RemoteSection pValue)
         {
             m_pDicSection.Add(nkey, pValue);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(nkey);
             }
@@ -612,7 +597,7 @@ namespace YoonFactory.Robot
 
         public ICollection<eYoonRobotType> Keys
         {
-            get { return IsOrdered ? (ICollection<eYoonRobotType>)m_pListKeyOrdered : m_pDicSection.Keys; }
+            get { return (m_pListKeyOrdered != null) ? (ICollection<eYoonRobotType>)m_pListKeyOrdered : m_pDicSection.Keys; }
         }
 
         public ICollection<RemoteSection> Values
@@ -626,7 +611,7 @@ namespace YoonFactory.Robot
         public bool Remove(eYoonRobotType nKey)
         {
             var ret = m_pDicSection.Remove(nKey);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -653,7 +638,7 @@ namespace YoonFactory.Robot
         void ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.Add(KeyValuePair<eYoonRobotType, RemoteSection> pCollection)
         {
             ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).Add(pCollection);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
@@ -677,7 +662,7 @@ namespace YoonFactory.Robot
         bool ICollection<KeyValuePair<eYoonRobotType, RemoteSection>>.Remove(KeyValuePair<eYoonRobotType, RemoteSection> pCollection)
         {
             var ret = ((IDictionary<eYoonRobotType, RemoteSection>)m_pDicSection).Remove(pCollection);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -693,7 +678,7 @@ namespace YoonFactory.Robot
 
         public IEnumerator<KeyValuePair<eYoonRobotType, RemoteSection>> GetEnumerator()
         {
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 return GetOrderedEnumerator();
             }

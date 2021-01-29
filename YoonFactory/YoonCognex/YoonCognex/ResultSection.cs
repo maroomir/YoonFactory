@@ -261,29 +261,13 @@ namespace YoonFactory.Cognex
         private Dictionary<string, CognexResult> m_pDicCogResult;
         private List<string> m_pListKeyOrdered;
 
-        public bool IsOrdered
-        {
-            get
-            {
-                return m_pListKeyOrdered != null;
-            }
-            set
-            {
-                if (IsOrdered != value)
-                {
-                    m_pListKeyOrdered = value ? new List<string>(m_pDicCogResult.Keys) : null;
-                }
-            }
-        }
-
-
         public IEqualityComparer<string> Comparer { get { return m_pDicCogResult.Comparer; } }
 
         public CognexResult this[int nIndex]
         {
             get
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ResultSection using integer key: section was not ordered.");
                 }
@@ -295,7 +279,7 @@ namespace YoonFactory.Cognex
             }
             set
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ResultSection using integer key: section was not ordered.");
                 }
@@ -321,7 +305,7 @@ namespace YoonFactory.Cognex
             }
             set
             {
-                if (IsOrdered && !m_pListKeyOrdered.Contains(strKey, Comparer))
+                if (m_pListKeyOrdered != null && !m_pListKeyOrdered.Contains(strKey, Comparer))
                 {
                     m_pListKeyOrdered.Add(strKey);
                 }
@@ -379,7 +363,7 @@ namespace YoonFactory.Cognex
         {
             if (m_pDicCogResult != null)
                 m_pDicCogResult.Clear();
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Clear();
             }
@@ -415,9 +399,24 @@ namespace YoonFactory.Cognex
             return true;
         }
 
+        public ICogImage GetResultImage(string strKey)
+        {
+            return m_pDicCogResult[strKey].ResultImage;
+        }
+
+        public ICogImage GetLastResultImage()
+        {
+            if (m_pListKeyOrdered == null)
+            {
+                throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: section was not ordered.");
+            }
+            int nIndex = m_pListKeyOrdered.Count - 1;
+            return m_pDicCogResult[m_pListKeyOrdered[nIndex]].ResultImage;
+        }
+
         public int IndexOf(string strKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: section was not ordered.");
             }
@@ -426,7 +425,7 @@ namespace YoonFactory.Cognex
 
         public int IndexOf(string strKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string, int) on ResultSection: section was not ordered.");
             }
@@ -435,7 +434,7 @@ namespace YoonFactory.Cognex
 
         public int IndexOf(string strKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string, int, int) on ResultSection: section was not ordered.");
             }
@@ -464,7 +463,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string) on ResultSection: section was not ordered.");
             }
@@ -473,7 +472,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string, int) on ResultSection: section was not ordered.");
             }
@@ -482,7 +481,7 @@ namespace YoonFactory.Cognex
 
         public int LastIndexOf(string strKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(string, int, int) on ResultSection: section was not ordered.");
             }
@@ -511,7 +510,7 @@ namespace YoonFactory.Cognex
 
         public void Insert(int nIndex, string strKey, CognexResult pValue)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Insert(int, string, CognexResult) on ResultSection: section was not ordered.");
             }
@@ -525,7 +524,7 @@ namespace YoonFactory.Cognex
 
         public void InsertRange(int nIndex, IEnumerable<KeyValuePair<string, CognexResult>> pCollection)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<string, CognexResult>>) on ResultSection: section was not ordered.");
             }
@@ -546,7 +545,7 @@ namespace YoonFactory.Cognex
 
         public void RemoveAt(int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveAt(int) on ResultSection: section was not ordered.");
             }
@@ -561,7 +560,7 @@ namespace YoonFactory.Cognex
 
         public void RemoveRange(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ResultSection: section was not ordered.");
             }
@@ -585,7 +584,7 @@ namespace YoonFactory.Cognex
 
         public void Reverse()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse() on ResultSection: section was not ordered.");
             }
@@ -594,7 +593,7 @@ namespace YoonFactory.Cognex
 
         public void Reverse(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse(int, int) on ResultSection: section was not ordered.");
             }
@@ -615,7 +614,7 @@ namespace YoonFactory.Cognex
 
         public ICollection<CognexResult> GetOrderedValues()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call GetOrderedValues() on ResultSection: section was not ordered.");
             }
@@ -630,7 +629,7 @@ namespace YoonFactory.Cognex
         public void Add(string strKey, CognexResult pValue)
         {
             m_pDicCogResult.Add(strKey, pValue);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(strKey);
             }
@@ -643,7 +642,7 @@ namespace YoonFactory.Cognex
 
         public ICollection<string> Keys
         {
-            get { return IsOrdered ? (ICollection<string>)m_pListKeyOrdered : m_pDicCogResult.Keys; }
+            get { return (m_pListKeyOrdered != null) ? (ICollection<string>)m_pListKeyOrdered : m_pDicCogResult.Keys; }
         }
 
         public ICollection<CognexResult> Values
@@ -657,7 +656,7 @@ namespace YoonFactory.Cognex
         public bool Remove(string strKey)
         {
             var ret = m_pDicCogResult.Remove(strKey);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -684,7 +683,7 @@ namespace YoonFactory.Cognex
         void ICollection<KeyValuePair<string, CognexResult>>.Add(KeyValuePair<string, CognexResult> pCollection)
         {
             ((IDictionary<string, CognexResult>)m_pDicCogResult).Add(pCollection);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
@@ -708,7 +707,7 @@ namespace YoonFactory.Cognex
         bool ICollection<KeyValuePair<string, CognexResult>>.Remove(KeyValuePair<string, CognexResult> pCollection)
         {
             var ret = ((IDictionary<string, CognexResult>)m_pDicCogResult).Remove(pCollection);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -724,7 +723,7 @@ namespace YoonFactory.Cognex
 
         public IEnumerator<KeyValuePair<string, CognexResult>> GetEnumerator()
         {
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 return GetOrderedEnumerator();
             }

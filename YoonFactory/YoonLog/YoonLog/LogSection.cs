@@ -56,28 +56,13 @@ namespace YoonFactory.Log
         private Dictionary<DateTime, string> m_pDicLog;
         private List<DateTime> m_pListKeyOrdered;
 
-        public bool IsOrdered
-        {
-            get
-            {
-                return m_pListKeyOrdered != null;
-            }
-            set
-            {
-                if (IsOrdered != value)
-                {
-                    m_pListKeyOrdered = value ? new List<DateTime>(m_pDicLog.Keys) : null;
-                }
-            }
-        }
-
         public IEqualityComparer<DateTime> Comparer { get { return m_pDicLog.Comparer; } }
 
         public string this[int nIndex]
         {
             get
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index LogContainer using integer key: section was not ordered.");
                 }
@@ -89,7 +74,7 @@ namespace YoonFactory.Log
             }
             set
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index LogContainer using integer key: section was not ordered.");
                 }
@@ -115,7 +100,7 @@ namespace YoonFactory.Log
             }
             set
             {
-                if(IsOrdered && !m_pListKeyOrdered.Contains(pDateTime, Comparer))
+                if(m_pListKeyOrdered != null && !m_pListKeyOrdered.Contains(pDateTime, Comparer))
                 {
                     m_pListKeyOrdered.Add(pDateTime);
                 }
@@ -160,7 +145,7 @@ namespace YoonFactory.Log
         {
             if (m_pDicLog != null)
                 m_pDicLog.Clear();
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Clear();
             }
@@ -168,7 +153,7 @@ namespace YoonFactory.Log
 
         public int IndexOf(DateTime pKey) 
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(DateTime) on LogContainer: section was not ordered.");
             }
@@ -177,7 +162,7 @@ namespace YoonFactory.Log
 
         public int IndexOf(DateTime pKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(DateTime, int) on LogContainer: section was not ordered.");
             }
@@ -186,7 +171,7 @@ namespace YoonFactory.Log
 
         public int IndexOf(DateTime pKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(DateTime, int, int) on LogContainer: section was not ordered.");
             }
@@ -215,7 +200,7 @@ namespace YoonFactory.Log
 
         public int LastIndexOf(DateTime pKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: section was not ordered.");
             }
@@ -224,7 +209,7 @@ namespace YoonFactory.Log
 
         public int LastIndexOf(DateTime pKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(DateTime) on LogContainer: section was not ordered.");
             }
@@ -233,7 +218,7 @@ namespace YoonFactory.Log
 
         public int LastIndexOf(DateTime pKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(DateTime, int, int) on LogContainer: section was not ordered.");
             }
@@ -262,7 +247,7 @@ namespace YoonFactory.Log
 
         public void Insert(int nIndex, DateTime pKey, string strValue)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Insert(int, DateTime, string) on LogContainer: section was not ordered.");
             }
@@ -276,7 +261,7 @@ namespace YoonFactory.Log
 
         public void InsertRange(int nIndex, IEnumerable<KeyValuePair<DateTime, string>> pCollection)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<DateTime, string>>) on LogContainer: section was not ordered.");
             }
@@ -297,7 +282,7 @@ namespace YoonFactory.Log
 
         public void RemoveAt(int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveAt(int) on LogContainer: section was not ordered.");
             }
@@ -312,7 +297,7 @@ namespace YoonFactory.Log
 
         public void RemoveRange(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveRange(int, int) on LogContainer: section was not ordered.");
             }
@@ -336,7 +321,7 @@ namespace YoonFactory.Log
 
         public void Reverse()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse() on LogContainer: section was not ordered.");
             }
@@ -345,7 +330,7 @@ namespace YoonFactory.Log
 
         public void Reverse(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse(int, int) on LogContainer: section was not ordered.");
             }
@@ -366,7 +351,7 @@ namespace YoonFactory.Log
 
         public ICollection<string> GetOrderedValues()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call GetOrderedValues() on LogContainer: section was not ordered.");
             }
@@ -381,7 +366,7 @@ namespace YoonFactory.Log
         public void Add(DateTime pKey, string strValue)
         {
             m_pDicLog.Add(pKey, strValue);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pKey);
             }
@@ -394,7 +379,7 @@ namespace YoonFactory.Log
 
         public ICollection<DateTime> Keys
         {
-            get { return IsOrdered ? (ICollection<DateTime>)m_pListKeyOrdered : m_pDicLog.Keys; }
+            get { return (m_pListKeyOrdered != null) ? (ICollection<DateTime>)m_pListKeyOrdered : m_pDicLog.Keys; }
         }
 
         public ICollection<string> Values
@@ -408,7 +393,7 @@ namespace YoonFactory.Log
         public bool Remove(DateTime pKey)
         {
             var ret = m_pDicLog.Remove(pKey);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -435,7 +420,7 @@ namespace YoonFactory.Log
         void ICollection<KeyValuePair<DateTime, string>>.Add(KeyValuePair<DateTime, string> pCollection)
         {
             ((IDictionary<DateTime, string>)m_pDicLog).Add(pCollection);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
@@ -459,7 +444,7 @@ namespace YoonFactory.Log
         bool ICollection<KeyValuePair<DateTime, string>>.Remove(KeyValuePair<DateTime, string> pCollection)
         {
             var ret = ((IDictionary<DateTime, string>)m_pDicLog).Remove(pCollection);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -475,7 +460,7 @@ namespace YoonFactory.Log
 
         public IEnumerator<KeyValuePair<DateTime, string>> GetEnumerator()
         {
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 return GetOrderedEnumerator();
             }

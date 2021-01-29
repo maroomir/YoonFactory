@@ -134,28 +134,13 @@ namespace YoonFactory.Param
         protected Dictionary<T, YoonParameter> m_pDicParam;
         protected List<T> m_pListKeyOrdered;
 
-        public bool IsOrdered
-        {
-            get
-            {
-                return m_pListKeyOrdered != null;
-            }
-            set
-            {
-                if (IsOrdered != value)
-                {
-                    m_pListKeyOrdered = value ? new List<T>(m_pDicParam.Keys) : null;
-                }
-            }
-        }
-
         public IEqualityComparer<T> Comparer { get { return m_pDicParam.Comparer; } }
 
         public YoonParameter this[int nIndex]
         {
             get
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ParameterContainer using integer key: section was not ordered.");
                 }
@@ -167,7 +152,7 @@ namespace YoonFactory.Param
             }
             set
             {
-                if (!IsOrdered)
+                if (m_pListKeyOrdered == null)
                 {
                     throw new InvalidOperationException("Cannot index ParameterContainer using integer key: section was not ordered.");
                 }
@@ -193,7 +178,7 @@ namespace YoonFactory.Param
             }
             set
             {
-                if (IsOrdered && !m_pListKeyOrdered.Contains(pKey, Comparer))
+                if (m_pListKeyOrdered != null && !m_pListKeyOrdered.Contains(pKey, Comparer))
                 {
                     m_pListKeyOrdered.Add(pKey);
                 }
@@ -242,7 +227,7 @@ namespace YoonFactory.Param
         {
             if (m_pDicParam != null)
                 m_pDicParam.Clear();
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Clear();
             }
@@ -271,7 +256,7 @@ namespace YoonFactory.Param
 
         public int IndexOf(T pKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(T) on ParameterContainer: section was not ordered.");
             }
@@ -280,7 +265,7 @@ namespace YoonFactory.Param
 
         public int IndexOf(T pKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(T, int) on ParameterContainer: section was not ordered.");
             }
@@ -289,7 +274,7 @@ namespace YoonFactory.Param
 
         public int IndexOf(T pKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(T, int, int) on ParameterContainer: section was not ordered.");
             }
@@ -318,7 +303,7 @@ namespace YoonFactory.Param
 
         public int LastIndexOf(T strKey)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(T) on ParameterContainer: section was not ordered.");
             }
@@ -327,7 +312,7 @@ namespace YoonFactory.Param
 
         public int LastIndexOf(T strKey, int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(T, int) on ParameterContainer: section was not ordered.");
             }
@@ -336,7 +321,7 @@ namespace YoonFactory.Param
 
         public int LastIndexOf(T pKey, int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call LastIndexOf(T, int, int) on ParameterContainer: section was not ordered.");
             }
@@ -365,7 +350,7 @@ namespace YoonFactory.Param
 
         public void Insert(int nIndex, T pKey, YoonParameter pValue)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Insert(int, T, YoonParameter) on ParameterContainer: section was not ordered.");
             }
@@ -379,7 +364,7 @@ namespace YoonFactory.Param
 
         public void InsertRange(int nIndex, IEnumerable<KeyValuePair<T, YoonParameter>> pCollection)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call InsertRange(int, IEnumerable<KeyValuePair<T, YoonParameter>>) on ParameterContainer: section was not ordered.");
             }
@@ -400,7 +385,7 @@ namespace YoonFactory.Param
 
         public void RemoveAt(int nIndex)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveAt(int) on ParameterContainer: section was not ordered.");
             }
@@ -415,7 +400,7 @@ namespace YoonFactory.Param
 
         public void RemoveRange(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call RemoveRange(int, int) on ParameterContainer: section was not ordered.");
             }
@@ -439,7 +424,7 @@ namespace YoonFactory.Param
 
         public void Reverse()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse() on ParameterContainer: section was not ordered.");
             }
@@ -448,7 +433,7 @@ namespace YoonFactory.Param
 
         public void Reverse(int nIndex, int nCount)
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call Reverse(int, int) on ParameterContainer: section was not ordered.");
             }
@@ -469,7 +454,7 @@ namespace YoonFactory.Param
 
         public ICollection<YoonParameter> GetOrderedValues()
         {
-            if (!IsOrdered)
+            if (m_pListKeyOrdered == null)
             {
                 throw new InvalidOperationException("Cannot call GetOrderedValues() on ParameterContainer: section was not ordered.");
             }
@@ -484,7 +469,7 @@ namespace YoonFactory.Param
         public void Add(T pKey, YoonParameter pValue)
         {
             m_pDicParam.Add(pKey, pValue);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pKey);
             }
@@ -497,7 +482,7 @@ namespace YoonFactory.Param
 
         public ICollection<T> Keys
         {
-            get { return IsOrdered ? (ICollection<T>)m_pListKeyOrdered : m_pDicParam.Keys; }
+            get { return (m_pListKeyOrdered != null) ? (ICollection<T>)m_pListKeyOrdered : m_pDicParam.Keys; }
         }
 
         public ICollection<YoonParameter> Values
@@ -511,7 +496,7 @@ namespace YoonFactory.Param
         public bool Remove(T pKey)
         {
             var ret = m_pDicParam.Remove(pKey);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -538,7 +523,7 @@ namespace YoonFactory.Param
         void ICollection<KeyValuePair<T, YoonParameter>>.Add(KeyValuePair<T, YoonParameter> pCollection)
         {
             ((IDictionary<T, YoonParameter>)m_pDicParam).Add(pCollection);
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 m_pListKeyOrdered.Add(pCollection.Key);
             }
@@ -562,7 +547,7 @@ namespace YoonFactory.Param
         bool ICollection<KeyValuePair<T, YoonParameter>>.Remove(KeyValuePair<T, YoonParameter> pCollection)
         {
             var ret = ((IDictionary<T, YoonParameter>)m_pDicParam).Remove(pCollection);
-            if (IsOrdered && ret)
+            if (m_pListKeyOrdered != null && ret)
             {
                 for (int i = 0; i < m_pListKeyOrdered.Count; i++)
                 {
@@ -578,7 +563,7 @@ namespace YoonFactory.Param
 
         public IEnumerator<KeyValuePair<T, YoonParameter>> GetEnumerator()
         {
-            if (IsOrdered)
+            if (m_pListKeyOrdered != null)
             {
                 return GetOrderedEnumerator();
             }

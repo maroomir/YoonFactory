@@ -16,7 +16,6 @@ namespace YoonSample.CognexInspector
     {
         private int m_nIndex = -1;
         private eTypeInspect m_nType = eTypeInspect.None;
-
         private ICogImage m_pCogImageOrigin;
         private ICogImage m_pCogImagePreprocessing;
         private ICogImage m_pCogImageSourceSelected;
@@ -317,7 +316,7 @@ namespace YoonSample.CognexInspector
                     break;
                 default:
                     KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
-                    m_pCogImageSourceSelected = CommonClass.pCogResultTemplate[pPair.Value][eYoonCognexType.None][0].ResultImage; // ??
+                    m_pCogImageSourceSelected = CommonClass.GetResultImage(pPair.Key, pPair.Value);
                     pParam.SelectedSourceLevel = eLevelImageSelection.Custom;
                     pParam.SelectedSourceNo = pPair.Key;
                     pParam.SelectedSourceType = pPair.Value;
@@ -352,7 +351,7 @@ namespace YoonSample.CognexInspector
                     break;
                 default:
                     KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strObjectSelected);
-                    m_pCogImageSourceSelected = CommonClass.pCogResultTemplate[pPair.Value][eYoonCognexType.None][0].ResultImage; // ??
+                    m_pCogImageObjectSelected = CommonClass.GetResultImage(pPair.Key, pPair.Value);
                     pParam.SelectedObjectLevel = eLevelImageSelection.Custom;
                     pParam.SelectedObjectNo = pPair.Key;
                     pParam.SelectedObjectType = pPair.Value;

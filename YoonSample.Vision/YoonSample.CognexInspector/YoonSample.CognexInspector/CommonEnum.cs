@@ -173,10 +173,10 @@ namespace YoonSample.CognexInspector
     public enum eLabelInspect : int
     {
         None = -1,
-        Main,
-        Second,
-        Third,
-        Forth,
+        Main = 0,
+        Second = 1,
+        Third = 2,
+        Forth = 3,
         Align,
         Calibration,
         Reference,
@@ -206,15 +206,6 @@ namespace YoonSample.CognexInspector
         OnePoint,
         TwoPoint,
         FourPoint,
-    }
-
-    public enum eLevelPattern : int
-    {
-        None = -1,
-        Main = 0,
-        Second = 1,
-        Third = 2,
-        Forth = 3,
     }
 
     public enum eLevelImageSelection : int
@@ -317,5 +308,13 @@ namespace YoonSample.CognexInspector
         Undistort,
         Error,
         Finish,
+    }
+
+    static class eLabelInspectMethod
+    {
+        public static int ToInt(this eLabelInspect e)
+        {
+            return (int)e;
+        }
     }
 }
