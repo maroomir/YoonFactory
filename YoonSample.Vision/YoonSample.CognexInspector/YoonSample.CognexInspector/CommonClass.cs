@@ -9,8 +9,8 @@ using Cognex.VisionPro.Display;
 using YoonFactory;
 using YoonFactory.Align;
 using YoonFactory.Cognex;
+using YoonFactory.Cognex.Tool;
 using YoonFactory.Log;
-using YoonFactory.Windows.Log;
 using YoonFactory.Param;
 
 namespace YoonSample.CognexInspector
@@ -61,6 +61,8 @@ namespace YoonSample.CognexInspector
                 ContainImage = pImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
         }
     }
+
+    public delegate void PassRequestCallback(object sender, EventArgs e);
 
     public static class CommonClass
     {

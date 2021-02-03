@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using YoonFactory.Cognex;
+using YoonFactory.Cognex.Tool;
 
 namespace YoonSample.CognexInspector
 {

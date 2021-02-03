@@ -97,11 +97,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CognexFactory.cs" />
-    <Compile Include="ToolFactory.cs" />
-    <Compile Include="CommonClass.cs" />
+    <Compile Include="CognexMapping.cs" />
+    <Compile Include="CognexResult.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="ResultContainer.cs" />
+    <Compile Include="Tool\ToolContainer.cs" />
+    <Compile Include="Tool\ToolFactory.cs" />
+    <Compile Include="ResultTemplate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultSection.cs" />
-    <Compile Include="ToolSection.cs" />
+    <Compile Include="Tool\ToolSection.cs" />
+    <Compile Include="Tool\ToolTemplate.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">

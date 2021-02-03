@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Gtk;
 using Pango;
@@ -312,84 +311,6 @@ namespace YoonFactory.Mono
             {
                 Console.Write(ex.ToString());
             }
-        }
-    }
-
-    public static class ColorFactory
-    {
-        public static Gdk.Color Black = new Gdk.Color(0, 0, 0);
-        public static Gdk.Color White = new Gdk.Color(255, 255, 255);
-        public static Gdk.Color Gray = new Gdk.Color(128, 128, 128);
-        public static Gdk.Color Red = new Gdk.Color(255, 0, 0);
-        public static Gdk.Color Salmon = new Gdk.Color(250, 128, 114);
-        public static Gdk.Color Blue = new Gdk.Color(0, 0, 255);
-        public static Gdk.Color Green = new Gdk.Color(0, 255, 0);
-        public static Gdk.Color Lime = new Gdk.Color(191, 255, 0);
-        public static Gdk.Color Yellow = new Gdk.Color(255, 255, 0);
-        public static Gdk.Color Purple = new Gdk.Color(128, 0, 128);
-        public static Gdk.Color Lavender = new Gdk.Color(230, 230, 250);
-        public static Gdk.Color RedPurple = new Gdk.Color(135, 27, 77);
-        public static Gdk.Color Magenta = new Gdk.Color(255, 0, 255);
-        public static Gdk.Color Violate = new Gdk.Color(200, 0, 128);
-        public static Gdk.Color Khaki = new Gdk.Color(195, 176, 145);
-        public static Gdk.Color DarkKhaki = new Gdk.Color(189, 183, 107);
-
-    }
-
-    public static class FontFactory
-    {
-        public static FontDescription Default()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Tahoma");
-            pFt.Size = (int)(12 * Pango.Scale.PangoScale); // 12point = 12(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Normal;
-            pFt.Weight = Weight.Light;
-            return pFt;
-        }
-
-        public static FontDescription Comment()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Tahoma");
-            pFt.Size = (int)(11 * Pango.Scale.PangoScale); // 11point = 11(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Normal;
-            pFt.Weight = Weight.Light;
-            return pFt;
-        }
-
-        public static FontDescription Emphasis()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Tahoma");
-            pFt.Size = (int)(14 * Pango.Scale.PangoScale); // 12point = 12(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Normal;
-            pFt.Weight = Weight.Semibold;
-            return pFt;
-        }
-
-        public static FontDescription StrapLine()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Centarell");
-            pFt.Size = (int)(12 * Pango.Scale.PangoScale); // 12point = 12(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Italic;
-            pFt.Weight = Weight.Semibold;
-            return pFt;
-        }
-
-        public static FontDescription SubTitle()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Centarell");
-            pFt.Size = (int)(16 * Pango.Scale.PangoScale); // 12point = 12(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Italic;
-            pFt.Weight = Weight.Semibold;
-            return pFt;
-        }
-
-        public static FontDescription Title()
-        {
-            FontDescription pFt = Pango.FontDescription.FromString("Centarell");
-            pFt.Size = (int)(24 * Pango.Scale.PangoScale); // 12point = 12(num) * Scale(To consider ppi)
-            pFt.Style = Pango.Style.Italic;
-            pFt.Weight = Weight.Bold;
-            return pFt;
         }
     }
 }

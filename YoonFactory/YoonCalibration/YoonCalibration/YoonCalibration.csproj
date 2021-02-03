@@ -75,8 +75,12 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CalibrationFactory.cs" />
+    <Compile Include="YoonRotationCalib.cs" />
+    <Compile Include="CalibResult.cs" />
+    <Compile Include="Delegates.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="YoonStaticCalib.cs" />
+    <Compile Include="YoonTransform.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">

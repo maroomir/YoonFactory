@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using YoonFactory.Comm.TCP;
 using YoonFactory.Param;
 using YoonFactory.Log;
-using YoonFactory.Mono.Log;
+using YoonFactory.Log;
 
 namespace YoonSample.Mono
 {

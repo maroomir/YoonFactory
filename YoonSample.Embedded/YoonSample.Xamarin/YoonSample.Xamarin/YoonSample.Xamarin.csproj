@@ -20,7 +20,6 @@
     <ProjectReference Include="..\..\..\YoonFactory\YoonCommon\YoonCommon.csproj" />
     <ProjectReference Include="..\..\..\YoonFactory\YoonComm\YoonComm\YoonComm.csproj" />
     <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj" />
-    <ProjectReference Include="..\..\..\YoonFactory\YoonLog\YoonLog\YoonLog.csproj" />
     <ProjectReference Include="..\..\..\YoonFactory\YoonParameter\YoonParameter\YoonParameter.csproj" />
   </ItemGroup>
 </Project>

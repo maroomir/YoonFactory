@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace YoonFactory.Core
+namespace YoonFactory
 {
     public static class MathFactory
     {

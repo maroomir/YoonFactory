@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using Gtk;
 using YoonSample.Mono;
 using YoonFactory;
 using YoonFactory.Log;
 using YoonFactory.Mono;
-using YoonFactory.Mono.Log;
 using YoonFactory.Comm;
 using YoonFactory.Comm.TCP;
 
@@ -154,9 +154,9 @@ public partial class MainWindow : Gtk.Window
 
     public void OnDisplatLogEvent(object sender, LogArgs e)
     {
-        if (e is LogMonoArgs pArgs)
+        if (e is LogDisplayerArgs pArgs)
         {
-            GtkFactory.ChangeContainerColor(textview_Log, pArgs.BackColor, StateType.Normal);
+            GtkFactory.ChangeContainerColor(textview_Log, ColorFactory.Convert(pArgs.BackColor), StateType.Normal);
             textview_Log.Buffer.Text += e.Message;
         }
     }

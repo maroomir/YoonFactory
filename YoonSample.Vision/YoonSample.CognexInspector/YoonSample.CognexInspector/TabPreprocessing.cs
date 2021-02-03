@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using YoonFactory;
 using YoonFactory.Cognex;
 
 namespace YoonSample.CognexInspector
@@ -24,7 +25,7 @@ namespace YoonSample.CognexInspector
 
         public event PassImageCallback OnUpdateResultImageEvent;
 
-        public TabPreprocessing(int nIndexModel, int nIndexJob, int nIndex)
+        public TabPreprocessing(int nIndex)
         {
             InitializeComponent();
 

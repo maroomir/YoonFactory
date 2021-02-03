@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace YoonFactory.Image
 {
-
     /* RAW Image 정보를 Bitmap으로 변환시키는 Class */
     public static class BitmapFactory
     {

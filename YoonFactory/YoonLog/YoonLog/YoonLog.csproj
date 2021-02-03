@@ -68,9 +68,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LogFactory.cs" />
+    <Compile Include="Delegates.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="YoonDisplayer.cs" />
+    <Compile Include="YoonConsoler.cs" />
     <Compile Include="LogSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

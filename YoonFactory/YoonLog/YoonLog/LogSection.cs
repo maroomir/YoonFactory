@@ -151,6 +151,19 @@ namespace YoonFactory.Log
             }
         }
 
+        public DateTime KeyOf(int nIndex)
+        {
+            if (m_pListKeyOrdered == null)
+            {
+                throw new InvalidOperationException("Cannot call KeyOf(int) on LogSection: section was not ordered.");
+            }
+            if (nIndex < 0 || nIndex > m_pListKeyOrdered.Count)
+            {
+                throw new IndexOutOfRangeException("Index must be within the bounds." + Environment.NewLine + "Parameter name: nIndex");
+            }
+            return m_pListKeyOrdered[nIndex];
+        }
+
         public int IndexOf(DateTime pKey) 
         {
             if (m_pListKeyOrdered == null)

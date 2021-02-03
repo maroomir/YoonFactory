@@ -81,11 +81,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonClass.cs" />
-    <Compile Include="CommonInterface.cs" />
-    <Compile Include="CommonEnum.cs" />
+    <Compile Include="YoonObject.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="MathFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="YoonCart.cs" />
+    <Compile Include="YoonJoint.cs" />
+    <Compile Include="YoonMatrix.cs" />
+    <Compile Include="YoonRect.cs" />
+    <Compile Include="YoonRectAffine.cs" />
+    <Compile Include="YoonTriangle.cs" />
+    <Compile Include="YoonVector.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -73,10 +73,10 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileFactory.cs" />
+    <Compile Include="File\YoonDB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WindowsFactory.cs" />
-    <Compile Include="LogFactory.cs" />
+    <Compile Include="DateTableFactory.cs" />
+    <Compile Include="File\YoonIni.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">

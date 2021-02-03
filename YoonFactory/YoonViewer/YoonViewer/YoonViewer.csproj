@@ -80,18 +80,18 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ImageViewer.cs">
+    <Compile Include="YoonViewer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ImageViewer.Designer.cs">
-      <DependentUpon>ImageViewer.cs</DependentUpon>
+    <Compile Include="YoonViewer.Designer.cs">
+      <DependentUpon>YoonViewer.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ImageViewer.resx">
-      <DependentUpon>ImageViewer.cs</DependentUpon>
+    <EmbeddedResource Include="YoonViewer.resx">
+      <DependentUpon>YoonViewer.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

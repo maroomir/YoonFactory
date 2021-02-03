@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using YoonFactory;
 using YoonFactory.Align;
 using YoonFactory.Cognex;
+using YoonFactory.Cognex.Tool;
 using YoonFactory.Windows;
 
 namespace YoonSample.CognexInspector

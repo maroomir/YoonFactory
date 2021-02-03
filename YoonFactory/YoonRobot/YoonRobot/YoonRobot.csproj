@@ -70,12 +70,15 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonClass.cs" />
-    <Compile Include="RemoteSection.cs" />
-    <Compile Include="TMFactory.cs" />
-    <Compile Include="YoonRemote.cs" />
+    <Compile Include="Remote\RemoteContainer.cs" />
+    <Compile Include="Remote\Delegates.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="Remote\RemoteFactory.cs" />
+    <Compile Include="Remote\RemoteSection.cs" />
+    <Compile Include="Remote\TMFactory.cs" />
+    <Compile Include="Remote\YoonRemote.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="URFactory.cs" />
+    <Compile Include="Remote\URFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonComm\YoonComm\YoonComm.csproj">

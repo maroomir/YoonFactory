@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using YoonFactory;
 using YoonFactory.Comm;
 using YoonFactory.Comm.TCP;
 
@@ -18,10 +19,7 @@ namespace YoonSample.Xamarin
             InitializeComponent();
 
             int nStepInit = 0;
-            CommonClass.pCLM.RootDirectory = CommonClass.strYoonFactoryDirectory;
             CommonClass.pConnectManager.RootDirectory = CommonClass.strYoonFactoryDirectory;
-            CommonClass.pCLM.Write(string.Format("Step {0} : Setting File Directory", nStepInit++));
-            CommonClass.pCLM.Write(string.Format("Step {0} : Init Parameter to Form", nStepInit++));
             {
                 CommonClass.pConnectManager.LoadParameter(true);
                 CommonClass.pParamConnect = CommonClass.pConnectManager.Parameter as ParameterConnection;
@@ -32,30 +30,27 @@ namespace YoonSample.Xamarin
                 else
                     switch_SettingTCPServer.IsToggled = false;
             }
-
-            CommonClass.pCLM.Write(string.Format("Step {0} : Init Tcp Connection", nStepInit++));
+            ////  Fill the configuration
+            switch (CommonClass.pParamConnect.Type)
             {
-                switch (CommonClass.pParamConnect.Type)
-                {
-                    case eYoonCommType.TCPClient:
-                        CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
-                        break;
-                    case eYoonCommType.TCPServer:
-                        CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
-                        break;
-                    default:
-                        break;
-                }
-                CommonClass.pTcpIp.Address = CommonClass.pParamConnect.IPAddress;
-                CommonClass.pTcpIp.Port = CommonClass.pParamConnect.Port.ToString();
-                CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
-                CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;
+                case eYoonCommType.TCPClient:
+                    CommonClass.pTcpIp = new YoonClient(CommonClass.strYoonFactoryDirectory);
+                    break;
+                case eYoonCommType.TCPServer:
+                    CommonClass.pTcpIp = new YoonServer(CommonClass.strYoonFactoryDirectory);
+                    break;
+                default:
+                    break;
             }
+            CommonClass.pTcpIp.Address = CommonClass.pParamConnect.IPAddress;
+            CommonClass.pTcpIp.Port = CommonClass.pParamConnect.Port.ToString();
+            CommonClass.pTcpIp.OnShowMessageEvent += OnWriteTcpCommMessage;
+            CommonClass.pTcpIp.OnShowReceiveDataEvent += OnReceiveTcpCommData;
         }
 
         void OnWriteTcpCommMessage(object sender, MessageArgs e)
         {
-            CommonClass.pCLM.Write(e.Message);
+            //
         }
 
         void OnReceiveTcpCommData(object sender, BufferArgs e)
@@ -65,10 +60,8 @@ namespace YoonSample.Xamarin
 
         void OnToggledTcpSettingSwitch(Object sender, ToggledEventArgs e)
         {
-            CommonClass.pCLM.Write("Toggle TCP Setting Switch");
             if (CommonClass.pTcpIp != null)
             {
-                CommonClass.pCLM.Write("TCP Connection Close Directly");
                 CommonClass.pTcpIp.Close();
                 Thread.Sleep(100);
                 CommonClass.pTcpIp.OnShowMessageEvent -= OnWriteTcpCommMessage;
@@ -96,41 +89,33 @@ namespace YoonSample.Xamarin
             if (CommonClass.pTcpIp.IsConnected)
             {
                 string strMessage = entry_SendMessage.Text;
-                CommonClass.pCLM.Write("Send Message To" + strMessage);
                 CommonClass.pTcpIp.Send(strMessage);
             }
         }
 
         void OnClickChangeConnectionButton(Object sender, EventArgs e)
         {
-            CommonClass.pCLM.Write("Reset the Address and Port Value");
-            {
-                if (TCPFactory.VerifyIPAddress(entry_SettingIPAddress.Text))
-                    CommonClass.pParamConnect.IPAddress = entry_SettingIPAddress.Text;
-                if (TCPFactory.VerifyPort(entry_SettingPort.Text))
-                    CommonClass.pParamConnect.Port = Convert.ToInt32(entry_SettingPort.Text);
-                //// Save the parameter directly
-                CommonClass.pConnectManager.Parameter = CommonClass.pParamConnect;
-                if (CommonClass.pConnectManager.SaveParameter())
-                    CommonClass.pConnectManager.LoadParameter();
-            }
-            CommonClass.pCLM.Write("Reset the Connection");
-            {
-                CommonClass.pTcpIp.Address = CommonClass.pParamConnect.IPAddress;
-                CommonClass.pTcpIp.Port = CommonClass.pParamConnect.Port.ToString();
-                if (CommonClass.pTcpIp.IsConnected)
-                    CommonClass.pTcpIp.Close();
-                else
-                    CommonClass.pTcpIp.Open();
-                Thread.Sleep(200);
-            }
-            CommonClass.pCLM.Write("Check the Connect Status");
-            {
-                if (CommonClass.pTcpIp.IsConnected)
-                    button_ChangeConnection.Text = "Disconnect";
-                else
-                    button_ChangeConnection.Text = "Connect";
-            }
+            if (TCPFactory.VerifyIPAddress(entry_SettingIPAddress.Text))
+                CommonClass.pParamConnect.IPAddress = entry_SettingIPAddress.Text;
+            if (TCPFactory.VerifyPort(entry_SettingPort.Text))
+                CommonClass.pParamConnect.Port = Convert.ToInt32(entry_SettingPort.Text);
+            //// Save the parameter directly
+            CommonClass.pConnectManager.Parameter = CommonClass.pParamConnect;
+            if (CommonClass.pConnectManager.SaveParameter())
+                CommonClass.pConnectManager.LoadParameter();
+            //// Connection Open/Close
+            CommonClass.pTcpIp.Address = CommonClass.pParamConnect.IPAddress;
+            CommonClass.pTcpIp.Port = CommonClass.pParamConnect.Port.ToString();
+            if (CommonClass.pTcpIp.IsConnected)
+                CommonClass.pTcpIp.Close();
+            else
+                CommonClass.pTcpIp.Open();
+            Thread.Sleep(200);
+            ////  Change the Label
+            if (CommonClass.pTcpIp.IsConnected)
+                button_ChangeConnection.Text = "Disconnect";
+            else
+                button_ChangeConnection.Text = "Connect";
         }
     }
 }

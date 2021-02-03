@@ -77,10 +77,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonClass.cs" />
+    <Compile Include="YoonJson.cs" />
+    <Compile Include="EnvironmentFactory.cs" />
+    <Compile Include="FileFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IniFactory.cs" />
-    <Compile Include="CommonInterface.cs" />
+    <Compile Include="IniSection.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="YoonCsv.cs" />
+    <Compile Include="YoonIni.cs" />
+    <Compile Include="YoonXml.cs" />
+    <Compile Include="YoonZip.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">

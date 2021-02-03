@@ -10,7 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Forms;
-using YoonFactory.Cognex;
+using YoonFactory;
+using YoonFactory.Cognex.Tool;
 using System.IO;
 
 namespace YoonSample.CognexInspector

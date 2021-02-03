@@ -167,7 +167,6 @@ namespace YoonSample.CognexInspector
         PatternMatching,
         ObjectExtract,
         Combine,
-        Depth,
     }
 
     public enum eLabelInspect : int

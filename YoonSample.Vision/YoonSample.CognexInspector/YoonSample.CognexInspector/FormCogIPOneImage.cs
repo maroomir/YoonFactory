@@ -11,7 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using YoonFactory.Cognex;
+using YoonFactory.Cognex.Tool;
+using YoonFactory;
 
 namespace YoonSample.CognexInspector
 {
