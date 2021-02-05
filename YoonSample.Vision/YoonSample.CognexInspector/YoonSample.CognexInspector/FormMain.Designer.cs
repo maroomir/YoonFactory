@@ -32,19 +32,20 @@ namespace YoonSample.CognexInspector
             this.components = new System.ComponentModel.Container();
             this.panel_SimulationSheet = new System.Windows.Forms.Panel();
             this.dataGridView_Result = new System.Windows.Forms.DataGridView();
-            this.button_ProcessInspection = new System.Windows.Forms.Button();
             this.label_Result = new System.Windows.Forms.Label();
             this.label_TextResult = new System.Windows.Forms.Label();
             this.label_TextProcessTest = new System.Windows.Forms.Label();
             this.panel_InspectManager = new System.Windows.Forms.Panel();
-            this.button_EditInspection = new System.Windows.Forms.Button();
             this.dataGridView_SelectInspection = new System.Windows.Forms.DataGridView();
             this.label_InspectionManager = new System.Windows.Forms.Label();
             this.tabControl_Setting = new System.Windows.Forms.TabControl();
             this.textBox_InspectionMessage = new System.Windows.Forms.TextBox();
             this.panel_Title = new System.Windows.Forms.Panel();
-            this.button_Load = new System.Windows.Forms.Button();
+            this.label_Title = new System.Windows.Forms.Label();
+            this.button_ProcessInspection = new System.Windows.Forms.Button();
+            this.button_EditInspection = new System.Windows.Forms.Button();
             this.button_Save = new System.Windows.Forms.Button();
+            this.button_Load = new System.Windows.Forms.Button();
             this.bindingSource_Inspection = new System.Windows.Forms.BindingSource(this.components);
             this.panel_SimulationSheet.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_Result)).BeginInit();
@@ -57,7 +58,6 @@ namespace YoonSample.CognexInspector
             // panel_SimulationSheet
             // 
             this.panel_SimulationSheet.Controls.Add(this.dataGridView_Result);
-            this.panel_SimulationSheet.Controls.Add(this.button_ProcessInspection);
             this.panel_SimulationSheet.Controls.Add(this.label_Result);
             this.panel_SimulationSheet.Controls.Add(this.label_TextResult);
             this.panel_SimulationSheet.Controls.Add(this.label_TextProcessTest);
@@ -74,15 +74,6 @@ namespace YoonSample.CognexInspector
             this.dataGridView_Result.RowTemplate.Height = 23;
             this.dataGridView_Result.Size = new System.Drawing.Size(285, 427);
             this.dataGridView_Result.TabIndex = 294;
-            // 
-            // button_ProcessInspection
-            // 
-            this.button_ProcessInspection.Location = new System.Drawing.Point(210, 30);
-            this.button_ProcessInspection.Name = "button_ProcessInspection";
-            this.button_ProcessInspection.Size = new System.Drawing.Size(80, 23);
-            this.button_ProcessInspection.TabIndex = 293;
-            this.button_ProcessInspection.Text = "Process";
-            this.button_ProcessInspection.UseVisualStyleBackColor = true;
             // 
             // label_Result
             // 
@@ -119,22 +110,12 @@ namespace YoonSample.CognexInspector
             // 
             // panel_InspectManager
             // 
-            this.panel_InspectManager.Controls.Add(this.button_EditInspection);
             this.panel_InspectManager.Controls.Add(this.dataGridView_SelectInspection);
             this.panel_InspectManager.Controls.Add(this.label_InspectionManager);
             this.panel_InspectManager.Location = new System.Drawing.Point(0, 40);
             this.panel_InspectManager.Name = "panel_InspectManager";
             this.panel_InspectManager.Size = new System.Drawing.Size(300, 280);
             this.panel_InspectManager.TabIndex = 303;
-            // 
-            // button_EditInspection
-            // 
-            this.button_EditInspection.Location = new System.Drawing.Point(225, 2);
-            this.button_EditInspection.Name = "button_EditInspection";
-            this.button_EditInspection.Size = new System.Drawing.Size(70, 25);
-            this.button_EditInspection.TabIndex = 295;
-            this.button_EditInspection.Text = "Edit";
-            this.button_EditInspection.UseVisualStyleBackColor = true;
             // 
             // dataGridView_SelectInspection
             // 
@@ -179,6 +160,9 @@ namespace YoonSample.CognexInspector
             // 
             // panel_Title
             // 
+            this.panel_Title.Controls.Add(this.label_Title);
+            this.panel_Title.Controls.Add(this.button_ProcessInspection);
+            this.panel_Title.Controls.Add(this.button_EditInspection);
             this.panel_Title.Controls.Add(this.button_Save);
             this.panel_Title.Controls.Add(this.button_Load);
             this.panel_Title.Location = new System.Drawing.Point(1, 1);
@@ -186,25 +170,61 @@ namespace YoonSample.CognexInspector
             this.panel_Title.Size = new System.Drawing.Size(1660, 40);
             this.panel_Title.TabIndex = 305;
             // 
-            // button_Load
+            // label_Title
             // 
-            this.button_Load.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button_Load.Location = new System.Drawing.Point(1351, 5);
-            this.button_Load.Name = "button_Load";
-            this.button_Load.Size = new System.Drawing.Size(150, 30);
-            this.button_Load.TabIndex = 0;
-            this.button_Load.Text = "Load";
-            this.button_Load.UseVisualStyleBackColor = true;
+            this.label_Title.BackColor = System.Drawing.Color.RoyalBlue;
+            this.label_Title.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Title.ForeColor = System.Drawing.Color.White;
+            this.label_Title.Location = new System.Drawing.Point(0, 0);
+            this.label_Title.Name = "label_Title";
+            this.label_Title.Size = new System.Drawing.Size(700, 35);
+            this.label_Title.TabIndex = 298;
+            this.label_Title.Text = "Cognex Inspection.";
+            this.label_Title.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // button_ProcessInspection
+            // 
+            this.button_ProcessInspection.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_ProcessInspection.Location = new System.Drawing.Point(1334, 3);
+            this.button_ProcessInspection.Name = "button_ProcessInspection";
+            this.button_ProcessInspection.Size = new System.Drawing.Size(150, 30);
+            this.button_ProcessInspection.TabIndex = 297;
+            this.button_ProcessInspection.Text = "Process";
+            this.button_ProcessInspection.UseVisualStyleBackColor = true;
+            this.button_ProcessInspection.Click += new System.EventHandler(this.button_ProcessInspection_Click);
+            // 
+            // button_EditInspection
+            // 
+            this.button_EditInspection.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_EditInspection.Location = new System.Drawing.Point(1490, 3);
+            this.button_EditInspection.Name = "button_EditInspection";
+            this.button_EditInspection.Size = new System.Drawing.Size(150, 30);
+            this.button_EditInspection.TabIndex = 296;
+            this.button_EditInspection.Text = "Edit";
+            this.button_EditInspection.UseVisualStyleBackColor = true;
+            this.button_EditInspection.Click += new System.EventHandler(this.button_EditInspection_Click);
             // 
             // button_Save
             // 
-            this.button_Save.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button_Save.Location = new System.Drawing.Point(1507, 5);
+            this.button_Save.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_Save.Location = new System.Drawing.Point(1178, 3);
             this.button_Save.Name = "button_Save";
             this.button_Save.Size = new System.Drawing.Size(150, 30);
             this.button_Save.TabIndex = 1;
             this.button_Save.Text = "Save";
             this.button_Save.UseVisualStyleBackColor = true;
+            this.button_Save.Click += new System.EventHandler(this.button_ImageSave_Click);
+            // 
+            // button_Load
+            // 
+            this.button_Load.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_Load.Location = new System.Drawing.Point(1022, 3);
+            this.button_Load.Name = "button_Load";
+            this.button_Load.Size = new System.Drawing.Size(150, 30);
+            this.button_Load.TabIndex = 0;
+            this.button_Load.Text = "Load";
+            this.button_Load.UseVisualStyleBackColor = true;
+            this.button_Load.Click += new System.EventHandler(this.button_ImageLoad_Click);
             // 
             // FormMain
             // 
@@ -218,6 +238,8 @@ namespace YoonSample.CognexInspector
             this.Controls.Add(this.textBox_InspectionMessage);
             this.Name = "FormMain";
             this.Text = "Main Form";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
+            this.Load += new System.EventHandler(this.FormMain_Load);
             this.panel_SimulationSheet.ResumeLayout(false);
             this.panel_SimulationSheet.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_Result)).EndInit();
@@ -234,12 +256,10 @@ namespace YoonSample.CognexInspector
 
         private System.Windows.Forms.Panel panel_SimulationSheet;
         private System.Windows.Forms.DataGridView dataGridView_Result;
-        private System.Windows.Forms.Button button_ProcessInspection;
         private System.Windows.Forms.Label label_Result;
         private System.Windows.Forms.Label label_TextResult;
         private System.Windows.Forms.Label label_TextProcessTest;
         private System.Windows.Forms.Panel panel_InspectManager;
-        private System.Windows.Forms.Button button_EditInspection;
         private System.Windows.Forms.DataGridView dataGridView_SelectInspection;
         private System.Windows.Forms.Label label_InspectionManager;
         private System.Windows.Forms.TabControl tabControl_Setting;
@@ -248,6 +268,9 @@ namespace YoonSample.CognexInspector
         private System.Windows.Forms.Button button_Save;
         private System.Windows.Forms.Button button_Load;
         private System.Windows.Forms.BindingSource bindingSource_Inspection;
+        private System.Windows.Forms.Label label_Title;
+        private System.Windows.Forms.Button button_ProcessInspection;
+        private System.Windows.Forms.Button button_EditInspection;
     }
 }
 

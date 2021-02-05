@@ -76,8 +76,8 @@ namespace YoonSample.CognexInspector
         public static YoonTemplate<eTypeInspect> pParamTemplate = new YoonTemplate<eTypeInspect>();
         public static Template<eTypeInspect, ToolTemplate> pCogToolTemplate = new Template<eTypeInspect, ToolTemplate>("Tools");
         public static Template<eTypeInspect, ResultTemplate> pCogResultTemplate = new Template<eTypeInspect, ResultTemplate>("Results");
-        public static YoonConsoler pCLM = new YoonConsoler();
-        public static YoonDisplayer pDLM = new YoonDisplayer();
+        public static YoonConsoler pCLM = new YoonConsoler(90);
+        public static YoonDisplayer pDLM = new YoonDisplayer(90);
 
         public static string strWorkDirectory = Directory.GetCurrentDirectory();
         public static string strImageDirectory = Path.Combine(strWorkDirectory, @"Image");

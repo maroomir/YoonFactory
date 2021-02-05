@@ -22,6 +22,13 @@ namespace YoonFactory.Cognex
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(DefaultComparer);
         }
+        public ResultTemplate(int nNo, string strName)
+        {
+            No = nNo;
+            Name = strName;
+            RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
+            m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(DefaultComparer);
+        }
 
         public void CopyFrom(IYoonTemplate pTemplate)
         {

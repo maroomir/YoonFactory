@@ -125,6 +125,7 @@ namespace YoonFactory.Param
             IsMarkNumber = false;
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             this.m_pDicTemplate = new Dictionary<TKey, TValue>(DefaultComparer);
+            this.m_pListKeyOrdered = new List<TKey>();
         }
 
         public Template(int nNo, string strName)
@@ -134,6 +135,7 @@ namespace YoonFactory.Param
             IsMarkNumber = true;
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             this.m_pDicTemplate = new Dictionary<TKey, TValue>(DefaultComparer);
+            this.m_pListKeyOrdered = new List<TKey>();
         }
 
         public Template(Template<TKey, TValue> pTemplate)
@@ -143,6 +145,7 @@ namespace YoonFactory.Param
             IsMarkNumber = pTemplate.IsMarkNumber;
             RootDirectory = pTemplate.RootDirectory;
             this.m_pDicTemplate = new Dictionary<TKey, TValue>(pTemplate.m_pDicTemplate, DefaultComparer);
+            this.m_pListKeyOrdered = new List<TKey>();
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)
@@ -189,11 +192,11 @@ namespace YoonFactory.Param
             using (YoonIni pIni = new YoonIni(strIniFilePath))
             {
                 pIni.LoadFile();
-                if (No != pIni["HEAD"]["No"].ToInt(-1))
+                if (No != pIni["HEAD"]["No"].ToInt(No))
                 {
                     throw new FileLoadException("LoadTemplate() on Template<TKey, TValue> : Template No isnot matching");
                 }
-                if (Name != pIni["HEAD"]["Name"].ToString(string.Empty))
+                if (Name != pIni["HEAD"]["Name"].ToString(Name))
                 {
                     throw new FileLoadException("LoadTemplate() on Template<TKey, TValue> : Template Name isnot Matching");
                 }

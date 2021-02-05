@@ -14,6 +14,8 @@ using System.Drawing.Text;
 using YoonFactory.Cognex;
 using YoonFactory.Align;
 using YoonFactory.Windows;
+using YoonFactory.Param;
+using YoonFactory.Cognex.Tool;
 using YoonFactory;
 
 namespace YoonSample.CognexInspector
@@ -21,7 +23,6 @@ namespace YoonSample.CognexInspector
     public partial class FormMain : Form
     {
         private CogImage24PlanarColor m_pCogRGBImageOrigin = null;
-        private CogImage24PlanarColor m_pCogDepthColorImageOrigin = null;
         private DataTable m_pTableResult = null;
 
         public event PassImageCallback OnUpdatePreviewImageEvent;
@@ -32,6 +33,8 @@ namespace YoonSample.CognexInspector
         {
             InitializeComponent();
 
+            CommonClass.pCLM.RootDirectory = CommonClass.strCurrentWorkingDirectory;
+            CommonClass.pDLM.RootDirectory = CommonClass.strCurrentWorkingDirectory;
             CommonClass.pDLM.OnProcessLogEvent += OnLogDisplay;
         }
 
@@ -39,17 +42,24 @@ namespace YoonSample.CognexInspector
         {
             PrintInspectionSettingMessage(eYoonStatus.Info, "Grid Initialize");
             {
-                if (!CommonClass.pCogToolTemplate.LoadTemplate()) return;
+                if (!CommonClass.pCogToolTemplate.LoadTemplate())
+                    return;
+
+                if (CommonClass.pParamTemplate.Count == 0 ||
+                   CommonClass.pCogToolTemplate.Count == 0)
+                {
+                    PrintInspectionSettingMessage(eYoonStatus.Conform, "Initialize Config");
+                    Init_Template();
+                }
+                PrintInspectionSettingMessage(eYoonStatus.Info, "Binding Info");
                 {
                     bindingSource_Inspection.ResetBindings(false);
                     bindingSource_Inspection.DataSource = CommonClass.pCogToolTemplate.ToList();
                     dataGridView_SelectInspection.DataSource = bindingSource_Inspection;
-                    dataGridView_SelectInspection.Columns[0].HeaderText = "No";
-                    dataGridView_SelectInspection.Columns[0].Width = 50;
-                    dataGridView_SelectInspection.Columns[1].HeaderText = "Type";
+                    dataGridView_SelectInspection.Columns[0].HeaderText = "Type";
+                    dataGridView_SelectInspection.Columns[0].Width = 100;
+                    dataGridView_SelectInspection.Columns[1].HeaderText = "Name";
                     dataGridView_SelectInspection.Columns[1].Width = 150;
-                    dataGridView_SelectInspection.Columns[2].HeaderText = "Result";
-                    dataGridView_SelectInspection.Columns[2].Width = 50;
                     dataGridView_SelectInspection.EditMode = DataGridViewEditMode.EditProgrammatically;
                     dataGridView_SelectInspection.Invalidate();
                 }
@@ -81,7 +91,7 @@ namespace YoonSample.CognexInspector
             }
         }
 
-        private void Form_SettingInspection_FormClosed(object sender, FormClosedEventArgs e)
+        private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
         {
             PrintInspectionSettingMessage(eYoonStatus.Info, "Clear Values");
             {
@@ -296,6 +306,32 @@ namespace YoonSample.CognexInspector
             }
         }
 
+        private void Init_Template()
+        {
+            CommonClass.pParamTemplate.Clear();
+            CommonClass.pCogToolTemplate.Clear();
+
+            PrintInspectionSettingMessage(eYoonStatus.Info, "Parameter Template Initialize");
+            {
+                CommonClass.pParamTemplate.No = 1;
+                CommonClass.pParamTemplate.Name = "Param";
+                CommonClass.pParamTemplate[eTypeInspect.Preprocessing] = new YoonParameter(new ParameterInspectionPreprocessing(), typeof(ParameterInspectionPreprocessing));
+                CommonClass.pParamTemplate[eTypeInspect.PatternMatching] = new YoonParameter(new ParameterInspectionPatternMatching(), typeof(ParameterInspectionPatternMatching));
+                CommonClass.pParamTemplate[eTypeInspect.ObjectExtract] = new YoonParameter(new ParameterInspectionObjectExtract(), typeof(ParameterInspectionObjectExtract));
+                CommonClass.pParamTemplate[eTypeInspect.Combine] = new YoonParameter(new ParameterInspectionCombine(), typeof(ParameterInspectionCombine));
+            }
+
+            PrintInspectionSettingMessage(eYoonStatus.Info, "Cognex Tool Template Initialize");
+            {
+                CommonClass.pCogToolTemplate.No = 1;
+                CommonClass.pCogToolTemplate.Name = "Tool";
+                CommonClass.pCogToolTemplate[eTypeInspect.Preprocessing] = new ToolTemplate(0, "Preprocessing");
+                CommonClass.pCogToolTemplate[eTypeInspect.PatternMatching] = new ToolTemplate(1, "PatternMatching");
+                CommonClass.pCogToolTemplate[eTypeInspect.ObjectExtract] = new ToolTemplate(2, "ObjectExtract");
+                CommonClass.pCogToolTemplate[eTypeInspect.Combine] = new ToolTemplate(3, "Combine");
+            }
+        }
+
         private void Init_ResultTable()
         {
             int nRowCount = 0;
@@ -393,16 +429,41 @@ namespace YoonSample.CognexInspector
             //
         }
 
-        private void button_ImageUpdate_Click(object sender, EventArgs e)
+        private void button_ImageLoad_Click(object sender, EventArgs e)
         {
-            PrintInspectionSettingMessage(eYoonStatus.Info, "Image Update");
+            PrintInspectionSettingMessage(eYoonStatus.Info, "Image Load");
             {
-                //// Image Load 하기
-
-                //// 각 Tab에 이미지 분배하기
-                foreach (eTypeInspect nType in CommonClass.pParamTemplate.Keys)
+                //// Image Load
+                using (OpenFileDialog pDlg = new OpenFileDialog())
                 {
-                    OnUpdatePreviewImageEvent(sender, new CogImageArgs(CommonClass.pCogToolTemplate[nType].No, nType, m_pCogRGBImageOrigin));
+                    pDlg.Filter = "bmp | *.bmp";
+                    if (pDlg.ShowDialog() == DialogResult.OK)
+                    {
+                        string strFilePath = pDlg.FileName;
+                        m_pCogRGBImageOrigin = CognexFactory.LoadCogImage24PlanarColorFromBitmap(strFilePath);
+                        //// 각 Tab에 이미지 분배하기
+                        foreach (eTypeInspect nType in CommonClass.pParamTemplate.Keys)
+                        {
+                            OnUpdatePreviewImageEvent(sender, new CogImageArgs(CommonClass.pCogToolTemplate[nType].No, nType, m_pCogRGBImageOrigin));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void button_ImageSave_Click(object sender, EventArgs e)
+        {
+            PrintInspectionSettingMessage(eYoonStatus.Info, "Image Save");
+            {
+                //// Image Save 하기
+                using (SaveFileDialog pDlg = new SaveFileDialog())
+                {
+                    pDlg.Filter = "bmp | *.bmp";
+                    if (pDlg.ShowDialog() == DialogResult.OK)
+                    {
+                        string strFilePath = pDlg.FileName;
+                        CognexFactory.SaveColorImageToBitmap(m_pCogRGBImageOrigin, strFilePath);
+                    }
                 }
             }
         }

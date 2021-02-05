@@ -169,6 +169,14 @@ namespace YoonSample.CognexInspector
         Combine,
     }
 
+    static class eTypeInspectMethod
+    {
+        public static int ToInt(this eTypeInspect e)
+        {
+            return (int)e;
+        }
+    }
+
     public enum eLabelInspect : int
     {
         None = -1,
@@ -179,6 +187,14 @@ namespace YoonSample.CognexInspector
         Align,
         Calibration,
         Reference,
+    }
+
+    static class eLabelInspectMethod
+    {
+        public static int ToInt(this eLabelInspect e)
+        {
+            return (int)e;
+        }
     }
 
     public enum eTypeGrid : int
@@ -307,13 +323,5 @@ namespace YoonSample.CognexInspector
         Undistort,
         Error,
         Finish,
-    }
-
-    static class eLabelInspectMethod
-    {
-        public static int ToInt(this eLabelInspect e)
-        {
-            return (int)e;
-        }
     }
 }
