@@ -22,6 +22,7 @@ namespace YoonFactory.Param
             Name = "Default";
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicParam = new Dictionary<T, YoonParameter>(DefaultComparer);
+            m_pListKeyOrdered = new List<T>();
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)

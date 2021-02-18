@@ -55,7 +55,7 @@ namespace YoonFactory.Cognex.Tool
         public string FilesDirectory { get; set; }
 
         protected Dictionary<eYoonCognexType, ToolSection> m_pDicSection;
-        private List<eYoonCognexType> m_pListKeyOrdered;
+        protected List<eYoonCognexType> m_pListKeyOrdered;
 
         public IEqualityComparer<eYoonCognexType> Comparer { get { return m_pDicSection.Comparer; } }
 
@@ -118,7 +118,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolContainer(IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
 
         public ToolContainer(Dictionary<eYoonCognexType, ToolSection> pDic)
@@ -129,7 +130,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolContainer(Dictionary<eYoonCognexType, ToolSection> pDic, IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pDic, pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pDic, pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>(pDic.Keys);
         }
 
         public ToolContainer(ToolContainer pContainer)
@@ -140,7 +142,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolContainer(ToolContainer pContainer, IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pContainer.m_pDicSection, pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(pContainer.m_pDicSection, pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>(pContainer.m_pListKeyOrdered);
         }
 
         public void CopyFrom(IYoonContainer pContainer)

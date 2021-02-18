@@ -11,5 +11,7 @@ namespace YoonFactory.Files
         void CopyFrom(IYoonFile pFile);
         IYoonFile Clone();
         bool IsFileExist();
+        bool LoadFile();
+        bool SaveFile();
     }
 }

@@ -112,17 +112,20 @@ namespace YoonFactory.Param
 
         public YoonContainer()
         {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(DefaultComparer);
+            m_pDicParam = new Dictionary<T, YoonParameter>(DefaultComparer);
+            m_pListKeyOrdered = new List<T>();
         }
 
         public YoonContainer(Dictionary<T, YoonParameter> pDic)
         {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(pDic, DefaultComparer);
+            m_pDicParam = new Dictionary<T, YoonParameter>(pDic, DefaultComparer);
+            m_pListKeyOrdered = new List<T>(pDic.Keys);
         }
 
         public YoonContainer(YoonContainer<T> pContainer)
         {
-            this.m_pDicParam = new Dictionary<T, YoonParameter>(pContainer.m_pDicParam, DefaultComparer);
+            m_pDicParam = new Dictionary<T, YoonParameter>(pContainer.m_pDicParam, DefaultComparer);
+            m_pListKeyOrdered = new List<T>(pContainer.m_pListKeyOrdered);
         }
 
         public void CopyFrom(IYoonContainer pContainer)

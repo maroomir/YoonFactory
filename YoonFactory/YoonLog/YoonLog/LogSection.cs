@@ -116,7 +116,8 @@ namespace YoonFactory.Log
 
         public LogSection(IEqualityComparer<DateTime> pDateTimeComparer)
         {
-            this.m_pDicLog = new Dictionary<DateTime, string>(pDateTimeComparer);
+            m_pDicLog = new Dictionary<DateTime, string>(pDateTimeComparer);
+            m_pListKeyOrdered = new List<DateTime>();
         }
 
         public LogSection(Dictionary<DateTime, string> pDic)
@@ -127,7 +128,8 @@ namespace YoonFactory.Log
 
         public LogSection(Dictionary<DateTime, string> pDic, IEqualityComparer<DateTime> pDateTimeComparer)
         {
-            this.m_pDicLog = new Dictionary<DateTime, string>(pDic, pDateTimeComparer);
+            m_pDicLog = new Dictionary<DateTime, string>(pDic, pDateTimeComparer);
+            m_pListKeyOrdered = new List<DateTime>(pDic.Keys);
         }
 
         public LogSection(LogSection pContainer)
@@ -138,7 +140,8 @@ namespace YoonFactory.Log
 
         public LogSection(LogSection pContainer, IEqualityComparer<DateTime> pDateTimeComparer)
         {
-            this.m_pDicLog = new Dictionary<DateTime, string>(pContainer.m_pDicLog, pDateTimeComparer);
+            m_pDicLog = new Dictionary<DateTime, string>(pContainer.m_pDicLog, pDateTimeComparer);
+            m_pListKeyOrdered = new List<DateTime>(pContainer.m_pListKeyOrdered);
         }
 
         public void Clear()

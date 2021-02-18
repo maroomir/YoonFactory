@@ -21,6 +21,7 @@ namespace YoonFactory.Cognex
             Name = "Default";
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(DefaultComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
         public ResultTemplate(int nNo, string strName)
         {
@@ -28,6 +29,7 @@ namespace YoonFactory.Cognex
             Name = strName;
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(DefaultComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)
@@ -87,7 +89,7 @@ namespace YoonFactory.Cognex
             if (RootDirectory == string.Empty || m_pDicSection == null)
                 return false;
 
-            string strIniFilePath = Path.Combine(RootDirectory, @"ToolTemplate.ini");
+            string strIniFilePath = Path.Combine(RootDirectory, @"ResultTemplate.ini");
             base.FilesDirectory = Path.Combine(RootDirectory, ToString());
             bool bResult = true;
             using (YoonIni pIni = new YoonIni(strIniFilePath))

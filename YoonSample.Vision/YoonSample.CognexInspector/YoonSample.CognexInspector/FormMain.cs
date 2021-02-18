@@ -330,6 +330,16 @@ namespace YoonSample.CognexInspector
                 CommonClass.pCogToolTemplate[eTypeInspect.ObjectExtract] = new ToolTemplate(2, "ObjectExtract");
                 CommonClass.pCogToolTemplate[eTypeInspect.Combine] = new ToolTemplate(3, "Combine");
             }
+
+            PrintInspectionSettingMessage(eYoonStatus.Info, "Cognex Result Template Initialize");
+            {
+                CommonClass.pCogResultTemplate.No = 1;
+                CommonClass.pCogResultTemplate.Name = "Tool";
+                CommonClass.pCogResultTemplate[eTypeInspect.Preprocessing] = new ResultTemplate(0, "Preprocessing");
+                CommonClass.pCogResultTemplate[eTypeInspect.PatternMatching] = new ResultTemplate(1, "PatternMatching");
+                CommonClass.pCogResultTemplate[eTypeInspect.ObjectExtract] = new ResultTemplate(2, "ObjectExtract");
+                CommonClass.pCogResultTemplate[eTypeInspect.Combine] = new ResultTemplate(3, "Combine");
+            }
         }
 
         private void Init_ResultTable()
@@ -500,8 +510,6 @@ namespace YoonSample.CognexInspector
             {
                 //// 초기화
                 eTypeInspect pKey = CommonClass.pCogToolTemplate.KeyOf(iInsp);
-                CommonClass.pConfig.SelectedInspectionNo = CommonClass.pCogToolTemplate[iInsp].No;
-                CommonClass.pConfig.SelectedInspectionType = pKey;
                 ICogImage pImageTemp = null;
                 AlignResult pResultAlign = null;
                 YoonVector2D pResultPos = null;

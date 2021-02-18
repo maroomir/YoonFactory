@@ -119,7 +119,8 @@ namespace YoonFactory.Cognex
 
         public ResultSection(IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogResult = new Dictionary<string, CognexResult>(pStringComparer);
+            m_pDicCogResult = new Dictionary<string, CognexResult>(pStringComparer);
+            m_pListKeyOrdered = new List<string>();
         }
 
         public ResultSection(eYoonCognexType nType)
@@ -130,8 +131,9 @@ namespace YoonFactory.Cognex
 
         public ResultSection(eYoonCognexType nType, IEqualityComparer<string> pStringComparer)
         {
-            this.ParantsType = nType;
-            this.m_pDicCogResult = new Dictionary<string, CognexResult>(pStringComparer);
+            ParantsType = nType;
+            m_pDicCogResult = new Dictionary<string, CognexResult>(pStringComparer);
+            m_pListKeyOrdered = new List<string>();
         }
 
         public ResultSection(Dictionary<string, CognexResult> pDic)
@@ -142,7 +144,8 @@ namespace YoonFactory.Cognex
 
         public ResultSection(Dictionary<string, CognexResult> pDic, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogResult = new Dictionary<string, CognexResult>(pDic, pStringComparer);
+            m_pDicCogResult = new Dictionary<string, CognexResult>(pDic, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pDic.Keys);
         }
 
         public ResultSection(ResultSection pSection)
@@ -153,7 +156,8 @@ namespace YoonFactory.Cognex
 
         public ResultSection(ResultSection pSection, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogResult = new Dictionary<string, CognexResult>(pSection.m_pDicCogResult, pStringComparer);
+            m_pDicCogResult = new Dictionary<string, CognexResult>(pSection.m_pDicCogResult, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pSection.m_pListKeyOrdered);
         }
 
         public void Clear()
@@ -205,7 +209,7 @@ namespace YoonFactory.Cognex
 
         public ICogImage GetLastResultImage()
         {
-            if (m_pListKeyOrdered == null)
+            if (m_pListKeyOrdered == null || m_pListKeyOrdered.Count == 0)
             {
                 throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: section was not ordered.");
             }

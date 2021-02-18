@@ -10,39 +10,6 @@ using YoonFactory.Cognex;
 
 namespace YoonSample.CognexInspector
 {
-    public class ParameterConfig : IYoonParameter
-    {
-        public int SelectedInspectionNo { get; set; } = 0;
-        public eTypeInspect SelectedInspectionType { get; set; } = eTypeInspect.Preprocessing;
-        public bool Equals(IYoonParameter pParam)
-        {
-            if (pParam is ParameterConfig pConfig)
-            {
-                if (SelectedInspectionNo == pConfig.SelectedInspectionNo &&
-                    SelectedInspectionType == pConfig.SelectedInspectionType)
-                    return true;
-            }
-            return false;
-        }
-
-        public void CopyFrom(IYoonParameter pParam)
-        {
-            if (pParam is ParameterConfig pConfig)
-            {
-                SelectedInspectionNo = pConfig.SelectedInspectionNo;
-                SelectedInspectionType = pConfig.SelectedInspectionType;
-            }
-        }
-
-        public IYoonParameter Clone()
-        {
-            ParameterConfig pParam = new ParameterConfig();
-            pParam.SelectedInspectionNo = SelectedInspectionNo;
-            pParam.SelectedInspectionType = SelectedInspectionType;
-            return pParam;
-        }
-    }
-
     public class ParameterInspectionPreprocessing : IYoonParameter
     {
         [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Preprocessing (true/false)")]
@@ -53,12 +20,15 @@ namespace YoonSample.CognexInspector
         public bool IsUseSobelEdge { get; set; } = false;
         [CategoryAttribute("Common"), DescriptionAttribute("Whether to use Image Filtering (true/false)")]
         public bool IsUseImageFilter { get; set; } = false;
+        [Browsable(false)]
+        public bool IsPassRecently { get; set; } = true;
 
         public bool Equals(IYoonParameter pParam)
         {
             if(pParam is ParameterInspectionPreprocessing pParamPre)
             {
                 if (IsUse == pParamPre.IsUse &&
+                    IsPassRecently == pParamPre.IsPassRecently &&
                     IsUseImageConvert == pParamPre.IsUseImageConvert &&
                     IsUseSobelEdge == pParamPre.IsUseSobelEdge &&
                     IsUseImageFilter == pParamPre.IsUseImageFilter)
@@ -72,6 +42,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionPreprocessing pParamPre)
             {
                 IsUse = pParamPre.IsUse;
+                IsPassRecently = pParamPre.IsPassRecently;
                 IsUseImageConvert = pParamPre.IsUseImageConvert;
                 IsUseSobelEdge = pParamPre.IsUseSobelEdge;
                 IsUseImageFilter = pParamPre.IsUseImageFilter;
@@ -82,6 +53,7 @@ namespace YoonSample.CognexInspector
         {
             ParameterInspectionPreprocessing pParam = new ParameterInspectionPreprocessing();
             pParam.IsUse = IsUse;
+            pParam.IsPassRecently = IsPassRecently;
             pParam.IsUseImageFilter = IsUseImageFilter;
             pParam.IsUseImageConvert = IsUseImageConvert;
             pParam.IsUseSobelEdge = IsUseSobelEdge;
@@ -100,6 +72,8 @@ namespace YoonSample.CognexInspector
         [CategoryAttribute("Image"), DescriptionAttribute("Selected Source Image")]
         public eLevelImageSelection SelectedSourceLevel { get; set; } = eLevelImageSelection.Origin;
         [Browsable(false)]
+        public bool IsPassRecently { get; set; } = true;
+        [Browsable(false)]
         public int SelectedSourceNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedSourceType { get; set; } = eTypeInspect.None;
@@ -116,10 +90,6 @@ namespace YoonSample.CognexInspector
         [Browsable(false)]
         public double[] OriginPixelYs { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
         [Browsable(false)]
-        public double[] OriginRealXs { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
-        [Browsable(false)]
-        public double[] OriginRealYs { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
-        [Browsable(false)]
         public double[] OriginThetas { get; set; } = new double[CommonClass.MAX_PATTERN_NUM];
         [CategoryAttribute("Align"), DescriptionAttribute("Offset length referenced X-Axis (mm)")]
         public double OffsetX { get; set; } = 100.0;    // 현재는 Pixel, 향후에 Pixel -> mm로 전환할 것
@@ -135,6 +105,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionPatternMatching pParamPattern)
             {
                 if (IsUse == pParamPattern.IsUse &&
+                    IsPassRecently == pParamPattern.IsPassRecently &&
                     IsUseEachPatterns == pParamPattern.IsUseEachPatterns &&
                     IsUseMultiPatternInspection == pParamPattern.IsUseMultiPatternInspection &&
                     SelectedSourceLevel == pParamPattern.SelectedSourceLevel &&
@@ -146,8 +117,6 @@ namespace YoonSample.CognexInspector
                     Array.Equals(IsOriginTeachedFlags, pParamPattern.IsOriginTeachedFlags) &&
                     Array.Equals(OriginPixelXs, pParamPattern.OriginPixelXs) &&
                     Array.Equals(OriginPixelYs, pParamPattern.OriginPixelYs) &&
-                    Array.Equals(OriginRealXs, pParamPattern.OriginRealXs) &&
-                    Array.Equals(OriginRealYs, pParamPattern.OriginRealYs) &&
                     Array.Equals(OriginThetas, pParamPattern.OriginThetas) &&
                     OffsetX == pParamPattern.OffsetX &&
                     OffsetY == pParamPattern.OffsetY &&
@@ -164,6 +133,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionPatternMatching pParamPattern)
             {
                 IsUse = pParamPattern.IsUse;
+                IsPassRecently = pParamPattern.IsPassRecently;
                 IsUseEachPatterns = pParamPattern.IsUseEachPatterns;
                 IsUseMultiPatternInspection = pParamPattern.IsUseMultiPatternInspection;
                 SelectedSourceLevel = pParamPattern.SelectedSourceLevel;
@@ -175,8 +145,6 @@ namespace YoonSample.CognexInspector
                 Array.Copy(pParamPattern.IsOriginTeachedFlags, IsOriginTeachedFlags, CommonClass.MAX_PATTERN_NUM);
                 Array.Copy(pParamPattern.OriginPixelXs, OriginPixelXs, CommonClass.MAX_PATTERN_NUM);
                 Array.Copy(pParamPattern.OriginPixelYs, OriginPixelYs, CommonClass.MAX_PATTERN_NUM);
-                Array.Copy(pParamPattern.OriginRealXs, OriginRealXs, CommonClass.MAX_PATTERN_NUM);
-                Array.Copy(pParamPattern.OriginRealYs, OriginRealYs, CommonClass.MAX_PATTERN_NUM);
                 Array.Copy(pParamPattern.OriginThetas, OriginThetas, CommonClass.MAX_PATTERN_NUM);
                 OffsetX = pParamPattern.OffsetX;
                 OffsetY = pParamPattern.OffsetY;
@@ -189,6 +157,7 @@ namespace YoonSample.CognexInspector
         {
             ParameterInspectionPatternMatching pParam = new ParameterInspectionPatternMatching();
             pParam.IsUse = IsUse;
+            pParam.IsPassRecently = IsPassRecently;
             pParam.IsUseEachPatterns = IsUseEachPatterns;
             pParam.IsUseMultiPatternInspection = IsUseMultiPatternInspection;
             pParam.SelectedSourceLevel = SelectedSourceLevel;
@@ -200,8 +169,6 @@ namespace YoonSample.CognexInspector
             Array.Copy(IsOriginTeachedFlags, pParam.IsOriginTeachedFlags, CommonClass.MAX_PATTERN_NUM);
             Array.Copy(OriginPixelXs, pParam.OriginPixelXs, CommonClass.MAX_PATTERN_NUM);
             Array.Copy(OriginPixelYs, pParam.OriginPixelYs, CommonClass.MAX_PATTERN_NUM);
-            Array.Copy(OriginRealXs, pParam.OriginRealXs, CommonClass.MAX_PATTERN_NUM);
-            Array.Copy(OriginRealYs, pParam.OriginRealYs, CommonClass.MAX_PATTERN_NUM);
             Array.Copy(OriginThetas, pParam.OriginThetas, CommonClass.MAX_PATTERN_NUM);
             pParam.OffsetX = OffsetX;
             pParam.OffsetY = OffsetY;
@@ -219,6 +186,8 @@ namespace YoonSample.CognexInspector
         public bool IsUseBlob { get; set; } = false;
         [CategoryAttribute("Common"), DescriptionAttribute("Color 추출 사용 여부 (true/false)")]
         public bool IsUseColorSegment { get; set; } = false;
+        [Browsable(false)]
+        public bool IsPassRecently { get; set; } = true;
         [Browsable(false)]
         public eTypeProcessTwoImage CombineType { get; set; } = eTypeProcessTwoImage.OverlapMin;
         [CategoryAttribute("Image"), DescriptionAttribute("Blob용 Image 선택")]
@@ -239,6 +208,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionObjectExtract pParamObjExtract)
             {
                 if (IsUse == pParamObjExtract.IsUse &&
+                    IsPassRecently == pParamObjExtract.IsPassRecently &&
                     IsUseBlob == pParamObjExtract.IsUseBlob &&
                     IsUseColorSegment == pParamObjExtract.IsUseColorSegment &&
                     CombineType == pParamObjExtract.CombineType &&
@@ -259,6 +229,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionObjectExtract pParamObjExtract)
             {
                 IsUse = pParamObjExtract.IsUse;
+                IsPassRecently = pParamObjExtract.IsPassRecently;
                 IsUseBlob = pParamObjExtract.IsUseBlob;
                 IsUseColorSegment = pParamObjExtract.IsUseColorSegment;
                 CombineType = pParamObjExtract.CombineType;
@@ -275,6 +246,7 @@ namespace YoonSample.CognexInspector
         {
             ParameterInspectionObjectExtract pParam = new ParameterInspectionObjectExtract();
             pParam.IsUse = IsUse;
+            pParam.IsPassRecently = IsPassRecently;
             pParam.IsUseBlob = IsUseBlob;
             pParam.IsUseColorSegment = IsUseColorSegment;
             pParam.CombineType = CombineType;
@@ -297,6 +269,8 @@ namespace YoonSample.CognexInspector
         [CategoryAttribute("Image"), DescriptionAttribute("Source용 Image 선택")]
         public eLevelImageSelection SelectedSourceLevel { get; set; } = eLevelImageSelection.Origin;
         [Browsable(false)]
+        public bool IsPassRecently { get; set; } = true;
+        [Browsable(false)]
         public int SelectedSourceNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedSourceType { get; set; } = eTypeInspect.None;
@@ -312,6 +286,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionCombine pParamCombine)
             {
                 if (IsUse == pParamCombine.IsUse &&
+                    IsPassRecently == pParamCombine.IsPassRecently &&
                     CombineType == pParamCombine.CombineType &&
                     SelectedSourceLevel == pParamCombine.SelectedSourceLevel &&
                     SelectedSourceNo == pParamCombine.SelectedSourceNo &&
@@ -330,6 +305,7 @@ namespace YoonSample.CognexInspector
             if (pParam is ParameterInspectionCombine pParamCombine)
             {
                 IsUse = pParamCombine.IsUse;
+                IsPassRecently = pParamCombine.IsPassRecently;
                 CombineType = pParamCombine.CombineType;
                 SelectedSourceLevel = pParamCombine.SelectedSourceLevel;
                 SelectedSourceNo = pParamCombine.SelectedSourceNo;
@@ -344,6 +320,7 @@ namespace YoonSample.CognexInspector
         {
             ParameterInspectionCombine pParam = new ParameterInspectionCombine();
             pParam.IsUse = IsUse;
+            pParam.IsPassRecently = IsPassRecently;
             pParam.CombineType = CombineType;
             pParam.SelectedSourceLevel = SelectedSourceLevel;
             pParam.SelectedSourceNo = SelectedSourceNo;

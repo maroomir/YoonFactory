@@ -54,7 +54,7 @@ namespace YoonFactory.Cognex
         public string FilesDirectory { get; set; }
 
         protected Dictionary<eYoonCognexType, ResultSection> m_pDicSection;
-        private List<eYoonCognexType> m_pListKeyOrdered;
+        protected List<eYoonCognexType> m_pListKeyOrdered;
 
         public IEqualityComparer<eYoonCognexType> Comparer { get { return m_pDicSection.Comparer; } }
 
@@ -117,7 +117,8 @@ namespace YoonFactory.Cognex
 
         public ResultContainer(IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
 
         public ResultContainer(Dictionary<eYoonCognexType, ResultSection> pDic)
@@ -128,7 +129,8 @@ namespace YoonFactory.Cognex
 
         public ResultContainer(Dictionary<eYoonCognexType, ResultSection> pDic, IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pDic, pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pDic, pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>(pDic.Keys);
         }
 
         public ResultContainer(ResultContainer pContainer)
@@ -139,7 +141,8 @@ namespace YoonFactory.Cognex
 
         public ResultContainer(ResultContainer pContainer, IEqualityComparer<eYoonCognexType> pStringComparer)
         {
-            this.m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pContainer.m_pDicSection, pStringComparer);
+            m_pDicSection = new Dictionary<eYoonCognexType, ResultSection>(pContainer.m_pDicSection, pStringComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>(pContainer.m_pListKeyOrdered);
         }
 
         public void CopyFrom(IYoonContainer pContainer)
@@ -212,14 +215,16 @@ namespace YoonFactory.Cognex
 
         public ICogImage GetResultImage(eYoonCognexType nKey)
         {
+            if (m_pDicSection.ContainsKey(nKey))
+                return new CogImage8Grey();
             return m_pDicSection[nKey].GetLastResultImage();
         }
 
         public ICogImage GetLastResultImage()
         {
-            if (m_pListKeyOrdered == null)
+            if (m_pListKeyOrdered == null || m_pListKeyOrdered.Count == 0)
             {
-                throw new InvalidOperationException("Cannot call IndexOf(string) on ResultSection: section was not ordered.");
+                throw new InvalidOperationException("Cannot call IndexOf(eYoonCognexType) on ResultContainer: section was not ordered.");
             }
             int nIndex = m_pListKeyOrdered.Count - 1;
             return m_pDicSection[m_pListKeyOrdered[nIndex]].GetLastResultImage();

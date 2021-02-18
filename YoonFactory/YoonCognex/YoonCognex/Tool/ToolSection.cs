@@ -129,7 +129,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolSection(IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogTool = new Dictionary<string, ICogTool>(pStringComparer);
+            m_pDicCogTool = new Dictionary<string, ICogTool>(pStringComparer);
+            m_pListKeyOrdered = new List<string>();
         }
 
         public ToolSection(eYoonCognexType nType)
@@ -140,8 +141,9 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolSection(eYoonCognexType nType, IEqualityComparer<string> pStringComparer)
         {
-            this.ParantsType = nType;
-            this.m_pDicCogTool = new Dictionary<string, ICogTool>(pStringComparer);
+            ParantsType = nType;
+            m_pDicCogTool = new Dictionary<string, ICogTool>(pStringComparer);
+            m_pListKeyOrdered = new List<string>();
         }
 
         public ToolSection(Dictionary<string, ICogTool> pDic)
@@ -152,7 +154,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolSection(Dictionary<string, ICogTool> pDic, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogTool = new Dictionary<string, ICogTool>(pDic, pStringComparer);
+            m_pDicCogTool = new Dictionary<string, ICogTool>(pDic, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pDic.Keys);
         }
 
         public ToolSection(ToolSection pSection)
@@ -163,7 +166,8 @@ namespace YoonFactory.Cognex.Tool
 
         public ToolSection(ToolSection pSection, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicCogTool = new Dictionary<string, ICogTool>(pSection.m_pDicCogTool, pStringComparer);
+            m_pDicCogTool = new Dictionary<string, ICogTool>(pSection.m_pDicCogTool, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pSection.m_pListKeyOrdered);
         }
 
         public void Clear()

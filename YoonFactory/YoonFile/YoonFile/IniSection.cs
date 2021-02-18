@@ -404,7 +404,8 @@ namespace YoonFactory.Files.Ini
 
         public IniSection(IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicIniValue = new Dictionary<string, IniValue>(pStringComparer);
+            m_pDicIniValue = new Dictionary<string, IniValue>(pStringComparer);
+            m_pListKeyOrdered = new List<string>();
         }
 
         public IniSection(Dictionary<string, IniValue> pDic)
@@ -414,7 +415,8 @@ namespace YoonFactory.Files.Ini
 
         public IniSection(Dictionary<string, IniValue> pDic, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicIniValue = new Dictionary<string, IniValue>(pDic, pStringComparer);
+            m_pDicIniValue = new Dictionary<string, IniValue>(pDic, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pDic.Keys);
         }
 
         public IniSection(IniSection pSection)
@@ -424,7 +426,8 @@ namespace YoonFactory.Files.Ini
 
         public IniSection(IniSection pSection, IEqualityComparer<string> pStringComparer)
         {
-            this.m_pDicIniValue = new Dictionary<string, IniValue>(pSection.m_pDicIniValue, pStringComparer);
+            m_pDicIniValue = new Dictionary<string, IniValue>(pSection.m_pDicIniValue, pStringComparer);
+            m_pListKeyOrdered = new List<string>(pSection.m_pListKeyOrdered);
         }
 
         public void Clear()

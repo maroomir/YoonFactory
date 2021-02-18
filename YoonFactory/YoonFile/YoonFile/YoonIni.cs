@@ -121,53 +121,6 @@ namespace YoonFactory.Files
             return FileFactory.VerifyFilePath(FilePath, false);
         }
 
-        public bool SaveFile(FileMode fm = FileMode.Create)
-        {
-            string strPath = FilePath;
-            if (!FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
-                return false;
-
-            using (FileStream fs = new FileStream(strPath, fm, FileAccess.Write))
-            {
-                using (StreamWriter writer = new StreamWriter(fs))
-                {
-                    foreach (var section in m_dicSections)
-                    {
-                        if (section.Value.Count > 0 || SaveEmptySections)
-                        {
-                            writer.WriteLine(string.Format("[{0}]", section.Key.Trim()));
-                            foreach (var kvp in section.Value)
-                            {
-                                writer.WriteLine(string.Format("{0}={1}", kvp.Key, kvp.Value));
-                            }
-                            writer.WriteLine("");
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-
-        public bool SaveFile(Stream stream)
-        {
-            using (StreamWriter writer = new StreamWriter(stream))
-            {
-                foreach (var section in m_dicSections)
-                {
-                    if (section.Value.Count > 0 || SaveEmptySections)
-                    {
-                        writer.WriteLine(string.Format("[{0}]", section.Key.Trim()));
-                        foreach (var kvp in section.Value)
-                        {
-                            writer.WriteLine(string.Format("{0}={1}", kvp.Key, kvp.Value));
-                        }
-                        writer.WriteLine("");
-                    }
-                }
-            }
-            return true;
-        }
-
         public bool LoadFile()
         {
             string strPath = FilePath;
@@ -212,6 +165,58 @@ namespace YoonFactory.Files
                                 }
                             }
                         }
+                    }
+                }
+            }
+            return true;
+        }
+
+        public bool SaveFile()
+        {
+            return SaveFile(FileMode.Create);
+        }
+
+        public bool SaveFile(FileMode fm)
+        {
+            string strPath = FilePath;
+            if (!FileFactory.VerifyFileExtension(ref strPath, ".ini", true, true))
+                return false;
+
+            using (FileStream fs = new FileStream(strPath, fm, FileAccess.Write))
+            {
+                using (StreamWriter writer = new StreamWriter(fs))
+                {
+                    foreach (var section in m_dicSections)
+                    {
+                        if (section.Value.Count > 0 || SaveEmptySections)
+                        {
+                            writer.WriteLine(string.Format("[{0}]", section.Key.Trim()));
+                            foreach (var kvp in section.Value)
+                            {
+                                writer.WriteLine(string.Format("{0}={1}", kvp.Key, kvp.Value));
+                            }
+                            writer.WriteLine("");
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        public bool SaveFile(Stream stream)
+        {
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                foreach (var section in m_dicSections)
+                {
+                    if (section.Value.Count > 0 || SaveEmptySections)
+                    {
+                        writer.WriteLine(string.Format("[{0}]", section.Key.Trim()));
+                        foreach (var kvp in section.Value)
+                        {
+                            writer.WriteLine(string.Format("{0}={1}", kvp.Key, kvp.Value));
+                        }
+                        writer.WriteLine("");
                     }
                 }
             }

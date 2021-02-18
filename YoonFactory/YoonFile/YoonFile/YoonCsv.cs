@@ -69,6 +69,16 @@ namespace YoonFactory.Files
             return FileFactory.VerifyFilePath(FilePath, false);
         }
 
+        public bool LoadFile()
+        {
+            return IsFileExist();
+        }
+
+        public bool SaveFile()
+        {
+            return IsFileExist();
+        }
+
         // Csv의 Data를 읽어온다.
         public List<string[]> GetBlock()
         {
@@ -164,5 +174,4 @@ namespace YoonFactory.Files
             return bResult;
         }
     }
-
 }

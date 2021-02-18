@@ -21,6 +21,7 @@ namespace YoonFactory.Cognex.Tool
             Name = "Default";
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(DefaultComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
         public ToolTemplate(int nNo, string strName)
         {
@@ -28,6 +29,7 @@ namespace YoonFactory.Cognex.Tool
             Name = strName;
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
             m_pDicSection = new Dictionary<eYoonCognexType, ToolSection>(DefaultComparer);
+            m_pListKeyOrdered = new List<eYoonCognexType>();
         }
 
         public void CopyFrom(IYoonTemplate pTemplate)

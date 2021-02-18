@@ -236,8 +236,7 @@ namespace YoonSample.CognexInspector
 
         public void OnInspectionParameterUpdate(object sender, EventArgs e)
         {
-            CommonClass.pConfig.SelectedInspectionNo = m_nIndex;
-            CommonClass.pConfig.SelectedInspectionType = m_nType;
+            //
         }
 
         private void button_UpdateSetting_Click(object sender, EventArgs e)

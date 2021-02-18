@@ -120,7 +120,7 @@ namespace YoonFactory.Param
 
         public Template(string strName)
         {
-            No = -1;
+            No = 0;
             Name = strName;
             IsMarkNumber = false;
             RootDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "YoonFactory");
