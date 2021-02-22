@@ -76,6 +76,7 @@
     <Compile Include="ImageFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BitmapFactory.cs" />
+    <Compile Include="YoonImage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">
