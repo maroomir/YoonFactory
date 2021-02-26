@@ -63,26 +63,26 @@ namespace YoonSample.ImageViewer
         {
             CommonClass.pCLM.Write("Program Exit");
             CommonClass.pCamera = null;
+            CommonClass.pImage.Dispose();
             CommonClass.pCLM.Dispose();
         }
 
         private void OnUpdateCameraImage(object sender, FrameArgs e)
         {
             if (CommonClass.pCamera == null) return;
-            YoonImage pImage;
             switch (m_nSelectedCamera)
             {
                 case eYoonCamera.BaslerColor:
-                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
-                    imageViewer_Main.InputImage = pImage.CopyImage();
+                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 4);
+                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
                 case eYoonCamera.RealsenseColor:
-                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
-                    imageViewer_Main.InputImage = pImage.CopyImage();
+                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 4);
+                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
                 case eYoonCamera.BaslerMono:
-                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 1);
-                    imageViewer_Main.InputImage = pImage.CopyImage();
+                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 1);
+                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
             }
             imageViewer_Main.DrawImage();
@@ -108,12 +108,31 @@ namespace YoonSample.ImageViewer
 
         private void button_Open_Click(object sender, EventArgs e)
         {
-            //
+            OpenFileDialog pDlg = new OpenFileDialog();
+            pDlg.Filter = "bitmap files (*.bmp)|*.bmp|jpeg files (*.jpg)|*.jpg";
+            if (pDlg.ShowDialog() == DialogResult.OK)
+            {
+                if (CommonClass.pImage != null)
+                    CommonClass.pImage.Dispose();
+
+                CommonClass.pImage.LoadImage(pDlg.FileName);
+                imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
+                imageViewer_Main.IsEnabledDraw = true;
+                imageViewer_Main.SetImageSize(CommonClass.pImage.Width, CommonClass.pImage.Height);
+                imageViewer_Main.SetDoubleBuffering();
+                imageViewer_Main.DrawImage();
+            }
         }
 
         private void button_Save_Click(object sender, EventArgs e)
         {
-            //
+            if (CommonClass.pImage == null) return;
+            SaveFileDialog pDlg = new SaveFileDialog();
+            pDlg.Filter = "bitmap files (*.bmp)|*.bmp|jpeg files (*.jpg)|*.jpg";
+            if (pDlg.ShowDialog() == DialogResult.OK)
+            {
+                CommonClass.pImage.SaveImage(pDlg.FileName);
+            }
         }
 
         private void button_Exit_Click(object sender, EventArgs e)

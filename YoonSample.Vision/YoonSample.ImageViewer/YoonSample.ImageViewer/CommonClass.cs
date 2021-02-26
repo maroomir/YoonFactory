@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using YoonFactory.Camera;
+using YoonFactory.Image;
 using YoonFactory.Log;
-using YoonFactory.Camera;
 
 namespace YoonSample.ImageViewer
 {
@@ -12,6 +8,7 @@ namespace YoonSample.ImageViewer
     {
         // Initialize YoonFactory
         public static YoonConsoler pCLM = new YoonConsoler(30);
+        public static YoonImage pImage = new YoonImage();
         public static IYoonCamera pCamera = null;
     }
 }

@@ -164,6 +164,12 @@ namespace YoonFactory
             Y = dy;
             W = 1;
         }
+        public YoonVector2N(eYoonDir2D nDir)
+        {
+            Direction = nDir;
+            W = 1;
+        }
+
         public void Zero()
         {
             X = 0;
@@ -449,6 +455,11 @@ namespace YoonFactory
         {
             X = dx;
             Y = dy;
+            W = 1;
+        }
+        public YoonVector2D(eYoonDir2D nDir)
+        {
+            Direction = nDir;
             W = 1;
         }
         public void Zero()

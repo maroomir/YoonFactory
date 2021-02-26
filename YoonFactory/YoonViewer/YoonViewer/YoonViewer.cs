@@ -542,6 +542,7 @@ namespace YoonFactory.Viewer
         public void DrawImage()
         {
             if (m_bEnabledDraw == false) return;
+            if (m_pImage == null) return;
 
             Rectangle dcRect = new Rectangle();                                    //ClientDC
             Rectangle bitmapRect = new Rectangle(0, 0, m_nImageWidth, m_nImageHeight);     //그릴 이미지 크기 지정

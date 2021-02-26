@@ -1242,13 +1242,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1267,13 +1267,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1295,13 +1295,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1320,13 +1320,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1372,13 +1372,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1397,13 +1397,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1425,13 +1425,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -1450,13 +1450,13 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
                     }
                 }
                 else
@@ -3303,11 +3303,11 @@ namespace YoonFactory.Image
                 direction = 0;
                 length = 0;
                 resultRect = new YoonRect2N(width, height, -width, -height);
-                startVector = new YoonVector2N(1, 0);
+                startVector = new YoonVector2N(eYoonDir2D.Right);
                 nextVector = new YoonVector2N();
                 currentPoint = startPos;
                 ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector = Vector.GetNextVector(startVector) as YoonVector2N;
+                nextVector.Direction = startVector.Direction.NextQuadrant();
                 ////  White Edge를 찾는 경우...
                 if (isWhite)
                 {
@@ -3343,21 +3343,20 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
                             {
                                 pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
                                 direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0) as YoonRect2N;
-                                //				    pFoundLength = 1;
+                                resultRect = new YoonRect2N(-1, -1, 0, 0);
                                 return resultRect;
                             }
                         }
@@ -3398,13 +3397,13 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
@@ -3432,11 +3431,11 @@ namespace YoonFactory.Image
                 direction = 0;
                 length = 0;
                 resultRect = new YoonRect2N(width, height, -width, -height);
-                startVector = new YoonVector2N(1, 0);
+                startVector = new YoonVector2N(eYoonDir2D.Right);
                 nextVector = new YoonVector2N();
                 currentPoint = startPos;
                 ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector = Vector.GetNextVector(startVector) as YoonVector2N;
+                nextVector.Direction = startVector.Direction.NextQuadrant();
                 ////  White Edge를 찾는 경우...
                 if (isWhite)
                 {
@@ -3472,13 +3471,13 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
@@ -3527,13 +3526,13 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
@@ -3566,7 +3565,7 @@ namespace YoonFactory.Image
                 startVector = new YoonVector2N(1, 0);
                 nextVector = new YoonVector2N();
                 ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector = Vector.GetNextVector(startVector) as YoonVector2N;
+                nextVector.Direction = startVector.Direction.NextQuadrant();
                 ////  White Edge를 찾는 경우...
                 if (isWhite)
                 {
@@ -3607,13 +3606,13 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
@@ -3667,13 +3666,13 @@ namespace YoonFactory.Image
                                 return resultRect;
                             }
                             ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector = Vector.GetNextVector(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextQuadrant();
                             direction = 0;
                         }
                         else
                         {
                             ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector = Vector.GoClock45(nextVector) as YoonVector2N;
+                            nextVector.Direction = nextVector.Direction.NextOctant();
                             direction++;
                             ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
                             if (direction >= 7)
@@ -4080,106 +4079,6 @@ namespace YoonFactory.Image
                         else pBuffer[y1 * bufferWidth + x1] = 0;
                     }
                 }
-            }
-            #endregion
-        }
-
-        //  Image 방향 Vector
-        public static class Vector
-        {
-
-            #region Vector 조작하기
-            //  진행 방향 변경.  (방향 Vector 변경)
-            public static IYoonVector GetNextVector(YoonVector2N pVector)
-            {
-                YoonVector2N nextVector = new YoonVector2N();
-                if (pVector.X == 1 && pVector.Y == 0)
-                {
-                    nextVector.X = 0;
-                    nextVector.Y = -1;
-                }
-                else if (pVector.X == 1 && pVector.Y == 1)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = -1;
-                }
-                else if (pVector.X == 0 && pVector.Y == 1)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = 0;
-                }
-                else if (pVector.X == -1 && pVector.Y == 1)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == -1 && pVector.Y == 0)
-                {
-                    nextVector.X = 0;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == -1 && pVector.Y == -1)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == 0 && pVector.Y == -1)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = 0;
-                }
-                else if (pVector.X == 1 && pVector.Y == -1)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = -1;
-                }
-                return nextVector;
-            }
-
-            public static IYoonVector GoClock45(YoonVector2N pVector)
-            {
-                YoonVector2N nextVector = new YoonVector2N();
-                if (pVector.X == 1 && pVector.Y == 0)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == 1 && pVector.Y == 1)
-                {
-                    nextVector.X = 0;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == 0 && pVector.Y == 1)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = 1;
-                }
-                else if (pVector.X == -1 && pVector.Y == 1)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = 0;
-                }
-                else if (pVector.X == -1 && pVector.Y == 0)
-                {
-                    nextVector.X = -1;
-                    nextVector.Y = -1;
-                }
-                else if (pVector.X == -1 && pVector.Y == -1)
-                {
-                    nextVector.X = 0;
-                    nextVector.Y = -1;
-                }
-                else if (pVector.X == 0 && pVector.Y == -1)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = -1;
-                }
-                else if (pVector.X == 1 && pVector.Y == -1)
-                {
-                    nextVector.X = 1;
-                    nextVector.Y = 0;
-                }
-                return nextVector;
             }
             #endregion
         }

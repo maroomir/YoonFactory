@@ -249,7 +249,7 @@ namespace YoonFactory.Camera.Realsense
                             break;
                         case eYoonRSCaptureMode.RGBColor:
                             if (m_bFlagUseRGBStream == true) continue;
-                            pConfig.EnableStream(Stream.Color, ImageWidth, ImageHeight, Format.Rgb8);
+                            pConfig.EnableStream(Stream.Color, ImageWidth, ImageHeight, Format.Bgra8);
                             m_bFlagUseRGBStream = true;
                             break;
                         case eYoonRSCaptureMode.Depth:
