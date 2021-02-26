@@ -59,11 +59,11 @@ namespace YoonFactory.Align
     public class YoonAlign2D
     {
         private const double INVALID_NUM = -10000.0;
-        private Dictionary<eYoonDirRect, YoonVector2D> m_fDicPosAlign = new Dictionary<eYoonDirRect,YoonVector2D>();
-        private Dictionary<eYoonDirRect, YoonVector2D> m_fDicPosCurrent = new Dictionary<eYoonDirRect,YoonVector2D>();
+        private Dictionary<eYoonDir2D, YoonVector2D> m_fDicPosAlign = new Dictionary<eYoonDir2D, YoonVector2D>();
+        private Dictionary<eYoonDir2D, YoonVector2D> m_fDicPosCurrent = new Dictionary<eYoonDir2D, YoonVector2D>();
 
-        public eYoonDirRect LeftCameraDirection { get; private set; } = eYoonDirRect.TopLeft;
-        public eYoonDirRect RightCameraDirection { get; private set; } = eYoonDirRect.TopRight;
+        public eYoonDir2D LeftCameraDirection { get; private set; } = eYoonDir2D.TopLeft;
+        public eYoonDir2D RightCameraDirection { get; private set; } = eYoonDir2D.TopRight;
         public AlignResult AlignResult { get; private set; } = new AlignResult();
 
         private double ToAngle(double dTheta)
@@ -76,22 +76,22 @@ namespace YoonFactory.Align
             return Math.PI * dAngle / 180;
         }
 
-        public YoonAlign2D(eYoonDirRect dirLeft, eYoonDirRect dirRight)
+        public YoonAlign2D(eYoonDir2D dirLeft, eYoonDir2D dirRight)
         {
             ////  Align 대상위치 초기화
             m_fDicPosAlign.Clear();
-            for (eYoonDirRect iDir = 0; iDir < eYoonDirRect.MaxDir; iDir++)
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
             {
                 YoonVector2D vd = new YoonVector2D();
-                m_fDicPosAlign.Add(iDir, vd);
+                m_fDicPosAlign.Add(nDir, vd);
             }
 
             ////  현재 위치 초기화
             m_fDicPosCurrent.Clear();
-            for (eYoonDirRect iDir = 0; iDir < eYoonDirRect.MaxDir; iDir++)
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
             {
                 YoonVector2D vd = new YoonVector2D();
-                m_fDicPosCurrent.Add(iDir, vd);
+                m_fDicPosCurrent.Add(nDir, vd);
             }
 
             LeftCameraDirection = dirLeft;
@@ -130,7 +130,7 @@ namespace YoonFactory.Align
             return theta;
         }
 
-        public YoonVector2D CalculateXY(YoonVector2D posLeft, YoonVector2D posRight, double theta, eYoonDirRect dirDefault, double scale = 1.0)
+        public YoonVector2D CalculateXY(YoonVector2D posLeft, YoonVector2D posRight, double theta, eYoonDir2D dirDefault, double scale = 1.0)
         {
             ////  예외 처리
             if (theta == INVALID_NUM) return new YoonVector2D(INVALID_NUM, INVALID_NUM);

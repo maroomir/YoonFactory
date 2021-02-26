@@ -78,9 +78,9 @@ namespace YoonFactory.Calibration
 
         public bool IsCompleted { get; private set; } = false;
         public RotationCalibResult Result { get; private set; } = new RotationCalibResult();
-        public eYoonDirRect AlignmentTargetLocation1 { get; private set; } = eYoonDirRect.TopLeft;
-        public eYoonDirRect AlignmentTargetLocation2 { get; private set; } = eYoonDirRect.TopRight;
-        public eYoonDirRect CalibrationDefaultLocation { get; private set; } = eYoonDirRect.TopLeft;
+        public eYoonDir2D AlignmentTargetLocation1 { get; private set; } = eYoonDir2D.TopLeft;
+        public eYoonDir2D AlignmentTargetLocation2 { get; private set; } = eYoonDir2D.TopRight;
+        public eYoonDir2D CalibrationDefaultLocation { get; private set; } = eYoonDir2D.TopLeft;
         public double RotationDegree { get; set; } = 0.0;
         public double CameraPixelWidth { get; set; } = 0.0;
         public double CameraPixelHeight { get; set; } = 0.0;
@@ -91,13 +91,13 @@ namespace YoonFactory.Calibration
         #region 내부 사용 Parameter
         private const double INVALID_NUM = -10000.0;
         // Point 설정 Param
-        private Dictionary<eYoonDirRect, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDirRect, bool>();
+        private Dictionary<eYoonDir2D, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDir2D, bool>();
         private YoonCartD m_pPoseRequest = new YoonCartD();
         // Align Calibration을 위한 Class
         private Thread m_pThread = null;
         private YoonTransform m_pGCT = new YoonTransform();
         // Process Calibration 관련 설정
-        private Dictionary<eYoonDirRect, Dictionary<eYoonDirCompass, YoonVector2D>> m_pDicDetectionPoint = new Dictionary<eYoonDirRect, Dictionary<eYoonDirCompass, YoonVector2D>>();
+        private Dictionary<eYoonDir2D, Dictionary<eYoonDir2D, YoonVector2D>> m_pDicDetectionPoint = new Dictionary<eYoonDir2D, Dictionary<eYoonDir2D, YoonVector2D>>();
         private YoonVector2D m_vecRealPitch = new YoonVector2D();
         private YoonVector2D m_vecInitPixelSize = new YoonVector2D(INVALID_NUM, INVALID_NUM);
         // 기타 설정
@@ -116,22 +116,22 @@ namespace YoonFactory.Calibration
             m_pDicDetectionPoint[e.DeviceDirection][e.GrapDirection] = e.Point;  // 위치 값은 주어진 "DirCompass"에 맞게 저장됨
         }
 
-        public YoonRotationCalib1D(eYoonDirRect nDir1, eYoonDirRect nDir2)
+        public YoonRotationCalib1D(eYoonDir2D nDir1, eYoonDir2D nDir2)
         {
             AlignmentTargetLocation1 = nDir1;
             AlignmentTargetLocation2 = nDir2;
 
             ////  Dictionary 초기화
             m_pDicDetectionPoint.Clear();
-            foreach (eYoonDirRect iDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
             {
-                Dictionary<eYoonDirCompass, YoonVector2D> pDicPoint = new Dictionary<eYoonDirCompass, YoonVector2D>();
+                Dictionary<eYoonDir2D, YoonVector2D> pDicPoint = new Dictionary<eYoonDir2D, YoonVector2D>();
                 pDicPoint.Clear();
-                foreach (eYoonDirCompass jDir in Enum.GetValues(typeof(eYoonDirCompass)))
+                foreach (eYoonDir2D jDir in Enum.GetValues(typeof(eYoonDir2D)))
                 {
                     pDicPoint.Add(jDir, new YoonVector2D(INVALID_NUM, INVALID_NUM));
                 }
-                m_pDicDetectionPoint.Add(iDir, pDicPoint);
+                m_pDicDetectionPoint.Add(nDir, pDicPoint);
             }
             m_pDicCurrentReceiveFlag.Clear();
             m_pDicCurrentReceiveFlag.Add(nDir1, false);
@@ -177,7 +177,7 @@ namespace YoonFactory.Calibration
             m_bFlagInit = true;
         }
 
-        public bool StartProcess(eYoonDirRect nDir, string strThreadName = "Rotation")
+        public bool StartProcess(eYoonDir2D nDir, string strThreadName = "Rotation")
         {
             if (!m_bFlagInit || m_vecInitPixelSize.X <= 0 || m_vecInitPixelSize.Y <= 0)
                 return false;
@@ -220,7 +220,7 @@ namespace YoonFactory.Calibration
                         if (m_pDicCurrentReceiveFlag.Values.Any(x => x == false))
                             break;
                         //// Flag 초기화
-                        foreach (eYoonDirRect nDir in m_pDicCurrentReceiveFlag.Keys)
+                        foreach (eYoonDir2D nDir in m_pDicCurrentReceiveFlag.Keys)
                             m_pDicCurrentReceiveFlag[nDir] = false;
                         //// Wait 종료 후 업무 분배
                         switch (nJobStepBK)
@@ -269,26 +269,26 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.Init:
                         nJobStepBK = nJobStep;
                         //// Detection Point 초기화
-                        foreach (eYoonDirRect iDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionPoint.Keys)
                         {
-                            foreach (eYoonDirCompass jDir in m_pDicDetectionPoint[iDir].Keys)
+                            foreach (eYoonDir2D jDir in m_pDicDetectionPoint[iDir].Keys)
                             {
                                 m_pDicDetectionPoint[iDir][jDir].X = INVALID_NUM;
                                 m_pDicDetectionPoint[iDir][jDir].Y = INVALID_NUM;
                             }
                         }
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest));
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest));
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center));
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center));
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Origin:
                         nJobStepBK = nJobStep;
-                        YoonVector2D vecOffset = vecCameraCenter - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Center];
+                        YoonVector2D vecOffset = vecCameraCenter - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Center];
                         vecOffset.X *= m_vecInitPixelSize.X;   //  mm per pixel
                         vecOffset.Y *= m_vecInitPixelSize.Y;
-                        m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Center].X = INVALID_NUM;
-                        m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Center].Y = INVALID_NUM;
+                        m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Center].X = INVALID_NUM;
+                        m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Center].Y = INVALID_NUM;
                         //// 이동거리 산출
                         YoonVector2D vecMovementToCenter = vecOffset / 3; // 9-Point Calibration이므로 3으로 나눔
                         FlipCoordinate(ref vecMovementToCenter);
@@ -296,73 +296,73 @@ namespace YoonFactory.Calibration
                         //// 이동위치 산출
                         m_pPoseRequest += vecMovementToCenter; // 초기 -> 원점위치로 변경
                         cartPosOrigin = m_pPoseRequest.Clone() as YoonCartD; // 원점 위치 복사해놓기
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopLeft:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest -= m_vecRealPitch;   // 원점 -> TopLeft로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.TopLeft, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.TopLeft, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Top:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X += m_vecRealPitch.X; // TopLeft -> Top으로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Top, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Top)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopRight:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X += m_vecRealPitch.X; // Top -> TopRight로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.TopRight, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.TopRight, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopRight)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopRight)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Right:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y += m_vecRealPitch.Y; // TopRight -> Right로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Right, m_pPoseRequest));  // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Right, m_pPoseRequest));  // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Right)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Right)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomRight:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y += m_vecRealPitch.Y; // Right -> BottomRight로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.BottomRight, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.BottomRight, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomRight)); // 촬상 및 위치 화인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomRight)); // 촬상 및 위치 화인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Bottom:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X -= m_vecRealPitch.X; // BottomRight -> Bottom으로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Bottom, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Bottom)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomLeft:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X -= m_vecRealPitch.X; // Bottom -> BottomLeft로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.BottomLeft, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.BottomLeft, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Left:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y -= m_vecRealPitch.Y; // BottomLeft -> Left로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Left, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Left, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Left)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Left)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.CalculateResolution:
@@ -370,9 +370,9 @@ namespace YoonFactory.Calibration
                         ////  9-Point Calibration 계산
                         bCheckError = false;
                         ////  1. Calibration 결과 계산전 예외처리 확인
-                        foreach (eYoonDirCompass iDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionPoint.Keys)
                         {
-                            if (iDir == eYoonDirCompass.MaxDir) continue;
+                            if (iDir == eYoonDir2D.None) continue;
                             if (m_pDicDetectionPoint[CalibrationDefaultLocation][iDir].X == INVALID_NUM || m_pDicDetectionPoint[CalibrationDefaultLocation][iDir].Y == INVALID_NUM)
                                 bCheckError = true;
                         }
@@ -383,27 +383,27 @@ namespace YoonFactory.Calibration
                         }
                         ////  2. Calibration 계산
                         double dTotalResolutionX = 0.0, dTotalResolutionY = 0.0;
-                        foreach (eYoonDirRect nDirParts in Result.ResolutionOfParts.Keys)
+                        foreach (eYoonDir2D nDirParts in Result.ResolutionOfParts.Keys)
                         {
                             double dPixPitchX = INVALID_NUM;
                             double dPixPitchY = INVALID_NUM;
                             switch (nDirParts)
                             {
-                                case eYoonDirRect.TopLeft:  // TL to T => X, TL to L => Y
-                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Top].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.TopLeft].X;
-                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Left].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.TopLeft].Y;
+                                case eYoonDir2D.TopLeft:  // TL to T => X, TL to L => Y
+                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Top].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.TopLeft].X;
+                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Left].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.TopLeft].Y;
                                     break;
-                                case eYoonDirRect.TopRight: // TR to T => X, TR to R => Y
-                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.TopRight].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Top].X;
-                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Right].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.TopRight].Y;
+                                case eYoonDir2D.TopRight: // TR to T => X, TR to R => Y
+                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.TopRight].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Top].X;
+                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Right].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.TopRight].Y;
                                     break;
-                                case eYoonDirRect.BottomLeft: // BL to B => X, L to BL => Y
-                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Bottom].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.BottomLeft].X;
-                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.BottomLeft].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Left].Y;
+                                case eYoonDir2D.BottomLeft: // BL to B => X, L to BL => Y
+                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Bottom].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.BottomLeft].X;
+                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.BottomLeft].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Left].Y;
                                     break;
-                                case eYoonDirRect.BottomRight: // BR to B => X, BR to R => Y
-                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.BottomRight].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Bottom].X;
-                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.BottomRight].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDirCompass.Right].Y;
+                                case eYoonDir2D.BottomRight: // BR to B => X, BR to R => Y
+                                    dPixPitchX = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.BottomRight].X - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Bottom].X;
+                                    dPixPitchY = m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.BottomRight].Y - m_pDicDetectionPoint[CalibrationDefaultLocation][eYoonDir2D.Right].Y;
                                     break;
                                 default:
                                     break;
@@ -420,7 +420,7 @@ namespace YoonFactory.Calibration
                         ////  3. 평균 Threshold 계산
                         if (!bCheckError)
                         {
-                            Result.AverageResolution = new YoonVector2D(dTotalResolutionX / (int)eYoonDirRect.MaxDir, dTotalResolutionY / (int)eYoonDirRect.MaxDir);
+                            Result.AverageResolution = new YoonVector2D(dTotalResolutionX / YoonDirFactory.GetSquareDirections().Length, dTotalResolutionY / YoonDirFactory.GetSquareDirections().Length);
                             Console.WriteLine("Resolution Calibration Success!");
                             nJobStep = eStepYoonCalibration.TurnBack;
                         }
@@ -432,9 +432,9 @@ namespace YoonFactory.Calibration
                         break;
                     case eStepYoonCalibration.TurnBack:
                         //// Rotation Calibration시 재사용을 위한 Detection Point 초기화
-                        foreach (eYoonDirRect iDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionPoint.Keys)
                         {
-                            foreach (eYoonDirCompass jDir in m_pDicDetectionPoint[iDir].Keys)
+                            foreach (eYoonDir2D jDir in m_pDicDetectionPoint[iDir].Keys)
                             {
                                 m_pDicDetectionPoint[iDir][jDir].X = INVALID_NUM;
                                 m_pDicDetectionPoint[iDir][jDir].Y = INVALID_NUM;
@@ -445,34 +445,34 @@ namespace YoonFactory.Calibration
                         m_pGCT.SetCameraSetting(vdFOV, m_vecInitPixelSize);
                         //// 저장된 원점으로 Turn Back (이동)
                         m_pPoseRequest = cartPosOrigin.Clone() as YoonCartD;    // 원점으로 재변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Rotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ += RotationDegree;   // 원점에서 D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Top, eYoonDirClock.Clock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Top)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.OppoRotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ -= (RotationDegree * 2);   // 원점에서 -D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Bottom, eYoonDirClock.AntiClock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Bottom)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.CalculateRotate:
                         nJobStepBK = nJobStep;
                         ////  Calibration 결과 계산전 예외처리 확인
                         bCheckError = false;
-                        foreach (eYoonDirCompass nDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D nDir in m_pDicDetectionPoint.Keys)
                         {
-                            if (nDir == eYoonDirCompass.Top || nDir == eYoonDirCompass.Bottom)
+                            if (nDir == eYoonDir2D.Top || nDir == eYoonDir2D.Bottom)
                             {
                                 if (m_pDicDetectionPoint[AlignmentTargetLocation1][nDir].X == INVALID_NUM || m_pDicDetectionPoint[AlignmentTargetLocation1][nDir].Y == INVALID_NUM ||
                                     m_pDicDetectionPoint[AlignmentTargetLocation2][nDir].X == INVALID_NUM || m_pDicDetectionPoint[AlignmentTargetLocation2][nDir].Y == INVALID_NUM)
@@ -486,8 +486,8 @@ namespace YoonFactory.Calibration
                             break;
                         }
                         ////  Global 좌표를 설정한다.
-                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDirCompass.Top], m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDirCompass.Top], RotationDegree * Math.PI / 180, AlignmentTargetLocation1);
-                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDirCompass.Bottom], m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDirCompass.Bottom], RotationDegree * Math.PI / 180, AlignmentTargetLocation2);
+                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDir2D.Top], m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDir2D.Top], RotationDegree * Math.PI / 180, AlignmentTargetLocation1);
+                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDir2D.Bottom], m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDir2D.Bottom], RotationDegree * Math.PI / 180, AlignmentTargetLocation2);
                         ////  처리 후 예상되는 Camera의 Center Position을 가져온다.
                         Result.DeviceCenterPos = m_pGCT.GetRealCenterPosition(CalibrationDefaultLocation);
                         Console.WriteLine("Rotation Calibration Success!");
@@ -574,9 +574,9 @@ namespace YoonFactory.Calibration
         #endregion
 
         public bool IsCompleted { get; private set; } = false;
-        public Dictionary<eYoonDirRect, RotationCalibResult> ResultDictionary { get; private set; } = new Dictionary<eYoonDirRect, RotationCalibResult>();
-        public eYoonDirRect AlignmentTargetLocation1 { get; private set; } = eYoonDirRect.TopLeft;
-        public eYoonDirRect AlignmentTargetLocation2 { get; private set; } = eYoonDirRect.TopRight;
+        public Dictionary<eYoonDir2D, RotationCalibResult> ResultDictionary { get; private set; } = new Dictionary<eYoonDir2D, RotationCalibResult>();
+        public eYoonDir2D AlignmentTargetLocation1 { get; private set; } = eYoonDir2D.TopLeft;
+        public eYoonDir2D AlignmentTargetLocation2 { get; private set; } = eYoonDir2D.TopRight;
         public double RotationDegree { get; set; } = 0.0;
         public double CameraPixelWidth { get; set; } = 0.0;
         public double CameraPixelHeight { get; set; } = 0.0;
@@ -587,13 +587,13 @@ namespace YoonFactory.Calibration
         #region 내부 사용 Parameter
         private const double INVALID_NUM = -10000.0;
         // Point 설정 Param
-        private Dictionary<eYoonDirRect, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDirRect, bool>();
+        private Dictionary<eYoonDir2D, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDir2D, bool>();
         private YoonCartD m_pPoseRequest = new YoonCartD();
         // Align Calibration을 위한 Class
         private Thread m_pThread = null;
         private YoonTransform m_pGCT = new YoonTransform();
         // Process Calibration 관련 설정
-        private Dictionary<eYoonDirRect, Dictionary<eYoonDirCompass, YoonVector2D>> m_pDicDetectionPoint = new Dictionary<eYoonDirRect, Dictionary<eYoonDirCompass, YoonVector2D>>();
+        private Dictionary<eYoonDir2D, Dictionary<eYoonDir2D, YoonVector2D>> m_pDicDetectionPoint = new Dictionary<eYoonDir2D, Dictionary<eYoonDir2D, YoonVector2D>>();
         private YoonVector2D m_vecRealPitch = new YoonVector2D();
         private YoonVector2D m_vecInitPixelSize = new YoonVector2D(INVALID_NUM, INVALID_NUM);
         // 기타 설정
@@ -612,18 +612,18 @@ namespace YoonFactory.Calibration
             m_pDicDetectionPoint[e.DeviceDirection][e.GrapDirection] = e.Point;  // 위치 값은 주어진 "DirCompass"에 맞게 저장됨
         }
 
-        public YoonRotationCalib2D(eYoonDirRect nDir1, eYoonDirRect nDir2)
+        public YoonRotationCalib2D(eYoonDir2D nDir1, eYoonDir2D nDir2)
         {
             AlignmentTargetLocation1 = nDir1;
             AlignmentTargetLocation2 = nDir2;
 
             ////  Dictionary 초기화
             m_pDicDetectionPoint.Clear();
-            foreach (eYoonDirRect iDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D iDir in YoonDirFactory.GetSquareDirections())
             {
-                Dictionary<eYoonDirCompass, YoonVector2D> pDicPoint = new Dictionary<eYoonDirCompass, YoonVector2D>();
+                Dictionary<eYoonDir2D, YoonVector2D> pDicPoint = new Dictionary<eYoonDir2D, YoonVector2D>();
                 pDicPoint.Clear();
-                foreach (eYoonDirCompass jDir in Enum.GetValues(typeof(eYoonDirCompass)))
+                foreach (eYoonDir2D jDir in Enum.GetValues(typeof(eYoonDir2D)))
                 {
                     pDicPoint.Add(jDir, new YoonVector2D(INVALID_NUM, INVALID_NUM));
                 }
@@ -716,7 +716,7 @@ namespace YoonFactory.Calibration
                         if (m_pDicCurrentReceiveFlag.Values.Any(x => x == false))
                             break;
                         //// Flag 초기화
-                        foreach (eYoonDirRect nDir in m_pDicCurrentReceiveFlag.Keys)
+                        foreach (eYoonDir2D nDir in m_pDicCurrentReceiveFlag.Keys)
                             m_pDicCurrentReceiveFlag[nDir] = false;
                         //// Wait 종료 후 업무 분배
                         switch (nJobStepBK)
@@ -765,32 +765,32 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.Init:
                         nJobStepBK = nJobStep;
                         //// Detection Point 초기화
-                        foreach (eYoonDirRect iDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionPoint.Keys)
                         {
-                            foreach (eYoonDirCompass jDir in m_pDicDetectionPoint[iDir].Keys)
+                            foreach (eYoonDir2D jDir in m_pDicDetectionPoint[iDir].Keys)
                             {
                                 m_pDicDetectionPoint[iDir][jDir].X = INVALID_NUM;
                                 m_pDicDetectionPoint[iDir][jDir].Y = INVALID_NUM;
                             }
                         }
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest));
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest));
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center));
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center));
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Origin:
                         nJobStepBK = nJobStep;
                         YoonVector2D vecTotal = new YoonVector2D();
-                        foreach (eYoonDirRect nDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D nDir in m_pDicDetectionPoint.Keys)
                         {
                             if (nDir == AlignmentTargetLocation1 || nDir == AlignmentTargetLocation2)
                             {
-                                YoonVector2D vecOffset = vecCameraCenter - m_pDicDetectionPoint[nDir][eYoonDirCompass.Center];
+                                YoonVector2D vecOffset = vecCameraCenter - m_pDicDetectionPoint[nDir][eYoonDir2D.Center];
                                 vecTotal.X += vecOffset.X * m_vecInitPixelSize.X;   //  mm per pixel
                                 vecTotal.Y += vecOffset.Y * m_vecInitPixelSize.Y;
                                 //// 오동작 방지를 위해 해당 부분 초기화
-                                m_pDicDetectionPoint[nDir][eYoonDirCompass.Center].X = INVALID_NUM;
-                                m_pDicDetectionPoint[nDir][eYoonDirCompass.Center].Y = INVALID_NUM;
+                                m_pDicDetectionPoint[nDir][eYoonDir2D.Center].X = INVALID_NUM;
+                                m_pDicDetectionPoint[nDir][eYoonDir2D.Center].Y = INVALID_NUM;
                             }
                         }
                         YoonVector2D vecMovementToCenter = (vecTotal / m_pDicDetectionPoint.Keys.Count);
@@ -798,73 +798,73 @@ namespace YoonFactory.Calibration
                         ReverseCoordinate(ref vecMovementToCenter);
                         m_pPoseRequest += vecMovementToCenter; // 초기 -> 원점위치로 변경
                         cartPosOrigin = m_pPoseRequest.Clone() as YoonCartD; // 원점 위치 복사해놓기
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopLeft:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest -= m_vecRealPitch;   // 원점 -> TopLeft로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.TopLeft, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.TopLeft, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Top:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X += m_vecRealPitch.X; // TopLeft -> Top으로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Top, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Top)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopRight:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X += m_vecRealPitch.X; // Top -> TopRight로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.TopRight, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.TopRight, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopRight)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopRight)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Right:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y += m_vecRealPitch.Y; // TopRight -> Right로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Right, m_pPoseRequest));  // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Right, m_pPoseRequest));  // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Right)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Right)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomRight:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y += m_vecRealPitch.Y; // Right -> BottomRight로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.BottomRight, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.BottomRight, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomRight)); // 촬상 및 위치 화인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomRight)); // 촬상 및 위치 화인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Bottom:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X -= m_vecRealPitch.X; // BottomRight -> Bottom으로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Bottom, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Bottom)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomLeft:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.X -= m_vecRealPitch.X; // Bottom -> BottomLeft로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.BottomLeft, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.BottomLeft, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Left:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.Y -= m_vecRealPitch.Y; // BottomLeft -> Left로 변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Left, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Left, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Left)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Left)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.CalculateResolution:
@@ -872,14 +872,14 @@ namespace YoonFactory.Calibration
                         ////  9-Point Calibration 계산
                         bCheckError = false;
                         YoonVector2D vecTotalResolution = new YoonVector2D(0, 0);
-                        foreach (eYoonDirRect iDir in m_pDicCurrentReceiveFlag.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicCurrentReceiveFlag.Keys)
                         {
                             if (iDir == AlignmentTargetLocation1 || iDir == AlignmentTargetLocation2) // 반드시 2개만 처리함
                             {
                                 ////  1. Calibration 결과 계산전 예외처리 확인
-                                foreach (eYoonDirCompass kDir in m_pDicDetectionPoint.Keys)
+                                foreach (eYoonDir2D kDir in m_pDicDetectionPoint.Keys)
                                 {
-                                    if (kDir == eYoonDirCompass.MaxDir) continue;
+                                    if (kDir == eYoonDir2D.None) continue;
                                     if (m_pDicDetectionPoint[iDir][kDir].X == INVALID_NUM || m_pDicDetectionPoint[iDir][kDir].Y == INVALID_NUM)
                                         bCheckError = true;
                                 }
@@ -890,27 +890,27 @@ namespace YoonFactory.Calibration
                                 }
                                 ////  2. Calibration 계산
                                 double dTotalResolutionX = 0.0, dTotalResolutionY = 0.0;
-                                foreach (eYoonDirRect nDirParts in ResultDictionary[iDir].ResolutionOfParts.Keys)
+                                foreach (eYoonDir2D nDirParts in ResultDictionary[iDir].ResolutionOfParts.Keys)
                                 {
                                     double dPixPitchX = INVALID_NUM;
                                     double dPixPitchY = INVALID_NUM;
                                     switch (nDirParts)
                                     {
-                                        case eYoonDirRect.TopLeft:  // TL to T => X, TL to L => Y
-                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDirCompass.Top].X - m_pDicDetectionPoint[iDir][eYoonDirCompass.TopLeft].X;
-                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDirCompass.Left].Y - m_pDicDetectionPoint[iDir][eYoonDirCompass.TopLeft].Y;
+                                        case eYoonDir2D.TopLeft:  // TL to T => X, TL to L => Y
+                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDir2D.Top].X - m_pDicDetectionPoint[iDir][eYoonDir2D.TopLeft].X;
+                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDir2D.Left].Y - m_pDicDetectionPoint[iDir][eYoonDir2D.TopLeft].Y;
                                             break;
-                                        case eYoonDirRect.TopRight: // TR to T => X, TR to R => Y
-                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDirCompass.TopRight].X - m_pDicDetectionPoint[iDir][eYoonDirCompass.Top].X;
-                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDirCompass.Right].Y - m_pDicDetectionPoint[iDir][eYoonDirCompass.TopRight].Y;
+                                        case eYoonDir2D.TopRight: // TR to T => X, TR to R => Y
+                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDir2D.TopRight].X - m_pDicDetectionPoint[iDir][eYoonDir2D.Top].X;
+                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDir2D.Right].Y - m_pDicDetectionPoint[iDir][eYoonDir2D.TopRight].Y;
                                             break;
-                                        case eYoonDirRect.BottomLeft: // BL to B => X, L to BL => Y
-                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDirCompass.Bottom].X - m_pDicDetectionPoint[iDir][eYoonDirCompass.BottomLeft].X;
-                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDirCompass.BottomLeft].Y - m_pDicDetectionPoint[iDir][eYoonDirCompass.Left].Y;
+                                        case eYoonDir2D.BottomLeft: // BL to B => X, L to BL => Y
+                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDir2D.Bottom].X - m_pDicDetectionPoint[iDir][eYoonDir2D.BottomLeft].X;
+                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDir2D.BottomLeft].Y - m_pDicDetectionPoint[iDir][eYoonDir2D.Left].Y;
                                             break;
-                                        case eYoonDirRect.BottomRight: // BR to B => X, BR to R => Y
-                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDirCompass.BottomRight].X - m_pDicDetectionPoint[iDir][eYoonDirCompass.Bottom].X;
-                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDirCompass.BottomRight].Y - m_pDicDetectionPoint[iDir][eYoonDirCompass.Right].Y;
+                                        case eYoonDir2D.BottomRight: // BR to B => X, BR to R => Y
+                                            dPixPitchX = m_pDicDetectionPoint[iDir][eYoonDir2D.BottomRight].X - m_pDicDetectionPoint[iDir][eYoonDir2D.Bottom].X;
+                                            dPixPitchY = m_pDicDetectionPoint[iDir][eYoonDir2D.BottomRight].Y - m_pDicDetectionPoint[iDir][eYoonDir2D.Right].Y;
                                             break;
                                         default:
                                             break;
@@ -927,7 +927,7 @@ namespace YoonFactory.Calibration
                                 ////  3. 평균 Threshold 계산
                                 if (!bCheckError)
                                 {
-                                    ResultDictionary[iDir].AverageResolution = new YoonVector2D(dTotalResolutionX / (int)eYoonDirRect.MaxDir, dTotalResolutionY / (int)eYoonDirRect.MaxDir);
+                                    ResultDictionary[iDir].AverageResolution = new YoonVector2D(dTotalResolutionX / YoonDirFactory.GetSquareDirections().Length, dTotalResolutionY / YoonDirFactory.GetSquareDirections().Length);
                                     vecTotalResolution += ResultDictionary[iDir].AverageResolution;
                                 }
                             }
@@ -946,9 +946,9 @@ namespace YoonFactory.Calibration
                         break;
                     case eStepYoonCalibration.TurnBack:
                         //// Rotation Calibration시 재사용을 위한 Detection Point 초기화
-                        foreach (eYoonDirRect iDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionPoint.Keys)
                         {
-                            foreach (eYoonDirCompass jDir in m_pDicDetectionPoint[iDir].Keys)
+                            foreach (eYoonDir2D jDir in m_pDicDetectionPoint[iDir].Keys)
                             {
                                 m_pDicDetectionPoint[iDir][jDir].X = INVALID_NUM;
                                 m_pDicDetectionPoint[iDir][jDir].Y = INVALID_NUM;
@@ -959,34 +959,34 @@ namespace YoonFactory.Calibration
                         m_pGCT.SetCameraSetting(vdFOV, m_vecInitPixelSize);
                         //// 저장된 원점으로 Turn Back (이동)
                         m_pPoseRequest = cartPosOrigin.Clone() as YoonCartD;    // 원점으로 재변경
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Center, m_pPoseRequest)); // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Rotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ += RotationDegree;   // 원점에서 D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Top, eYoonDirClock.Clock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Top)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.OppoRotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ -= (RotationDegree * 2);   // 원점에서 -D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDirCompass.Bottom, eYoonDirClock.AntiClock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Bottom)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.CalculateRotate:
                         nJobStepBK = nJobStep;
                         ////  Calibration 결과 계산전 예외처리 확인
                         bCheckError = false;
-                        foreach (eYoonDirCompass nDir in m_pDicDetectionPoint.Keys)
+                        foreach (eYoonDir2D nDir in m_pDicDetectionPoint.Keys)
                         {
-                            if (nDir == eYoonDirCompass.Top || nDir == eYoonDirCompass.Bottom)
+                            if (nDir == eYoonDir2D.Top || nDir == eYoonDir2D.Bottom)
                             {
                                 if (m_pDicDetectionPoint[AlignmentTargetLocation1][nDir].X == INVALID_NUM || m_pDicDetectionPoint[AlignmentTargetLocation1][nDir].Y == INVALID_NUM ||
                                     m_pDicDetectionPoint[AlignmentTargetLocation2][nDir].X == INVALID_NUM || m_pDicDetectionPoint[AlignmentTargetLocation2][nDir].Y == INVALID_NUM)
@@ -1000,8 +1000,8 @@ namespace YoonFactory.Calibration
                             break;
                         }
                         ////  Global 좌표를 설정한다.
-                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDirCompass.Top], m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDirCompass.Top], RotationDegree * Math.PI / 180, AlignmentTargetLocation1);
-                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDirCompass.Bottom], m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDirCompass.Bottom], RotationDegree * Math.PI / 180, AlignmentTargetLocation2);
+                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDir2D.Top], m_pDicDetectionPoint[AlignmentTargetLocation1][eYoonDir2D.Top], RotationDegree * Math.PI / 180, AlignmentTargetLocation1);
+                        m_pGCT.CalculateGrobalCoordinate(m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDir2D.Bottom], m_pDicDetectionPoint[AlignmentTargetLocation2][eYoonDir2D.Bottom], RotationDegree * Math.PI / 180, AlignmentTargetLocation2);
                         ////  처리 후 예상되는 Camera의 Center Position을 가져온다.
                         ResultDictionary[AlignmentTargetLocation1].DeviceCenterPos = m_pGCT.GetRealCenterPosition(AlignmentTargetLocation1);
                         ResultDictionary[AlignmentTargetLocation2].DeviceCenterPos = m_pGCT.GetRealCenterPosition(AlignmentTargetLocation2);

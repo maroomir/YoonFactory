@@ -84,7 +84,7 @@ namespace YoonFactory.Calibration
         private const double INIT_SIZE = -100.0;
         private bool m_bFlagReceive = false;
         private Thread m_pThread = null;
-        private Dictionary<eYoonDirCompass, YoonRectAffine2D> m_pDicDetectionRect = new Dictionary<eYoonDirCompass, YoonRectAffine2D>();
+        private Dictionary<eYoonDir2D, YoonRectAffine2D> m_pDicDetectionRect = new Dictionary<eYoonDir2D, YoonRectAffine2D>();
         private string m_strConfigFilePath = "";
         #endregion
 
@@ -97,7 +97,7 @@ namespace YoonFactory.Calibration
         public YoonStaticCalib1D()
         {
             m_pDicDetectionRect.Clear();
-            foreach (eYoonDirCompass nDir in Enum.GetValues(typeof(eYoonDirCompass)))
+            foreach (eYoonDir2D nDir in Enum.GetValues(typeof(eYoonDir2D)))
                 m_pDicDetectionRect.Add(nDir, new YoonRectAffine2D(INVALID_NUM, INVALID_NUM, INIT_SIZE, INIT_SIZE, 0));
 
             ////  File 경로 초기화
@@ -176,62 +176,62 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.Init:
                         nJobStepBK = nJobStep;
                         //// Detection Point 초기화
-                        foreach (eYoonDirCompass iDir in m_pDicDetectionRect.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionRect.Keys)
                             m_pDicDetectionRect[iDir] = new YoonRectAffine2D(INVALID_NUM, INVALID_NUM, INIT_SIZE, INIT_SIZE, 0);
                         nJobStep = eStepYoonCalibration.Origin;
                         break;
                     case eStepYoonCalibration.Origin:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Center)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopLeft:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Top:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Top)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.TopRight:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.TopRight)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.TopRight)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Right:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Right)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Right)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomRight:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomRight)); // 촬상 및 위치 화인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomRight)); // 촬상 및 위치 화인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Bottom:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Bottom)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.BottomLeft:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.BottomLeft)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.BottomLeft)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.Left:
                         nJobStepBK = nJobStep;
-                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDirCompass.Left)); // 촬상 및 위치 확인
+                        OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Left)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
                         break;
                     case eStepYoonCalibration.CalculateResolution:
                         nJobStepBK = nJobStep;
                         bCheckError = false;
                         ////  1. Calibration 결과 계산전 예외처리 확인
-                        foreach (eYoonDirCompass iDir in m_pDicDetectionRect.Keys)
+                        foreach (eYoonDir2D iDir in m_pDicDetectionRect.Keys)
                         {
-                            if (iDir == eYoonDirCompass.MaxDir) continue;
+                            if (iDir == eYoonDir2D.None) continue;
                             if (m_pDicDetectionRect[iDir].CenterPos.X == INVALID_NUM || m_pDicDetectionRect[iDir].CenterPos.Y == INVALID_NUM)
                                 bCheckError = true;
                         }
@@ -242,9 +242,9 @@ namespace YoonFactory.Calibration
                         }
                         ////  2. Calibration 계산
                         double dTotalResolutionX = 0.0, dTotalResolutionY = 0.0;
-                        foreach (eYoonDirCompass nDirParts in m_pDicDetectionRect.Keys)
+                        foreach (eYoonDir2D nDirParts in m_pDicDetectionRect.Keys)
                         {
-                            if (nDirParts == eYoonDirCompass.MaxDir) continue;
+                            if (nDirParts == eYoonDir2D.None) continue;
 
                             double dPixelWidth = m_pDicDetectionRect[nDirParts].Width;
                             double dPixelHeight = m_pDicDetectionRect[nDirParts].Height;
@@ -260,7 +260,7 @@ namespace YoonFactory.Calibration
                         ////  3. 평균 Threshold 계산
                         if (!bCheckError)
                         {
-                            Result.AverageResolution = new YoonVector2D(dTotalResolutionX / (int)eYoonDirCompass.MaxDir, dTotalResolutionY / (int)eYoonDirCompass.MaxDir);
+                            Result.AverageResolution = new YoonVector2D(dTotalResolutionX / YoonDirFactory.GetSquareDirections().Length, dTotalResolutionY / YoonDirFactory.GetSquareDirections().Length);
                             Console.WriteLine("Resolution Calibration Success!");
                         }
                         else

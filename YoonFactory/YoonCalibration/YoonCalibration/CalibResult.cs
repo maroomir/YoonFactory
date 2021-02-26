@@ -7,12 +7,12 @@ namespace YoonFactory.Calibration
     public class RotationCalibResult : IYoonResult
     {
         public YoonVector2D AverageResolution { get; set; } = new YoonVector2D(0.0, 0.0);
-        public Dictionary<eYoonDirRect, YoonVector2D> ResolutionOfParts { get; set; } = new Dictionary<eYoonDirRect, YoonVector2D>();
+        public Dictionary<eYoonDir2D, YoonVector2D> ResolutionOfParts { get; set; } = new Dictionary<eYoonDir2D, YoonVector2D>();
         public YoonVector2D DeviceCenterPos { get; set; } = new YoonVector2D();
 
         public RotationCalibResult()
         {
-            foreach (eYoonDirRect nDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
         }
 
@@ -32,7 +32,7 @@ namespace YoonFactory.Calibration
                 if (pResultCalib.AverageResolution != AverageResolution || pResultCalib.DeviceCenterPos != DeviceCenterPos)
                     return false;
 
-                foreach (eYoonDirRect nDir in ResolutionOfParts.Keys)
+                foreach (eYoonDir2D nDir in ResolutionOfParts.Keys)
                 {
                     if (!pResultCalib.ResolutionOfParts.ContainsKey(nDir) || pResultCalib.ResolutionOfParts[nDir] != ResolutionOfParts[nDir])
                         return false;
@@ -49,7 +49,7 @@ namespace YoonFactory.Calibration
             if (pResult is RotationCalibResult pResultCalib)
             {
                 AverageResolution = pResultCalib.AverageResolution.Clone() as YoonVector2D;
-                ResolutionOfParts = new Dictionary<eYoonDirRect, YoonVector2D>(pResultCalib.ResolutionOfParts);
+                ResolutionOfParts = new Dictionary<eYoonDir2D, YoonVector2D>(pResultCalib.ResolutionOfParts);
                 DeviceCenterPos = pResultCalib.DeviceCenterPos.Clone() as YoonVector2D;
             }
         }
@@ -59,7 +59,7 @@ namespace YoonFactory.Calibration
             RotationCalibResult pTargetResult = new RotationCalibResult();
 
             pTargetResult.AverageResolution = AverageResolution.Clone() as YoonVector2D;
-            pTargetResult.ResolutionOfParts = new Dictionary<eYoonDirRect, YoonVector2D>(ResolutionOfParts);
+            pTargetResult.ResolutionOfParts = new Dictionary<eYoonDir2D, YoonVector2D>(ResolutionOfParts);
             pTargetResult.DeviceCenterPos = DeviceCenterPos.Clone() as YoonVector2D;
             return pTargetResult;
         }
@@ -68,10 +68,10 @@ namespace YoonFactory.Calibration
     public class StaticCalibResult : IYoonResult
     {
         public YoonVector2D AverageResolution { get; set; } = new YoonVector2D(0.0, 0.0);
-        public Dictionary<eYoonDirCompass, YoonVector2D> ResolutionOfParts { get; set; } = new Dictionary<eYoonDirCompass, YoonVector2D>();
+        public Dictionary<eYoonDir2D, YoonVector2D> ResolutionOfParts { get; set; } = new Dictionary<eYoonDir2D, YoonVector2D>();
         public StaticCalibResult()
         {
-            foreach (eYoonDirCompass nDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D nDir in Enum.GetValues(typeof(eYoonDir2D)))
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
         }
 
@@ -88,7 +88,7 @@ namespace YoonFactory.Calibration
             {
                 if (pResultCalib.AverageResolution != AverageResolution) return false;
 
-                foreach (eYoonDirCompass nDir in ResolutionOfParts.Keys)
+                foreach (eYoonDir2D nDir in ResolutionOfParts.Keys)
                 {
                     if (!pResultCalib.ResolutionOfParts.ContainsKey(nDir) || pResultCalib.ResolutionOfParts[nDir] != ResolutionOfParts[nDir])
                         return false;
@@ -105,7 +105,7 @@ namespace YoonFactory.Calibration
             if (pResult is StaticCalibResult pResultCalib)
             {
                 AverageResolution = pResultCalib.AverageResolution.Clone() as YoonVector2D;
-                ResolutionOfParts = new Dictionary<eYoonDirCompass, YoonVector2D>(pResultCalib.ResolutionOfParts);
+                ResolutionOfParts = new Dictionary<eYoonDir2D, YoonVector2D>(pResultCalib.ResolutionOfParts);
             }
         }
 
@@ -114,7 +114,7 @@ namespace YoonFactory.Calibration
             StaticCalibResult pTargetResult = new StaticCalibResult();
 
             pTargetResult.AverageResolution = AverageResolution.Clone() as YoonVector2D;
-            pTargetResult.ResolutionOfParts = new Dictionary<eYoonDirCompass, YoonVector2D>(ResolutionOfParts);
+            pTargetResult.ResolutionOfParts = new Dictionary<eYoonDir2D, YoonVector2D>(ResolutionOfParts);
             return pTargetResult;
         }
     }

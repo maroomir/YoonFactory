@@ -10,6 +10,76 @@ namespace YoonFactory
     {
         public int Count { get; } = 3;
 
+        public eYoonDir2D Direction
+        {
+            get
+            {
+                if (X == 0 && Y == 0)
+                    return eYoonDir2D.Center;
+                else if (X == 0 && Y > 0)
+                    return eYoonDir2D.Top;
+                else if (X == 0 && Y < 0)
+                    return eYoonDir2D.Bottom;
+                else if (X > 0 && Y == 0)
+                    return eYoonDir2D.Right;
+                else if (X < 0 && Y == 0)
+                    return eYoonDir2D.Left;
+                else if (X > 0 && Y > 0)
+                    return eYoonDir2D.TopRight;
+                else if (X < 0 && Y > 0)
+                    return eYoonDir2D.TopLeft;
+                else if (X < 0 && Y < 0)
+                    return eYoonDir2D.BottomLeft;
+                else if (X > 0 && Y < 0)
+                    return eYoonDir2D.BottomRight;
+                else
+                    return eYoonDir2D.None;
+            }
+            set
+            {
+                switch(value)
+                {
+                    case eYoonDir2D.Center:
+                        X = Y = 0;
+                        break;
+                    case eYoonDir2D.Top:
+                        X = 0;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.Bottom:
+                        X = 0;
+                        Y = -1;
+                        break;
+                    case eYoonDir2D.Right:
+                        X = 1;
+                        Y = 0;
+                        break;
+                    case eYoonDir2D.Left:
+                        X = -1;
+                        Y = 0;
+                        break;
+                    case eYoonDir2D.TopRight:
+                        X = 1;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.TopLeft:
+                        X = -1;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.BottomLeft:
+                        X = -1;
+                        Y = -1;
+                        break;
+                    case eYoonDir2D.BottomRight:
+                        X = 1;
+                        Y = -1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         public void CopyFrom(IYoonVector v)
         {
             if (v is YoonVector2N vec)
@@ -104,6 +174,7 @@ namespace YoonFactory
         {
             return Math.Sqrt(X * X + Y * Y);
         }
+
         public IYoonVector Unit()
         {
             double len = this.Length();
@@ -115,6 +186,7 @@ namespace YoonFactory
             }
             return this;
         }
+
         public double Distance(IYoonVector p)
         {
             if (p is YoonVector2N vec)
@@ -224,6 +296,76 @@ namespace YoonFactory
     public class YoonVector2D : IYoonVector, IYoonVector2D<double>
     {
         public int Count { get; } = 3;
+
+        public eYoonDir2D Direction
+        {
+            get
+            {
+                if (X == 0 && Y == 0)
+                    return eYoonDir2D.Center;
+                else if (X == 0 && Y > 0)
+                    return eYoonDir2D.Top;
+                else if (X == 0 && Y < 0)
+                    return eYoonDir2D.Bottom;
+                else if (X > 0 && Y == 0)
+                    return eYoonDir2D.Right;
+                else if (X < 0 && Y == 0)
+                    return eYoonDir2D.Left;
+                else if (X > 0 && Y > 0)
+                    return eYoonDir2D.TopRight;
+                else if (X < 0 && Y > 0)
+                    return eYoonDir2D.TopLeft;
+                else if (X < 0 && Y < 0)
+                    return eYoonDir2D.BottomLeft;
+                else if (X > 0 && Y < 0)
+                    return eYoonDir2D.BottomRight;
+                else
+                    return eYoonDir2D.None;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case eYoonDir2D.Center:
+                        X = Y = 0;
+                        break;
+                    case eYoonDir2D.Top:
+                        X = 0;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.Bottom:
+                        X = 0;
+                        Y = -1;
+                        break;
+                    case eYoonDir2D.Right:
+                        X = 1;
+                        Y = 0;
+                        break;
+                    case eYoonDir2D.Left:
+                        X = -1;
+                        Y = 0;
+                        break;
+                    case eYoonDir2D.TopRight:
+                        X = 1;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.TopLeft:
+                        X = -1;
+                        Y = 1;
+                        break;
+                    case eYoonDir2D.BottomLeft:
+                        X = -1;
+                        Y = -1;
+                        break;
+                    case eYoonDir2D.BottomRight:
+                        X = 1;
+                        Y = -1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
         public void CopyFrom(IYoonVector v)
         {

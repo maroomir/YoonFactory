@@ -47,13 +47,13 @@ namespace YoonFactory
     public interface IYoonVector
     {
         int Count { get; }
+
         IYoonVector Clone();
         void CopyFrom(IYoonVector v);
         void Zero();
         IYoonVector Unit();
         double Length();
         double Distance(IYoonVector p);
-
     }
 
     public interface IYoonVector2D<T> : IYoonVector where T : IComparable, IComparable<T>
@@ -62,6 +62,8 @@ namespace YoonFactory
         T X { get; set; }
         T Y { get; set; }
         T[] Array { get; set; }
+        eYoonDir2D Direction { get; set; }
+
         IYoonCart<T> Cartesian { get; set; }
         IYoonVector Scale(T sx, T sy);
         IYoonVector Move(T dx, T dy);

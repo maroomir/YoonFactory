@@ -50,8 +50,8 @@ namespace YoonFactory.Calibration
         public YoonVector2D FOV { get; private set; } = new YoonVector2D();
         public YoonVector2D MmPerPixel { get; private set; } = new YoonVector2D();
 
-        private Dictionary<eYoonDirRect, YoonVector2D> m_pDicInsertPos = new Dictionary<eYoonDirRect, YoonVector2D>();
-        private Dictionary<eYoonDirRect, YoonVector2D> m_pDicCenterPos = new Dictionary<eYoonDirRect, YoonVector2D>();
+        private Dictionary<eYoonDir2D, YoonVector2D> m_pDicInsertPos = new Dictionary<eYoonDir2D, YoonVector2D>();
+        private Dictionary<eYoonDir2D, YoonVector2D> m_pDicCenterPos = new Dictionary<eYoonDir2D, YoonVector2D>();
 
         private double ToAngle(double dTheta)
         {
@@ -103,13 +103,13 @@ namespace YoonFactory.Calibration
         public YoonTransform()
         {
             m_pDicInsertPos.Clear();
-            foreach (eYoonDirRect nDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
             {
                 YoonVector2D vd = new YoonVector2D(0.0, 0.0);
                 m_pDicInsertPos.Add(nDir, vd);
             }
             m_pDicCenterPos.Clear();
-            foreach (eYoonDirRect nDir in Enum.GetValues(typeof(eYoonDirRect)))
+            foreach (eYoonDir2D nDir in YoonDirFactory.GetSquareDirections())
             {
                 YoonVector2D vd = new YoonVector2D(0.0, 0.0);
                 m_pDicCenterPos.Add(nDir, vd);
@@ -122,12 +122,12 @@ namespace YoonFactory.Calibration
             MmPerPixel = mmPerPixel;
         }
 
-        public void SetRealCenterPosition(YoonVector2D posCenter, eYoonDirRect dir)
+        public void SetRealCenterPosition(YoonVector2D posCenter, eYoonDir2D dir)
         {
             m_pDicCenterPos[dir] = posCenter;
         }
 
-        public void CalculateGrobalCoordinate(YoonVector2D pixPoint1, YoonVector2D pixPoint2, double dTheta, eYoonDirRect dir)
+        public void CalculateGrobalCoordinate(YoonVector2D pixPoint1, YoonVector2D pixPoint2, double dTheta, eYoonDir2D dir)
         {
             m_pDicInsertPos[dir] = CalculateStandardCoordinate(pixPoint1, pixPoint2, dTheta, dir);
             m_pDicCenterPos[dir] = m_pDicInsertPos[dir] + GetCenterOffset(pixPoint1);
@@ -149,7 +149,7 @@ namespace YoonFactory.Calibration
         /// </summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public YoonVector2D GetRealCenterPosition(eYoonDirRect dir)
+        public YoonVector2D GetRealCenterPosition(eYoonDir2D dir)
         {
             ////  회전중심을 (0.0)으로 하는 실측(mm) 좌표로 Return함.
             return m_pDicCenterPos[dir];
@@ -162,7 +162,7 @@ namespace YoonFactory.Calibration
         /// <param name="pixPoint1"></param>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public YoonVector2D GetRealPosition(YoonVector2D pixPoint, eYoonDirRect dir)
+        public YoonVector2D GetRealPosition(YoonVector2D pixPoint, eYoonDir2D dir)
         {
             ////  회전중심을 (0.0)으로 하는 실측(mm) 좌표로 Return함.
             ////  Pixel 좌표계에서만 사용하므로 GetCenterOffset을 TRUE로 고정한다.
@@ -196,18 +196,18 @@ namespace YoonFactory.Calibration
             return Math.Abs(Math.Sin(Math.PI / 2) * dHypo / 2 / Math.Sin(dTheta / 2));
         }
 
-        private double CalculateRotationCircle_PreTheta(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDirRect dir)
+        private double CalculateRotationCircle_PreTheta(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDir2D dir)
         {
             double dRotationTheta = CalculateRotationCircle_Theta(point1, point2);
             double dPreTheta = 0.0;
             switch (dir)
             {
-                case eYoonDirRect.TopRight:
-                case eYoonDirRect.BottomLeft:
+                case eYoonDir2D.TopRight:
+                case eYoonDir2D.BottomLeft:
                     dPreTheta = dRotationTheta - (dTheta / 2);
                     break;
-                case eYoonDirRect.TopLeft:
-                case eYoonDirRect.BottomRight:
+                case eYoonDir2D.TopLeft:
+                case eYoonDir2D.BottomRight:
                     dPreTheta = dRotationTheta + (dTheta / 2);
                     break;
                 default:
@@ -216,18 +216,18 @@ namespace YoonFactory.Calibration
             return dPreTheta;
         }
 
-        private double CalculateRotationCircle_PostTheta(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDirRect dir)
+        private double CalculateRotationCircle_PostTheta(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDir2D dir)
         {
             double dRotationTheta = CalculateRotationCircle_Theta(point1, point2);
             double dPostTheta = 0.0;
             switch (dir)
             {
-                case eYoonDirRect.TopRight:
-                case eYoonDirRect.BottomLeft:
+                case eYoonDir2D.TopRight:
+                case eYoonDir2D.BottomLeft:
                     dPostTheta = dRotationTheta + (dTheta / 2);
                     break;
-                case eYoonDirRect.TopLeft:
-                case eYoonDirRect.BottomRight:
+                case eYoonDir2D.TopLeft:
+                case eYoonDir2D.BottomRight:
                     dPostTheta = dRotationTheta - (dTheta / 2);
                     break;
                 default:
@@ -236,7 +236,7 @@ namespace YoonFactory.Calibration
             return dPostTheta;
         }
 
-        private YoonVector2D CalculateNormalCoordinate(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDirRect dir)
+        private YoonVector2D CalculateNormalCoordinate(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDir2D dir)
         {
             YoonVector2D pos = new YoonVector2D();
             pos.X = Math.Cos(CalculateRotationCircle_PreTheta(point1, point2, dTheta, dir)) * CalculateRotationCircle_Radius(point1, point2, dTheta);
@@ -244,25 +244,25 @@ namespace YoonFactory.Calibration
             return pos;
         }
 
-        public YoonVector2D CalculateStandardCoordinate(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDirRect dir)
+        public YoonVector2D CalculateStandardCoordinate(YoonVector2D point1, YoonVector2D point2, double dTheta, eYoonDir2D dir)
         {
             YoonVector2D pos = new YoonVector2D();
             YoonVector2D dNormalPos = CalculateNormalCoordinate(point1, point2, dTheta, dir);
             switch (dir)
             {
-                case eYoonDirRect.TopRight:
+                case eYoonDir2D.TopRight:
                     pos.X = dNormalPos.X;
                     pos.Y = dNormalPos.Y;
                     break;
-                case eYoonDirRect.TopLeft:
+                case eYoonDir2D.TopLeft:
                     pos.X = -dNormalPos.X;
                     pos.Y = dNormalPos.Y;
                     break;
-                case eYoonDirRect.BottomLeft:
+                case eYoonDir2D.BottomLeft:
                     pos.X = -dNormalPos.X;
                     pos.Y = -dNormalPos.Y;
                     break;
-                case eYoonDirRect.BottomRight:
+                case eYoonDir2D.BottomRight:
                     pos.X = dNormalPos.X;
                     pos.Y = -dNormalPos.Y;
                     break;

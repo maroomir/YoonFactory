@@ -69,16 +69,20 @@ namespace YoonSample.ImageViewer
         private void OnUpdateCameraImage(object sender, FrameArgs e)
         {
             if (CommonClass.pCamera == null) return;
+            YoonImage pImage;
             switch (m_nSelectedCamera)
             {
                 case eYoonCamera.BaslerColor:
-                    imageViewer_Main.InputImage = ImageFactory.Converter.ToBitmap24BitWithColorParallel(e.pAddressBuffer, CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight);
+                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
+                    imageViewer_Main.InputImage = pImage.CopyImage();
                     break;
                 case eYoonCamera.RealsenseColor:
-                    imageViewer_Main.InputImage = ImageFactory.Converter.ToBitmap24BitWithColorMixed(e.pAddressBuffer, CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight);
+                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
+                    imageViewer_Main.InputImage = pImage.CopyImage();
                     break;
                 case eYoonCamera.BaslerMono:
-                    imageViewer_Main.InputImage = ImageFactory.Converter.ToBitmap8Bit(e.pAddressBuffer, CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight);
+                    pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 1);
+                    imageViewer_Main.InputImage = pImage.CopyImage();
                     break;
             }
             imageViewer_Main.DrawImage();

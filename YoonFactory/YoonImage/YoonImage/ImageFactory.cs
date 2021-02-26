@@ -16,232 +16,9 @@ namespace YoonFactory.Image
         private const uint MAX_PICK_NUM = 100;
         private const uint MAX_FILL_NUM = 1000;
 
-        /// <summary>
-        /// Modify the area(pArea) to be available
-        /// </summary>
-        /// <param name="pArea"></param>
-        /// <param name="limitWidth"></param>
-        /// <param name="limitHeight"></param>
-        private static void SetVerifyArea(ref YoonRect2N pArea, int limitWidth, int limitHeight)
-        {
-            if (pArea.Left < 0)
-                pArea.CenterPos.X = limitWidth/2;
-            if (pArea.Top < 0)
-                pArea.CenterPos.Y = limitHeight/2;
-            if (pArea.Right > limitWidth)
-                pArea.Width = limitWidth - pArea.Left;
-            if (pArea.Bottom > limitHeight)
-                pArea.Height = limitHeight - pArea.Top;
-        }
-
-        /// <summary>
-        /// Convert the buffer to bitmap (System.Drawing.Bitmap)
-        /// </summary>
+        // Converter
         public static class Converter
         {
-            #region Make Bitmap by Buffers
-            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
-                return ToBitmap8Bit(pBuffer, nWidth, nHeight);
-            }
-
-            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nWidth, int nHeight)
-            {
-                if (pBuffer.Length != nWidth * nHeight) return null;
-
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format8bppIndexed);
-                BitmapFactory.Memory.Print8bitImage(pBuffer, ref pResultBitmap);
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight, YoonRect2N cropArea)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
-                return ToBitmap8Bit(pBuffer, nWidth, nHeight, cropArea);
-            }
-
-            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nImageWidth, int nImageHeight, YoonRect2N cropArea)
-            {
-                if (pBuffer.Length != nImageWidth * nImageHeight) return null;
-                if (Convert.ToInt32(cropArea.Width) > nImageWidth || Convert.ToInt32(cropArea.Height) > nImageHeight)
-                    return null;
-
-                int x, y;
-                byte[] pByte;
-                Bitmap pResultBitmap = new Bitmap(cropArea.Width, cropArea.Height, PixelFormat.Format8bppIndexed);
-                for (int j = 0; j < cropArea.Height; j++)
-                {
-                    y = cropArea.Top + j;
-                    if (y >= nImageHeight) continue;
-                    pByte = new byte[cropArea.Width];
-                    for (int i = 0; i < cropArea.Height; i++)
-                    {
-                        x = cropArea.Left + i;
-                        if (x >= nImageWidth) continue;
-                        pByte[i] = Math.Max((byte)0, Math.Min(Convert.ToByte(pBuffer[j * nImageWidth + i]), (byte)255));
-                    }
-                    BitmapFactory.Memory.Print8bitLine(pByte, ref pResultBitmap, j);
-                }
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap8Bit(IntPtr pBufferAddress, int nWidth, int nHeight, byte offset)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
-                return ToBitmap8Bit(pBuffer, nWidth, nHeight, offset);
-            }
-
-            public static Bitmap ToBitmap8Bit(byte[] pBuffer, int nWidth, int nHeight, byte offset)
-            {
-                if (pBuffer.Length != nWidth * nHeight) return null;
-
-                byte[] pByte;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format8bppIndexed);
-                for (int j = 0; j < nHeight; j++)
-                {
-                    pByte = new byte[nWidth];
-                    for (int i = 0; i < nWidth; i++)
-                    {
-                        pByte[i] = (byte)Math.Max(0, Math.Min(pBuffer[j * nWidth + i] + offset, 255));
-                    }
-                    BitmapFactory.Memory.Print8bitLine(pByte, ref pResultBitmap, j);
-                }
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap24BitWithColorMixed(IntPtr pBufferAddress, int nWidth, int nHeight, bool bRGBOrder = true)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight * 3];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight * 3);
-                return ToBitmap24BitWithColorMixed(pBuffer, nWidth, nHeight, bRGBOrder);
-            }
-
-            public static Bitmap ToBitmap24BitWithColorMixed(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
-            {
-                if (pBuffer == null || pBuffer.Length != nWidth * nHeight * 3) return null;
-
-                int nRed, nGreen, nBlue;
-                if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
-                else { nRed = 2; nGreen = 1; nBlue = 0; }
-                int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
-                for (int j = 0; j < nHeight - 1; j++) // Exception for nHeight-1
-                {
-                    pPixel = new int[nWidth];
-                    for (int i = 0; i < nWidth; i++)
-                    {
-                        byte[] pBytePixel = new byte[4];
-                        pBytePixel[0] = pBuffer[j * nWidth * 3 + i * 3 + nBlue]; // Blue
-                        pBytePixel[1] = pBuffer[j * nWidth * 3 + i * 3 + nGreen]; // Green
-                        pBytePixel[2] = pBuffer[j * nWidth * 3 + i * 3 + nRed]; // Red
-                        pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
-                        pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
-                    }
-                    BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
-                }
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap24BitWithColorParallel(IntPtr pBufferAddress, int nWidth, int nHeight, bool bRGBOrder = true)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                byte[] pBuffer = new byte[nWidth * nHeight * 3];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight * 3);
-                return ToBitmap24BitWithColorParallel(pBuffer, nWidth, nHeight, bRGBOrder);
-            }
-
-            public static Bitmap ToBitmap24BitWithColorParallel(byte[] pBuffer, int nWidth, int nHeight, bool bRGBOrder = true)
-            {
-                if (pBuffer == null || pBuffer.Length != nWidth * nHeight * 3) return null;
-
-                int nRed, nGreen, nBlue;
-                if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
-                else { nRed = 2; nGreen = 1; nBlue = 0; }
-                int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
-                for (int iPlane = 0; iPlane < 3; iPlane++)
-                {
-                    pPixel = new int[nWidth];
-                    for (int j = 0; j < nHeight-1; j++) // Exception for nHeight-1
-                    {
-                        for (int i = 0; i < nWidth; i++)
-                        {
-                            byte[] pBytePixel = new byte[4];
-                            pBytePixel[0] = pBuffer[(nBlue * nWidth * nHeight) + j * nWidth + i]; // Blue
-                            pBytePixel[1] = pBuffer[(nGreen * nWidth * nHeight) + j * nWidth + i]; // Green
-                            pBytePixel[2] = pBuffer[(nRed * nWidth * nHeight) + j * nWidth + i]; // Red
-                            pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
-                            pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
-                        }
-                        BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
-                    }
-                }
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap24Bit(IntPtr pBufferAddress, int nWidth, int nHeight)
-            {
-                if (pBufferAddress == IntPtr.Zero) return null;
-
-                int[] pBuffer = new int[nWidth * nHeight];
-                Marshal.Copy(pBufferAddress, pBuffer, 0, nWidth * nHeight);
-                return ToBitmap24Bit(pBuffer, nWidth, nHeight);
-            }
-
-            public static Bitmap ToBitmap24Bit(int[] pBuffer, int nWidth, int nHeight)
-            {
-                if (pBuffer.Length != nWidth * nHeight) return null;
-
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
-                BitmapFactory.Memory.Print24bitImage(pBuffer, ref pResultBitmap);
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static Bitmap ToBitmap24Bit(byte[] pRed, byte[] pGreen, byte[] pBlue, int nWidth, int nHeight)
-            {
-                if (pRed == null || pRed.Length != nWidth * nHeight ||
-                    pGreen == null || pGreen.Length != nWidth * nHeight ||
-                    pBlue == null || pBlue.Length != nWidth * nHeight)
-                    return null;
-
-                int[] pPixel;
-                Bitmap pResultBitmap = new Bitmap(nWidth, nHeight, PixelFormat.Format32bppArgb);
-                for (int j = 0; j < nHeight; j++)
-                {
-                    pPixel = new int[nWidth];
-                    for (int i = 0; i < nWidth; i++)
-                    {
-                        byte[] pBytePixel = new byte[4];
-                        pBytePixel[0] = pBlue[j * nWidth + i];
-                        pBytePixel[1] = pGreen[j * nWidth + i];
-                        pBytePixel[2] = pRed[j * nWidth + i];
-                        pBytePixel[3] = (byte)255; // Alpha = Max (0xff)
-                        pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
-                    }
-                    BitmapFactory.Memory.Print24bitLine(pPixel, ref pResultBitmap, j);
-                }
-                return BitmapFactory.CopyBitmap(pResultBitmap);
-            }
-
-            public static byte[] To8BitGrayBuffer(Bitmap pBitmapGray)
-            {
-                if (pBitmapGray.PixelFormat != PixelFormat.Format8bppIndexed) return null;
-                return BitmapFactory.Memory.Scan8bitImage(ref pBitmapGray);
-            }
-
             public static byte[] To8BitGrayBuffer(int[] pBuffer, int nWidth, int nHeight)
             {
                 if (pBuffer.Length != nWidth * nHeight) return null;
@@ -285,12 +62,6 @@ namespace YoonFactory.Image
                     }
                 }
                 return pByte;
-            }
-
-            public static int[] To24BitColorBuffer(Bitmap pBitmapColor)
-            {
-                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
-                return BitmapFactory.Memory.Scan24bitImage(ref pBitmapColor);
             }
 
             public static int[] To24BitColorBuffer(byte[] pRed, byte[] pGreen, byte[] pBlue, int nWidth, int nHeight)
@@ -347,12 +118,6 @@ namespace YoonFactory.Image
                 return pByte;
             }
 
-            public static byte[] To8BitRedBuffer(Bitmap pBitmapColor)
-            {
-                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
-                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 0); // 0 : Red
-            }
-
             public static byte[] To8BitGreenBuffer(int[] pBuffer, int nWidth, int nHeight)
             {
                 if (pBuffer.Length != nWidth * nHeight) return null;
@@ -367,12 +132,6 @@ namespace YoonFactory.Image
                     }
                 }
                 return pByte;
-            }
-
-            public static byte[] To8BitGreenBuffer(Bitmap pBitmapColor)
-            {
-                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
-                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 1); // 1 : Green
             }
 
             public static byte[] To8BitBlueBuffer(int[] pBuffer, int nWidth, int nHeight)
@@ -390,13 +149,6 @@ namespace YoonFactory.Image
                 }
                 return pByte;
             }
-
-            public static byte[] To8BitBlueBuffer(Bitmap pBitmapColor)
-            {
-                if (pBitmapColor.PixelFormat != PixelFormat.Format24bppRgb) return null;
-                return BitmapFactory.Memory.Scan24bitImageByPlane(ref pBitmapColor, 0); // 3 : Blue
-            }
-            #endregion
         }
 
         // Pattern Match
@@ -1462,7 +1214,7 @@ namespace YoonFactory.Image
 
             //  start X, start Y에서 시작하는 선분(Line) 채우기.
             //  재귀 함수를 사용해서 X, Y 방향을 모두 채우며, 채워야 할 Rect의 Pixel 갯수를 구한다.
-            public static int FillLine(ref ushort[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, ushort threshold, bool isWhite, ushort value, int pixLeft, int pixRight, eYoonDirY flag)
+            public static int FillLine(ref ushort[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, ushort threshold, bool isWhite, ushort value, int pixLeft, int pixRight, eYoonDir2D flag)
             {
                 int x, y, level;
                 int left, right;
@@ -1484,19 +1236,19 @@ namespace YoonFactory.Image
                 if (isWhite == false)
                     goto FuncBlack;
                 ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDirY.Top)
+                if (flag == eYoonDir2D.Top)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 else
@@ -1505,23 +1257,23 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDirY.Bottom)
+                if (flag == eYoonDir2D.Bottom)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 else
@@ -1530,26 +1282,26 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 goto FuncEnd;
 
             FuncBlack:
                 ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDirY.Top)
+                if (flag == eYoonDir2D.Top)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 else
@@ -1558,23 +1310,23 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDirY.Bottom)
+                if (flag == eYoonDir2D.Bottom)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 else
@@ -1583,7 +1335,7 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 goto FuncEnd;
@@ -1592,7 +1344,7 @@ namespace YoonFactory.Image
                 return right;
             }
 
-            public static int FillLine(ref int[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, int threshold, bool isWhite, int value, int pixLeft, int pixRight, eYoonDirY flag)
+            public static int FillLine(ref int[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, int threshold, bool isWhite, int value, int pixLeft, int pixRight, eYoonDir2D flag)
             {
                 int x, y, level;
                 int left, right;
@@ -1614,19 +1366,19 @@ namespace YoonFactory.Image
                 if (isWhite == false)
                     goto FuncBlack;
                 ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDirY.Top)
+                if (flag == eYoonDir2D.Top)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 else
@@ -1635,23 +1387,23 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDirY.Bottom)
+                if (flag == eYoonDir2D.Bottom)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 else
@@ -1660,26 +1412,26 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 goto FuncEnd;
 
             FuncBlack:
                 ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDirY.Top)
+                if (flag == eYoonDir2D.Top)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 else
@@ -1688,23 +1440,23 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y - 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDirY.Bottom);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
                     }
                 }
                 ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDirY.Bottom)
+                if (flag == eYoonDir2D.Bottom)
                 {
                     for (x = left; x < pixLeft; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                     for (x = pixRight + 1; x <= right; x++)
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 else
@@ -1713,7 +1465,7 @@ namespace YoonFactory.Image
                     {
                         level = pBuffer[(y + 1) * width + x];
                         if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDirY.Top);
+                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
                     }
                 }
                 goto FuncEnd;
@@ -2246,7 +1998,7 @@ namespace YoonFactory.Image
                     }
                     //////  임시 Buffer의 각 Pixel들의 Gray Level이 threshold 이상인 경우 White, 아닌 경우 Black으로 매긴다.
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     //		whiteCount  = 0;
                     //		blackCount  = 0;
                     //		for(j=foundRect.Top;	j<=foundRect.Bottom;	j++)
@@ -2335,7 +2087,7 @@ namespace YoonFactory.Image
                     }
                     //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     ////// 찾은 영역을 List 상에 저장한다.
                     if (pListObjectInfo.Count < MAX_OBJECT)
                     {
@@ -2392,7 +2144,7 @@ namespace YoonFactory.Image
                     }
                     //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     ////// 찾은 영역을 List 상에 저장한다.
                     if (pListObjectInfo.Count < MAX_OBJECT)
                     {
@@ -2448,7 +2200,7 @@ namespace YoonFactory.Image
                     }
                     //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     ////// 찾은 영역을 List 상에 저장한다.
                     if (pListObjectInfo.Count < MAX_OBJECT)
                     {
@@ -2506,7 +2258,7 @@ namespace YoonFactory.Image
                     }
                     //		m_stackCount = 0;
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     //////  "외곽찾기"이기 때문에 Object가 지나치게 큰 경우 예외처리한다.
                     if (foundRect.Width >= width / 2 && foundRect.Height >= height / 2)
                         break;
@@ -2559,7 +2311,7 @@ namespace YoonFactory.Image
                     }
                     //		m_stackCount = 0;
                     int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDirY.MaxDir);
+                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     //////  "외곽찾기"이기 때문에 Object가 지나치게 큰 경우 예외처리한다.
                     if (foundRect.Width >= width / 2 && foundRect.Height >= height / 2)
                         break;
@@ -4438,7 +4190,7 @@ namespace YoonFactory.Image
 
             #region 각종 객체 정렬하기
             //  Object Info 구조체 안의 Pick Area(Rect)들을 크기에 맞게 정렬(Sorting).
-            public static void SortObject(ref List<YoonObjectRect> pList, eYoonDirCompass direction)
+            public static void SortObject(ref List<YoonObjectRect> pList, eYoonDir2D direction)
             {
                 int minCount, diffValue, height, count;
                 YoonObjectRect pObjectMin, pObjectCurr, pObjectTemp;
@@ -4456,7 +4208,7 @@ namespace YoonFactory.Image
                         ////  정렬 방향마다 최소 Count를 다르게 가져간다.
                         switch (direction)
                         {
-                            case eYoonDirCompass.TopLeft:
+                            case eYoonDir2D.TopLeft:
                                 //////  높이차가 있는 경우 Top 우선, 없는 경우 왼쪽 우선.
                                 diffValue = (int)Math.Abs((float)(pObjectMin.PickArea as YoonRect2N).Top - (float)(pObjectCurr.PickArea as YoonRect2N).Top);
                                 height = (pObjectMin.PickArea as YoonRect2N).Bottom - (pObjectMin.PickArea as YoonRect2N).Top;
@@ -4471,7 +4223,7 @@ namespace YoonFactory.Image
                                         minCount = j;
                                 }
                                 break;
-                            case eYoonDirCompass.TopRight:
+                            case eYoonDir2D.TopRight:
                                 diffValue = (int)Math.Abs((float)(pObjectMin.PickArea as YoonRect2N).Top - (float)(pObjectCurr.PickArea as YoonRect2N).Top);
                                 height = (pObjectMin.PickArea as YoonRect2N).Bottom - (pObjectMin.PickArea as YoonRect2N).Top;
                                 //////  높이차가 있는 경우 Top 우선, 없는 경우 오른쪽 우선.
@@ -4486,11 +4238,11 @@ namespace YoonFactory.Image
                                         minCount = j;
                                 }
                                 break;
-                            case eYoonDirCompass.Left:
+                            case eYoonDir2D.Left:
                                 if ((pObjectCurr.PickArea as YoonRect2N).Left < (pObjectMin.PickArea as YoonRect2N).Left)
                                     minCount = j;
                                 break;
-                            case eYoonDirCompass.Right:
+                            case eYoonDir2D.Right:
                                 if ((pObjectCurr.PickArea as YoonRect2N).Right > (pObjectMin.PickArea as YoonRect2N).Right)
                                     minCount = j;
                                 break;
@@ -4522,7 +4274,7 @@ namespace YoonFactory.Image
             }
 
             //  일반 Rect 인자들을 정렬(Sorting).
-            public static void SortRect(ref List<IYoonRect> pList, eYoonDirCompass direction)
+            public static void SortRect(ref List<IYoonRect> pList, eYoonDir2D direction)
             {
                 int minCount, diffValue, height, count;
                 YoonRect2N pRectMin, pRectCurr, pRectTemp;
@@ -4539,7 +4291,7 @@ namespace YoonFactory.Image
                         pRectCurr = pList[j] as YoonRect2N;
                         switch (direction)
                         {
-                            case eYoonDirCompass.TopLeft:
+                            case eYoonDir2D.TopLeft:
                                 diffValue = (int)Math.Abs((float)pRectMin.Top - (float)pRectCurr.Top);
                                 height = pRectMin.Bottom - pRectMin.Top;
                                 //////  높이차가 있는 경우 Top 우선, 없는 경우 왼쪽 우선.
@@ -4554,7 +4306,7 @@ namespace YoonFactory.Image
                                         minCount = j;
                                 }
                                 break;
-                            case eYoonDirCompass.TopRight:
+                            case eYoonDir2D.TopRight:
                                 diffValue = (int)Math.Abs((float)pRectMin.Top - (float)pRectCurr.Top);
                                 height = pRectMin.Bottom - pRectMin.Top;
                                 //////  높이차가 있는 경우 Top 우선, 없는 경우 오른쪽 우선.
@@ -4569,11 +4321,11 @@ namespace YoonFactory.Image
                                         minCount = j;
                                 }
                                 break;
-                            case eYoonDirCompass.Left:
+                            case eYoonDir2D.Left:
                                 if (pRectCurr.Left < pRectMin.Left)
                                     minCount = j;
                                 break;
-                            case eYoonDirCompass.Right:
+                            case eYoonDir2D.Right:
                                 if (pRectCurr.Right > pRectMin.Right)
                                     minCount = j;
                                 break;
@@ -4602,7 +4354,7 @@ namespace YoonFactory.Image
             }
 
             //  정수 정렬.
-            public static void SortInteger(ref List<int> pList, eYoonDirNature direction)
+            public static void SortInteger(ref List<int> pList, eYoonDir2DMode direction)
             {
                 int minCount, maxCount;
                 int pMinValue, pMaxValue, pCurrValue, tempValue;
@@ -4611,7 +4363,7 @@ namespace YoonFactory.Image
                 minCount = 0;
                 maxCount = 0;
                 ////  오름차순(작은수.큰수) 時  정렬
-                if (direction == eYoonDirNature.Ascend)
+                if (direction == eYoonDir2DMode.Increase)
                 {
                     for (int i = 0; i < count - 1; i++)
                     {
@@ -4631,7 +4383,7 @@ namespace YoonFactory.Image
                     }
                 }
                 ////  내림차순(큰수.작은수) 時 정렬
-                else if (direction == eYoonDirNature.Descend)
+                else if (direction == eYoonDir2DMode.Decrease)
                 {
                     for (int i = 0; i < count - 1; i++)
                     {
@@ -5269,32 +5021,32 @@ namespace YoonFactory.Image
         {
             #region 각종 그리기
             //  삼각형 칠하기.
-            public static void FillTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDirCompass direction, Color fillColor, double zoom)
+            public static void FillTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDir2D direction, Color fillColor, double zoom)
             {
                 PointF[] pPoint = new PointF[3];
                 pPoint[0].X = (float)(x * zoom);
                 pPoint[0].Y = (float)(y * zoom);
                 switch (direction)
                 {
-                    case eYoonDirCompass.Top:
+                    case eYoonDir2D.Top:
                         pPoint[1].X = pPoint[0].X + (float)(size / 2 * zoom);
                         pPoint[1].Y = pPoint[0].Y + (float)(size * zoom);
                         pPoint[2].X = pPoint[0].X - (float)(size / 2 * zoom);
                         pPoint[2].Y = pPoint[0].Y + (float)(size * zoom);
                         break;
-                    case eYoonDirCompass.Bottom:
+                    case eYoonDir2D.Bottom:
                         pPoint[1].X = pPoint[0].X - (float)(size / 2 * zoom);
                         pPoint[1].Y = pPoint[0].Y - (float)(size * zoom);
                         pPoint[2].X = pPoint[0].X + (float)(size / 2 * zoom);
                         pPoint[2].Y = pPoint[0].Y - (float)(size * zoom);
                         break;
-                    case eYoonDirCompass.Left:
+                    case eYoonDir2D.Left:
                         pPoint[1].X = pPoint[0].X + (float)(size * zoom);
                         pPoint[1].Y = pPoint[0].Y - (float)(size / 2 * zoom);
                         pPoint[2].X = pPoint[0].X + (float)(size * zoom);
                         pPoint[2].Y = pPoint[0].Y + (float)(size / 2 * zoom);
                         break;
-                    case eYoonDirCompass.Right:
+                    case eYoonDir2D.Right:
                         pPoint[1].X = pPoint[0].X - (float)(size * zoom);
                         pPoint[1].Y = pPoint[0].Y + (float)(size / 2 * zoom);
                         pPoint[2].X = pPoint[0].X - (float)(size * zoom);
@@ -5350,32 +5102,32 @@ namespace YoonFactory.Image
             }
 
             //  삼각형 그리기.
-            public static void DrawTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDirCompass direction, int penWidth, Color penColor, double zoom)
+            public static void DrawTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDir2D direction, int penWidth, Color penColor, double zoom)
             {
                 PointF[] pIYoonVector = new PointF[3];
                 pIYoonVector[0].X = (float)(x * zoom);
                 pIYoonVector[0].Y = (float)(y * zoom);
                 switch (direction)
                 {
-                    case eYoonDirCompass.Top:
+                    case eYoonDir2D.Top:
                         pIYoonVector[1].X = pIYoonVector[0].X + (float)(size / 2 * zoom);
                         pIYoonVector[1].Y = pIYoonVector[0].Y + (float)(size * zoom);
                         pIYoonVector[2].X = pIYoonVector[0].X - (float)(size / 2 * zoom);
                         pIYoonVector[2].Y = pIYoonVector[0].Y + (float)(size * zoom);
                         break;
-                    case eYoonDirCompass.Bottom:
+                    case eYoonDir2D.Bottom:
                         pIYoonVector[1].X = pIYoonVector[0].X - (float)(size / 2 * zoom);
                         pIYoonVector[1].Y = pIYoonVector[0].Y - (float)(size * zoom);
                         pIYoonVector[2].X = pIYoonVector[0].X + (float)(size / 2 * zoom);
                         pIYoonVector[2].Y = pIYoonVector[0].Y - (float)(size * zoom);
                         break;
-                    case eYoonDirCompass.Left:
+                    case eYoonDir2D.Left:
                         pIYoonVector[1].X = pIYoonVector[0].X + (float)(size * zoom);
                         pIYoonVector[1].Y = pIYoonVector[0].Y - (float)(size / 2 * zoom);
                         pIYoonVector[2].X = pIYoonVector[0].X + (float)(size * zoom);
                         pIYoonVector[2].Y = pIYoonVector[0].Y + (float)(size / 2 * zoom);
                         break;
-                    case eYoonDirCompass.Right:
+                    case eYoonDir2D.Right:
                         pIYoonVector[1].X = pIYoonVector[0].X - (float)(size * zoom);
                         pIYoonVector[1].Y = pIYoonVector[0].Y + (float)(size / 2 * zoom);
                         pIYoonVector[2].X = pIYoonVector[0].X - (float)(size * zoom);
@@ -5638,14 +5390,14 @@ namespace YoonFactory.Image
                 ////  원래 값을 임시 Buffer에 보관해 놓는다.
                 Array.Clear(pDestination, 0, pDestination.Length);
                 //	enum { EDGE_LEFT_TOP, EDGE_RIGHT_TOP, EDGE_RIGHT_BOTTOM, EDGE_LEFT_BOTTOM, EDGE_TOTAL}; // 각 Edge의 순서 설정.
-                leftTop.X = pEdgePos[(int)eYoonDirRect.TopLeft].X;
-                leftTop.Y = pEdgePos[(int)eYoonDirRect.TopLeft].Y;
-                rightTop.X = pEdgePos[(int)eYoonDirRect.TopRight].X;
-                rightTop.Y = pEdgePos[(int)eYoonDirRect.TopRight].Y;
-                leftBottom.X = pEdgePos[(int)eYoonDirRect.BottomLeft].X;
-                leftBottom.Y = pEdgePos[(int)eYoonDirRect.BottomLeft].Y;
-                rightBottom.X = pEdgePos[(int)eYoonDirRect.BottomRight].X;
-                rightBottom.Y = pEdgePos[(int)eYoonDirRect.BottomRight].Y;
+                leftTop.X = pEdgePos[(int)eYoonDir2D.TopLeft].X;
+                leftTop.Y = pEdgePos[(int)eYoonDir2D.TopLeft].Y;
+                rightTop.X = pEdgePos[(int)eYoonDir2D.TopRight].X;
+                rightTop.Y = pEdgePos[(int)eYoonDir2D.TopRight].Y;
+                leftBottom.X = pEdgePos[(int)eYoonDir2D.BottomLeft].X;
+                leftBottom.Y = pEdgePos[(int)eYoonDir2D.BottomLeft].Y;
+                rightBottom.X = pEdgePos[(int)eYoonDir2D.BottomRight].X;
+                rightBottom.Y = pEdgePos[(int)eYoonDir2D.BottomRight].Y;
                 leftTopToLeftBottom_X = leftTop.X - leftBottom.X;
                 leftTopToLeftBottom_Y = leftTop.Y - leftBottom.Y;
                 rightTopToRightBottom_x = rightTop.X - rightBottom.X;
@@ -5835,7 +5587,7 @@ namespace YoonFactory.Image
                     }
                 }
                 ////  Center 값 정렬.
-                Sort.SortInteger(ref pListCenterPos, eYoonDirNature.Ascend);
+                Sort.SortInteger(ref pListCenterPos, eYoonDir2DMode.Increase);
                 ////   하나씩 검증하면서 진행
                 for (int iList = 0; iList < pListCenterPos.Count; iList++)
                 {
