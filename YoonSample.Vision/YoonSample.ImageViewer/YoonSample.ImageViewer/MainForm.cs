@@ -73,11 +73,11 @@ namespace YoonSample.ImageViewer
             switch (m_nSelectedCamera)
             {
                 case eYoonCamera.BaslerColor:
-                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 4);
+                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
                     imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
                 case eYoonCamera.RealsenseColor:
-                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 4);
+                    CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3, eYoonRGBMode.Mixed);
                     imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
                 case eYoonCamera.BaslerMono:

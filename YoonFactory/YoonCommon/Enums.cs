@@ -19,20 +19,6 @@ namespace YoonFactory
         AxisY,
     }
 
-    public enum eYoonMouseMode : int
-    {
-        GetNone,
-        GetPosition,
-        GetRectangle,
-        GetWidth,
-        GetCenter,
-        FixedCenter,
-        GetCircle,
-        GetDistance,
-        GetXPos,
-        GetYPos,
-        GetXSize,
-    }
     public enum eYoonStatus : int
     {
         Normal = 0,
