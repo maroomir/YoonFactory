@@ -23,9 +23,6 @@ namespace YoonFactory.Log
 
                 // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
                 // TODO: 큰 필드를 null로 설정합니다.
-                if (Repository != null)
-                    Repository.Clear();
-                Repository = null;
                 disposedValue = true;
             }
         }
@@ -47,7 +44,6 @@ namespace YoonFactory.Log
         #endregion
 
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory", "CLMLog");
-        public LogSection Repository { get; private set; } = new LogSection();
         public event LogProcessCallback OnProcessLogEvent;  // Interface 맞춤용 (사용안함)
 
         private int m_nDirectoryFileExistDays = 1; // 0일 경우 충돌 발생
@@ -88,19 +84,11 @@ namespace YoonFactory.Log
             DateTime pNow = DateTime.Now;
             string nowTime = string.Format("{0:yyyy-MM-dd HH:mm:ss:fff}", pNow);
             string strLine = "[" + nowTime + "] " + strMessage;
-            if (Repository != null)
-                Repository[pNow] = strMessage;
             Console.WriteLine(strLine);
 #if DEBUG
             if (RootDirectory != string.Empty && isSave)
                 WriteConsoleLog(strLine);
 #endif
-        }
-
-        public void Clear()
-        {
-            if (Repository != null)
-                Repository.Clear();
         }
 
         /// <summary>

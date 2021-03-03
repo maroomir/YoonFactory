@@ -43,7 +43,7 @@ namespace YoonFactory.Cognex
             {
                 CogRectangleAffine pCogRect = pResult.GetBoundingBox(CogBlobAxisConstants.Principal);
                 CogShapeDictionary.Add(pResult.ID, new CogRectangleAffine(pCogRect));
-                YoonObjectRect pObject = new YoonObjectRect();
+                YoonRectObject pObject = new YoonRectObject();
                 {
                     pObject.LabelNo = pResult.ID;
                     pObject.FeaturePos = new YoonVector2D(pResult.CenterOfMassX, pResult.CenterOfMassY);
@@ -60,7 +60,7 @@ namespace YoonFactory.Cognex
             if (pImageResult != null)
                 ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
 
-            YoonObjectLine pObject = new YoonObjectLine();
+            YoonLineObject pObject = new YoonLineObject();
             {
                 pObject.StartPos = new YoonVector2D();
                 (pObject.StartPos as YoonVector2D).X = pLine.StartX;
@@ -78,7 +78,7 @@ namespace YoonFactory.Cognex
             if (pImageResult != null)
                 ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
 
-            YoonObjectRect pObject = new YoonObjectRect();
+            YoonRectObject pObject = new YoonRectObject();
             {
                 pObject.LabelNo = 0;
                 pObject.FeaturePos = new YoonVector2D(pResult.TranslationX, pResult.TranslationY);
@@ -165,7 +165,7 @@ namespace YoonFactory.Cognex
         {
             if (ToolType != eYoonCognexType.PMAlign) return new YoonVector2D();
 
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
+            if (ObjectDictionary[0] is YoonRectObject pObject)
                 return pObject.FeaturePos as YoonVector2D;
             else
                 return new YoonVector2D();
@@ -175,7 +175,7 @@ namespace YoonFactory.Cognex
         {
             if (ToolType != eYoonCognexType.PMAlign) return new YoonRectAffine2D(0, 0, 0);
 
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
+            if (ObjectDictionary[0] is YoonRectObject pObject)
                 return pObject.PickArea as YoonRectAffine2D;
             else
                 return new YoonRectAffine2D(0, 0, 0);
@@ -185,7 +185,7 @@ namespace YoonFactory.Cognex
         {
             if (ToolType != eYoonCognexType.PMAlign) return 0.0;
 
-            if (ObjectDictionary[0] is YoonObjectRect pObject)
+            if (ObjectDictionary[0] is YoonRectObject pObject)
             {
                 if (pObject.PickArea is YoonRectAffine2D pRect)
                     return pRect.Rotation;

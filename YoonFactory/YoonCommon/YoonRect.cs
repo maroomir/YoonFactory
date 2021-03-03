@@ -7,6 +7,19 @@ namespace YoonFactory
     /// </summary>
     public class YoonRect2N : IYoonRect, IYoonRect2D<int>
     {
+        public bool Equals(IYoonRect r)
+        {
+            if (r is YoonRect2N rect)
+            {
+                if (CenterPos.X == rect.CenterPos.X &&
+                    CenterPos.Y == rect.CenterPos.Y &&
+                    Width == rect.Width &&
+                    Height == rect.Height)
+                    return true;
+            }
+            return false;
+        }
+
         public IYoonRect Clone()
         {
             YoonRect2N r = new YoonRect2N();
@@ -79,6 +92,7 @@ namespace YoonFactory
             Width = 0;
             Height = 0;
         }
+
         public YoonRect2N(int dx, int dy, int dw, int dh)
         {
             CenterPos = new YoonVector2N();
@@ -98,6 +112,19 @@ namespace YoonFactory
     /// </summary>
     public class YoonRect2D : IYoonRect, IYoonRect2D<double>
     {
+        public bool Equals(IYoonRect r)
+        {
+            if (r is YoonRect2D rect)
+            {
+                if (CenterPos.X == rect.CenterPos.X &&
+                    CenterPos.Y == rect.CenterPos.Y &&
+                    Width == rect.Width &&
+                    Height == rect.Height)
+                    return true;
+            }
+            return false;
+        }
+
         public IYoonRect Clone()
         {
             YoonRect2D r = new YoonRect2D();

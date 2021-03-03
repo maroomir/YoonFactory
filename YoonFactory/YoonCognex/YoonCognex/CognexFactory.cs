@@ -983,7 +983,7 @@ namespace YoonFactory.Cognex
 
                 foreach (int nID in pResult.CogShapeDictionary.Keys)
                 {
-                    if (!pResult.ObjectDictionary.ContainsKey(nID) || (pResult.ObjectDictionary[nID] as YoonObjectRect).PixelCount < nMinimumPixelCount) continue;
+                    if (!pResult.ObjectDictionary.ContainsKey(nID) || (pResult.ObjectDictionary[nID] as YoonRectObject).PixelCount < nMinimumPixelCount) continue;
 
                     CogRectangleAffine cogRectAffine = pResult.CogShapeDictionary[nID] as CogRectangleAffine;
                     {
@@ -1015,7 +1015,7 @@ namespace YoonFactory.Cognex
             {
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
-                if (pResult.ObjectDictionary[0] is YoonObjectRect pObjectPattern)
+                if (pResult.ObjectDictionary[0] is YoonRectObject pObjectPattern)
                 {
                     YoonVector2D pMatchPos = pObjectPattern.FeaturePos as YoonVector2D;
                     YoonRectAffine2D pPickArea = pObjectPattern.PickArea as YoonRectAffine2D;
@@ -1067,7 +1067,7 @@ namespace YoonFactory.Cognex
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
 
-                if (pResult.ObjectDictionary[0] is YoonObjectRect pObjectPattern)
+                if (pResult.ObjectDictionary[0] is YoonRectObject pObjectPattern)
                 {
                     YoonVector2D pMatchPos = pObjectPattern.FeaturePos as YoonVector2D;
                     YoonRectAffine2D pPickArea = pObjectPattern.PickArea as YoonRectAffine2D;

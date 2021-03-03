@@ -168,7 +168,7 @@ namespace YoonFactory.Image
             switch (nFormat)
             {
                 case PixelFormat.Format8bppIndexed:
-                    SetIndexedImage(ptrAddress);
+                    SetGrayImage(ptrAddress);
                     break;
                 case PixelFormat.Format24bppRgb:
                     switch(nMode)
@@ -213,7 +213,7 @@ namespace YoonFactory.Image
             switch (nFormat)
             {
                 case PixelFormat.Format8bppIndexed:
-                    SetIndexedImage(pBuffer);
+                    SetGrayImage(pBuffer);
                     break;
                 case PixelFormat.Format24bppRgb:
                     switch (nMode)
@@ -268,7 +268,7 @@ namespace YoonFactory.Image
             switch (nPlane)
             {
                 case 1:
-                    SetIndexedImage(ptrAddress);
+                    SetGrayImage(ptrAddress);
                     break;
                 case 3:
                     switch (nMode)
@@ -313,7 +313,7 @@ namespace YoonFactory.Image
             switch (nPlane)
             {
                 case 1:
-                    SetIndexedImage(pBuffer);
+                    SetGrayImage(pBuffer);
                     break;
                 case 3:
                     switch (nMode)
@@ -418,6 +418,11 @@ namespace YoonFactory.Image
                 pArea.Height = m_pBitmap.Height - pArea.Top;
         }
 
+        public bool IsVerifiedArea(YoonRect2N pArea)
+        {
+            return (pArea.Left < 0 || pArea.Top < 0 || pArea.Right > m_pBitmap.Width || pArea.Bottom > m_pBitmap.Height) ? false : true;
+        }
+
         public bool LoadImage(string strPath)
         {
             if (IsFileExist()) return false;
@@ -457,7 +462,7 @@ namespace YoonFactory.Image
                 switch (Plane)
                 {
                     case 1:
-                        pResult.SetIndexedImage(this.GetIndexedBuffer());
+                        pResult.SetGrayImage(this.GetGrayBuffer());
                         break;
                     case 3:
                         pResult.SetRGBImage(this.GetRGBBuffer());
@@ -487,12 +492,29 @@ namespace YoonFactory.Image
                     {
                         int nX = cropArea.Left + iX;
                         if (nX >= m_pBitmap.Width) continue;
-                        pByte[iX] = Math.Max((byte)0, Math.Min(GetIndexedPixel(iX, iY), (byte)255));
+                        pByte[iX] = Math.Max((byte)0, Math.Min(GetGrayPixel(iX, iY), (byte)255));
                     }
-                    pImageResult.SetIndexedLine(pByte, iY);
+                    pImageResult.SetGrayLine(pByte, iY);
                 }
             }
             return pImageResult;
+        }
+
+        public YoonImage ToGrayImage()
+        {
+            if (Plane == 1)
+                return this;
+            if (Plane != 3 || Plane != 4)
+                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+            byte[] pByte = new byte[Width * Height];
+            for (int j = 0; j < Height; j++)
+            {
+                for (int i = 0; i < Width; i++)
+                {
+                    pByte[j * Width + i] = (byte)(0.299f * GetRedPixel(i, j) + 0.587f * GetGreenPixel(i, j) + 0.114f * GetBluePixel(i, j)); // ITU-RBT.709, YPrPb
+                }
+            }
+            return new YoonImage(pByte, Width, Height, PixelFormat.Format8bppIndexed);
         }
 
         public bool SetOffset(byte offset)
@@ -506,30 +528,30 @@ namespace YoonFactory.Image
                 pByte = new byte[m_pBitmap.Width];
                 for (int iX = 0; iX < m_pBitmap.Width; iX++)
                 {
-                    pByte[iX] = (byte)Math.Max(0, Math.Min(GetIndexedPixel(iX, iY) + offset, 255));
+                    pByte[iX] = (byte)Math.Max(0, Math.Min(GetGrayPixel(iX, iY) + offset, 255));
                 }
-                if (!SetIndexedLine(pByte, iY))
+                if (!SetGrayLine(pByte, iY))
                     bResult = false;
             }
             return bResult;
         }
 
-        public byte[] GetIndexedBuffer()
+        public byte[] GetGrayBuffer()
         {
             return Scan8bitBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
         }
 
-        public byte[] GetIndexedLine(int nPixelY)
+        public byte[] GetGrayLine(int nPixelY)
         {
             return Scan8bitBuffer(new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
         }
 
-        public byte GetIndexedPixel(int nPixelX, int nPixelY)
+        public byte GetGrayPixel(int nPixelX, int nPixelY)
         {
             return Scan8bitBuffer(new Rectangle(nPixelX, nPixelY, 1, 1))[0];
         }
 
-        public byte GetIndexedPixel(YoonVector2N pVec)
+        public byte GetGrayPixel(YoonVector2N pVec)
         {
             return Scan8bitBuffer(new Rectangle(pVec.X, pVec.Y, 1, 1))[0];
         }
@@ -557,6 +579,19 @@ namespace YoonFactory.Image
             }
         }
 
+        private byte GetPlanePixel(int nPlane, int nPixelX, int nPixelY)
+        {
+            switch (m_pBitmap.PixelFormat)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return Scan24bitBufferPerPlane(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
+                case PixelFormat.Format32bppArgb:
+                    return Scan32bitBufferPerPlane(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            }
+        }
+
         public byte[] GetRedBuffer()
         {
             switch (m_pBitmap.PixelFormat)
@@ -565,6 +600,19 @@ namespace YoonFactory.Image
                     return GetPlaneBuffer(0); // 0 : Red
                 case PixelFormat.Format32bppArgb:
                     return GetPlaneBuffer(1); // 1 : Red
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            }
+        }
+
+        public byte GetRedPixel(int nPixelX, int nPixelY)
+        {
+            switch (m_pBitmap.PixelFormat)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 0); // 0 : Red
+                case PixelFormat.Format32bppArgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 1); // 1 : Red
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -583,6 +631,19 @@ namespace YoonFactory.Image
             }
         }
 
+        public byte GetGreenPixel(int nPixelX, int nPixelY)
+        {
+            switch (m_pBitmap.PixelFormat)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 1); // 1 : Green
+                case PixelFormat.Format32bppArgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 2); // 2 : Green
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            }
+        }
+
         public byte[] GetBlueBuffer()
         {
             switch (m_pBitmap.PixelFormat)
@@ -595,6 +656,20 @@ namespace YoonFactory.Image
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
         }
+
+        public byte GetBluePixel(int nPixelX, int nPixelY)
+        {
+            switch (m_pBitmap.PixelFormat)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 2); // 2 : Blue
+                case PixelFormat.Format32bppArgb:
+                    return GetPlanePixel(nPixelX, nPixelY, 3); // 3 : Blue
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            }
+        }
+
         public byte[] GetRGBLine(int nPixelY)
         {
             return Scan24bitBuffer(new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
@@ -625,7 +700,7 @@ namespace YoonFactory.Image
             return Scan32bitBuffer(new Rectangle(pVec.X, pVec.Y, 1, 1))[0];
         }
 
-        public bool SetIndexedImage(IntPtr pBufferAddress)
+        public bool SetGrayImage(IntPtr pBufferAddress)
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
@@ -634,25 +709,25 @@ namespace YoonFactory.Image
 
             byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height];
             Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height);
-            return SetIndexedImage(pBuffer);
+            return SetGrayImage(pBuffer);
         }
 
-        public bool SetIndexedImage(byte[] pBuffer)
+        public bool SetGrayImage(byte[] pBuffer)
         {
             return Print8bitBuffer(pBuffer, new Rectangle(Point.Empty, m_pBitmap.Size));
         }
 
-        public bool SetIndexedLine(byte[] pBuffer, int nPixelY)
+        public bool SetGrayLine(byte[] pBuffer, int nPixelY)
         {
             return Print8bitBuffer(pBuffer, new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
         }
 
-        public bool SetIndexedPixel(byte nLevel, int nPixelX, int nPixelY)
+        public bool SetGrayPixel(byte nLevel, int nPixelX, int nPixelY)
         {
             return Print8bitBuffer(new byte[1] { nLevel }, new Rectangle(nPixelX, nPixelY, 1, 1));
         }
 
-        public bool SetIndexedPixel(byte nLevel, YoonVector2N pVec)
+        public bool SetGrayPixel(byte nLevel, YoonVector2N pVec)
         {
             return Print8bitBuffer(new byte[1] { nLevel }, new Rectangle(pVec.X, pVec.Y, 1, 1));
         }

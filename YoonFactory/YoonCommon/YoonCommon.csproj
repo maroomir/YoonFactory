@@ -81,7 +81,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="YoonObject.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="MathFactory.cs" />
@@ -93,6 +92,7 @@
     <Compile Include="YoonRectAffine.cs" />
     <Compile Include="YoonTriangle.cs" />
     <Compile Include="YoonVector.cs" />
+    <Compile Include="YoonLine.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

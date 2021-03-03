@@ -48,12 +48,13 @@ namespace YoonFactory
     {
         int Count { get; }
 
+        bool Equals(IYoonVector pVector);
         IYoonVector Clone();
-        void CopyFrom(IYoonVector v);
+        void CopyFrom(IYoonVector pVector);
         void Zero();
         IYoonVector Unit();
         double Length();
-        double Distance(IYoonVector p);
+        double Distance(IYoonVector pVector);
     }
 
     public interface IYoonVector2D<T> : IYoonVector where T : IComparable, IComparable<T>
@@ -127,10 +128,27 @@ namespace YoonFactory
         void Unit();
     }
 
+    public interface IYoonLine
+    {
+        IYoonLine Clone();
+        void CopyFrom(IYoonLine pLine);
+        bool Equals(IYoonLine pLine);
+    }
+
+    public interface IYoonLine2D<T> : IYoonLine where T : IComparable, IComparable<T>
+    {
+        IYoonVector2D<T> StartPos { get; set; }
+        IYoonVector2D<T> EndPos { get; set; }
+        IYoonVector2D<T> CenterPos { get; }
+
+        T Length();
+    }
+
     public interface IYoonRect
     {
         IYoonRect Clone();
-        void CopyFrom(IYoonRect r);
+        void CopyFrom(IYoonRect pRect);
+        bool Equals(IYoonRect pRect);
     }
 
     public interface IYoonRect2D<T> : IYoonRect where T : IComparable, IComparable<T>
@@ -165,15 +183,6 @@ namespace YoonFactory
         T Area();
     }
 
-    public interface IYoonObject
-    {
-        int LabelNo { get; set; }
-        double Score { get; set; }
-
-        void CopyFrom(IYoonObject pObject);
-        IYoonObject Clone();
-    }
-
     public interface IYoonMapping : IDisposable
     {
         void CopyFrom(IYoonMapping pMapping);
@@ -199,11 +208,11 @@ namespace YoonFactory
 
         TKey KeyOf(int nIndex);
         int IndexOf(TKey pKey);
-        int IndexOf(TKey pKey, int nIndex);
-        int IndexOf(TKey pKey, int nIndex, int nCount);
+        int IndexOf(TKey pKey, int nStartIndex);
+        int IndexOf(TKey pKey, int nStartIndex, int nCount);
         int LastIndexOf(TKey pKey);
-        int LastIndexOf(TKey pKey, int nIndex);
-        int LastIndexOf(TKey pKey, int nIndex, int nCount);
+        int LastIndexOf(TKey pKey, int nStartIndex);
+        int LastIndexOf(TKey pKey, int nStartIndex, int nCount);
         void Insert(int nIndex, TKey pKey, TValue pValue);
         void InsertRange(int nIndex, IEnumerable<KeyValuePair<TKey, TValue>> pCollection);
         void RemoveAt(int nIndex);

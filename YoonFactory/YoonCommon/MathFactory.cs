@@ -68,6 +68,69 @@ namespace YoonFactory
             return coefficient;
         }
 
+        public static double GetCorrelationCoefficient(int[] pBuffer1, int[] pBuffer2, int width, int height)
+        {
+            int valueBuffer1, valueBuffer2;
+            int diffBuffer1, diffBuffer2;
+            double averageBuffer1, averageBuffer2;
+            int sumBuffer1, sumBuffer2, sumDiff;
+            double dx, dy, dxy;
+            double coefficient;
+            int size;
+            //// Pattern의 평균값을 구한다.
+            size = width * height;
+            sumBuffer1 = 0;
+            for (int j = 0; j < height; j++)
+            {
+                for (int i = 0; i < width; i++)
+                {
+                    valueBuffer1 = pBuffer1[j * width + i];
+                    sumBuffer1 += valueBuffer1;
+                }
+            }
+            averageBuffer1 = (double)sumBuffer1 / (double)size;
+            ////  현 위치의 평균값을 구한다.
+            sumBuffer2 = 0;
+            for (int j = 0; j < height; j++)
+            {
+                for (int i = 0; i < width; i++)
+                {
+                    valueBuffer2 = pBuffer2[j * width + i];
+                    sumBuffer2 += valueBuffer2;
+                }
+            }
+            averageBuffer2 = (double)sumBuffer2 / (double)size;
+            ////  상관계수 구하기.
+            dx = 0;
+            dy = 0;
+            dxy = 0;
+            sumDiff = 0;
+            for (int j = 0; j < height; j++)
+            {
+                for (int i = 0; i < width; i++)
+                {
+                    valueBuffer1 = pBuffer1[j * width + i];
+                    valueBuffer2 = pBuffer2[j * width + i];
+                    diffBuffer1 = valueBuffer1 - (int)averageBuffer1;
+                    diffBuffer2 = valueBuffer2 - (int)averageBuffer2;
+                    // 상관계수 산출식.
+                    dx += diffBuffer1 * diffBuffer1;
+                    dy += diffBuffer2 * diffBuffer2;
+                    dxy += diffBuffer1 * diffBuffer2;
+                    sumDiff += Math.Abs(diffBuffer1 - diffBuffer2);
+                }
+            }
+            ////  상관계수 방정식 및 값 산출.
+            double a = Math.Sqrt(dx * dy);
+            double b = dxy;
+            if (Math.Abs(a) < 1)
+            {
+                a = 1;
+            }
+            coefficient = b * 100.0 / a;
+            return coefficient;
+        }
+
         //  최소자승법.  (Y = AX + B)
         public static bool LeastSquare(ref double pA, ref double pB, int number, double[] pX, double[] pY)
         {

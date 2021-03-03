@@ -98,6 +98,19 @@ namespace YoonFactory
             v.W = this.W;
             return v;
         }
+
+        public bool Equals(IYoonVector v)
+        {
+            if (v is YoonVector2N vec)
+            {
+                if (X == vec.X &&
+                    Y == vec.Y &&
+                    W == vec.W)
+                    return true;
+            }
+            return false;
+        }
+
         [XmlIgnore]
         private static double DELTA = 0.0000000000001;
         [XmlIgnore]
@@ -373,6 +386,18 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(IYoonVector v)
+        {
+            if (v is YoonVector2D vec)
+            {
+                if (X == vec.X &&
+                    Y == vec.Y &&
+                    W == vec.W)
+                    return true;
+            }
+            return false;
+        }
+
         public void CopyFrom(IYoonVector v)
         {
             if (v is YoonVector2D vec)
@@ -600,6 +625,18 @@ namespace YoonFactory
     public class YoonVector3D : IYoonVector, IYoonVector3D<double>
     {
         public int Count { get; } = 4;
+
+        public bool Equals(IYoonVector v)
+        {
+            if (v is YoonVector3D vec)
+            {
+                if (X == vec.X &&
+                    Y == vec.Y &&
+                    W == vec.W)
+                    return true;
+            }
+            return false;
+        }
 
         public void CopyFrom(IYoonVector v)
         {
