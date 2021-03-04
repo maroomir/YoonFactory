@@ -69,6 +69,7 @@ namespace YoonFactory
         IYoonVector Scale(T sx, T sy);
         IYoonVector Move(T dx, T dy);
         IYoonVector Move(IYoonVector v);
+        IYoonVector Move(eYoonDir2D dir);
         IYoonVector Rotate(double angle);
         IYoonVector Rotate(IYoonVector center, double angle);
     }

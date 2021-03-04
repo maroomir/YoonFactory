@@ -1225,18 +1225,18 @@ namespace YoonFactory.Image
             }
 
             //  영역 가득 채우기  (영역 내에 value값 채우기)
-            public static bool FillFlood(ref int[] pBuffer, ref int fillCount, int width, int height, int x, int y, int threshold, bool isWhite, int value, ref int totalCount)
+            public static bool FillFlood(ref int[] pBuffer, ref int fillCount, int width, int height, YoonVector2N pVector, int threshold, bool isWhite, int value, ref int totalCount)
             {
-                if (x < 0 || x >= width) return true;
-                if (y < 0 || y >= height) return true;
+                if (pVector.X < 0 || pVector.X >= width) return true;
+                if (pVector.Y < 0 || pVector.Y >= height) return true;
                 totalCount++;   // FillFlood의 동작 횟수
                 if (totalCount > MAX_FILL_NUM) return false;
                 //// x, y가 지정치보다 크거나, stact count가 높을 때 Value 값 채우기를 그만한다.
                 if (isWhite)
                 {
-                    if (pBuffer[y * width + x] >= threshold)
+                    if (pBuffer[pVector.Y * width + pVector.X] >= threshold)
                     {
-                        pBuffer[y * width + x] = value;
+                        pBuffer[pVector.Y * width + pVector.X] = value;
                         ////  Object 찾기와 연동하기 위한 Counter.
                         fillCount++;    // 실제로 Fill 된 Count
                         ////  재귀 함수.
@@ -1327,8 +1327,8 @@ namespace YoonFactory.Image
                 left = startX;
                 right = startX;
                 y = startY;
-                left = ScanPixel.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
-                right = ScanPixel.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
+                left = Scanner.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
+                right = Scanner.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
                 for (x = left; x <= right; x++)
                 {
                     pBuffer[y * width + x] = value;
@@ -1453,8 +1453,8 @@ namespace YoonFactory.Image
                 left = startX;
                 right = startX;
                 y = startY;
-                left = ScanPixel.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
-                right = ScanPixel.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
+                left = Scanner.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
+                right = Scanner.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
                 for (x = left; x <= right; x++)
                 {
                     pBuffer[y * width + x] = value;
@@ -2214,22 +2214,23 @@ namespace YoonFactory.Image
             }
 
             //  객체 찾기.
-            public static void FindTotalObject(byte[] pBuffer, out List<YoonRectObject> pListObjectInfo, int imageWidth, YoonRect2N scanArea, int threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindAllObject(YoonRect2N scanArea, byte[] pBuffer, int imageWidth, byte threshold, bool isWhite)
             {
                 int i, j, x, y;
                 YoonVector2N startPos, resultPos;
                 YoonRect2N foundRect, resultRect;
-                int[] pTempBuffer;
+                ObjectList<YoonRect2N> pListResult;
+                byte[] pTempBuffer;
                 int width, height;
                 int value;
                 width = scanArea.Width;
                 height = scanArea.Height;
                 if (threshold < 10) threshold = 10;
-                pTempBuffer = new int[width * height];
+                pTempBuffer = new byte[width * height];
                 startPos = new YoonVector2N(0, 0);
                 resultPos = new YoonVector2N();
-                pListObjectInfo = new List<YoonRectObject>();
-                pListObjectInfo.Clear();
+                pListResult = new ObjectList<YoonRect2N>();
+                pListResult.Clear();
                 //// 임시 Buffer 상에 원본 Buffer 복사.  (일부 복사)
                 //	memcpy(pTempBuffer, pBuffer, sizeof(int)*width*hegiht);
                 for (j = 0; j < height; j++)
@@ -2242,13 +2243,13 @@ namespace YoonFactory.Image
                     }
                 }
                 ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, 0);  // white object를 찾기 위함.
-                else Fill.FillBound(ref pTempBuffer, width, height, 255);    // black object를 찾기 위함.
-                                                                        ////  Object를 전부 찾을 때까지 과정을 반복한다.
+                if (isWhite) pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)0);  // white object를 찾기 위함.
+                else pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)255);    // black object를 찾기 위함.
+                ////  Object를 전부 찾을 때까지 과정을 반복한다.
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
@@ -2303,7 +2304,7 @@ namespace YoonFactory.Image
             }
 
             //  객체 찾기.
-            public static void FindTotalObject(ushort[] pBuffer, out List<YoonRectObject> pListObjectInfo, int imageWidth, YoonRect2N scanArea, ushort threshold, bool isWhite)
+            public static void FindAllObject(YoonRect2N scanArea, ushort[] pBuffer, out List<YoonRectObject> pListObjectInfo, int imageWidth, ushort threshold, bool isWhite)
             {
                 int i, j, x, y;
                 YoonVector2N startPos, resultPos;
@@ -2337,7 +2338,7 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.ScanObject(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
@@ -2394,7 +2395,7 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
@@ -2450,7 +2451,7 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
@@ -2507,7 +2508,7 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  Object 시작위치 저장.
                     pPos = new YoonVector2N();
@@ -2560,7 +2561,7 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = ScanPixel.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
                     startPos = resultPos;
                     //////  Object 시작위치 저장.
                     pPos = new YoonVector2N();
@@ -4662,212 +4663,213 @@ namespace YoonFactory.Image
         }
 
         // Pixel Scan 및 추출
-        public static class ScanPixel // -> YoonImage
+        public static class Scanner
         {
-            #region 원하는 위치의 Gray Level 추출하기
             //  왼쪽 방향으로 Scan하며 threshold보다 크거나 작은 Gray Level 값 가져오기.
-            public static int ScanLeft(int[] pBuffer, int width, int height, int startX, int startY, int threshold, bool isWhite)
+            public static IYoonVector ScanLeft(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
             {
                 int value;
-                value = pBuffer[startY * width + startX];
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
                 if (isWhite)
                 {
-                    while (value > threshold && startX < width)
+                    while (value > threshold && resultPos.X > 0)
                     {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
                 else
                 {
-                    while (value <= threshold && startX < width)
+                    while (value <= threshold && resultPos.X > 0)
                     {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
-                return startX;
+                return resultPos;
             }
 
-            public static int ScanLeft(byte[] pBuffer, int width, int height, int startX, int startY, byte threshold, bool isWhite)
+            public static IYoonVector ScanLeft(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
             {
                 byte value;
-                value = pBuffer[startY * width + startX];
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
                 if (isWhite)
                 {
-                    while (value > threshold && startX < width)
+                    while (value > threshold && resultPos.X > 0)
                     {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
                 else
                 {
-                    while (value <= threshold && startX < width)
+                    while (value <= threshold && resultPos.X > 0)
                     {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
-                return startX;
-            }
-
-            public static int ScanLeft(ushort[] pBuffer, int width, int height, int startX, int startY, ushort threshold, bool isWhite)
-            {
-                ushort value;
-                value = pBuffer[startY * width + startX];
-                if (isWhite)
-                {
-                    while (value > threshold && startX < width)
-                    {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
-                    }
-                }
-                else
-                {
-                    while (value <= threshold && startX < width)
-                    {
-                        startX--;
-                        value = pBuffer[startY * width + startX];
-                    }
-                }
-                return startX;
+                return resultPos;
             }
 
             //  오른쪽 방향으로 Scan하며 threshold보다 크거나 작은 Gray Level 값 가져오기.
-            public static int ScanRight(int[] pBuffer, int width, int height, int startX, int startY, int threshold, bool isWhite)
+            public static IYoonVector ScanRight(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
             {
                 int value;
-                value = pBuffer[startY * width + startX];
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
                 if (isWhite)
                 {
-                    while (value > threshold && startX < width)
+                    while (value > threshold && resultPos.X < width)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
                 else
                 {
-                    while (value <= threshold && startX < width)
+                    while (value <= threshold && resultPos.X < width)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
-                return startX;
+                return resultPos;
             }
 
-            public static int ScanRight(byte[] pBuffer, int width, int height, int startX, int startY, byte threshold, bool isWhite)
+            public static IYoonVector ScanRight(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
             {
                 byte value;
-                value = pBuffer[startY * width + startX];
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
                 if (isWhite)
                 {
-                    while (value > threshold && startX < width)
+                    while (value > threshold && resultPos.X < width)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
                 else
                 {
-                    while (value <= threshold && startX < width)
+                    while (value <= threshold && resultPos.X < width)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.X++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
-                return startX;
+                return resultPos;
             }
 
-            public static int ScanRight(ushort[] pBuffer, int width, int height, int startX, int startY, ushort threshold, bool isWhite)
+            //  위쪽 방향으로 Scan하며 threshold보다 크거나 작은 Gray Level 값 가져오기.
+            public static IYoonVector ScanTop(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
             {
-                ushort value;
-                value = pBuffer[startY * width + startX];
+                int value;
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
                 if (isWhite)
                 {
-                    while (value > threshold && startX < width)
+                    while (value > threshold && resultPos.Y > 0)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.Y--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
                 else
                 {
-                    while (value <= threshold && startX < width)
+                    while (value <= threshold && resultPos.Y > 0)
                     {
-                        startX++;
-                        value = pBuffer[startY * width + startX];
+                        resultPos.Y--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
                     }
                 }
-                return startX;
+                return resultPos;
             }
-            #endregion
 
-            #region Black 또는 White 객체의 시작 Pixel 찾기
+            public static IYoonVector ScanTop(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
+            {
+                byte value;
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
+                if (isWhite)
+                {
+                    while (value > threshold && resultPos.Y > 0)
+                    {
+                        resultPos.Y--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                else
+                {
+                    while (value <= threshold && resultPos.Y > 0)
+                    {
+                        resultPos.Y--;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                return resultPos;
+            }
+
+            //  위쪽 방향으로 Scan하며 threshold보다 크거나 작은 Gray Level 값 가져오기.
+            public static IYoonVector ScanBottom(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
+            {
+                int value;
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
+                if (isWhite)
+                {
+                    while (value > threshold && resultPos.Y < height)
+                    {
+                        resultPos.Y++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                else
+                {
+                    while (value <= threshold && resultPos.Y < height)
+                    {
+                        resultPos.Y++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                return resultPos;
+            }
+
+            public static IYoonVector ScanBottom(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
+            {
+                byte value;
+                YoonVector2N resultPos = new YoonVector2N(startPos);
+                value = pBuffer[resultPos.Y * width + resultPos.X];
+                if (isWhite)
+                {
+                    while (value > threshold && resultPos.Y < height)
+                    {
+                        resultPos.Y++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                else
+                {
+                    while (value <= threshold && resultPos.Y < height)
+                    {
+                        resultPos.Y++;
+                        value = pBuffer[resultPos.Y * width + resultPos.X];
+                    }
+                }
+                return resultPos;
+            }
+
             //  Object, Pattern 등의 시작위치 찾기
-            public static IYoonVector LineScanHorizontal(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
-            {
-                int x, y, value;
-                YoonVector2N matchPoint;
-                matchPoint = new YoonVector2N();
-                x = (int)startPos.X;
-                y = (int)startPos.Y;
-                ////  White Point를 찾는다.
-                if (isWhite)
-                {
-                    for (int j = y; j < height; j++)
-                    {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value >= threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
-                    }
-                }
-                ////  Black Point를 찾는다.
-                else
-                {
-                    for (int j = y; j < height; j++)
-                    {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value < threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
-                    }
-                }
-                matchPoint.X = -1;
-                matchPoint.Y = -1;
-                return matchPoint;
-            }
-
-            public static IYoonVector LineScanHorizontal(ushort[] pBuffer, int width, int height, YoonVector2N startPos, ushort threshold, bool isWhite)
+            public static IYoonVector Scan2D(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
             {
                 int x, y;
                 ushort value;
                 YoonVector2N matchPoint;
                 matchPoint = new YoonVector2N();
-                x = (int)startPos.X;
-                y = (int)startPos.Y;
+                x = startPos.X;
+                y = startPos.Y;
                 ////  White IYoonVector를 찾는다.
                 if (isWhite)
                 {
@@ -4912,8 +4914,58 @@ namespace YoonFactory.Image
                 matchPoint.Y = -1;
                 return matchPoint;
             }
-            #endregion
 
+            public static IYoonVector Scan2D(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
+            {
+                int x, y, value;
+                YoonVector2N matchPoint;
+                matchPoint = new YoonVector2N();
+                x = startPos.X;
+                y = startPos.Y;
+                ////  White Point를 찾는다.
+                if (isWhite)
+                {
+                    for (int j = y; j < height; j++)
+                    {
+                        y = j;
+                        for (int i = x; i < width; i++)
+                        {
+                            x = i;
+                            value = pBuffer[y * width + x];
+                            if (value >= threshold)
+                            {
+                                matchPoint.X = x;
+                                matchPoint.Y = y;
+                                return matchPoint;
+                            }
+                        }
+                        x = 0;
+                    }
+                }
+                ////  Black Point를 찾는다.
+                else
+                {
+                    for (int j = y; j < height; j++)
+                    {
+                        y = j;
+                        for (int i = x; i < width; i++)
+                        {
+                            x = i;
+                            value = pBuffer[y * width + x];
+                            if (value < threshold)
+                            {
+                                matchPoint.X = x;
+                                matchPoint.Y = y;
+                                return matchPoint;
+                            }
+                        }
+                        x = 0;
+                    }
+                }
+                matchPoint.X = -1;
+                matchPoint.Y = -1;
+                return matchPoint;
+            }
         }
 
         // Threshold 추출

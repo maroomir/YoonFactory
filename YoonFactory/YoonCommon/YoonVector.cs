@@ -251,6 +251,11 @@ namespace YoonFactory
             return this;
         }
 
+        public IYoonVector Move(eYoonDir2D dir)
+        {
+            return Move(new YoonVector2N(dir));
+        }
+
         public IYoonVector Rotate(double angle)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
@@ -551,6 +556,11 @@ namespace YoonFactory
                 this.Y = v.Y;
             }
             return this;
+        }
+
+        public IYoonVector Move(eYoonDir2D dir)
+        {
+            return Move(new YoonVector2D(dir));
         }
 
         public IYoonVector Rotate(double angle)
