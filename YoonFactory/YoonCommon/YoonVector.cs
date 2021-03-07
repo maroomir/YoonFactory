@@ -218,27 +218,62 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public IYoonVector Scale(int sx, int sy)
+        public IYoonVector GetScaleVector(int sx, int sy)
+        {
+            YoonMatrix2N pMatrix = new YoonMatrix2N();
+            pMatrix.SetScaleUnit(sx, sy);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(int dx, int dy)
+        {
+            YoonMatrix2N pMatrix = new YoonMatrix2N();
+            pMatrix.SetMovementUnit(dx, dy);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(IYoonVector pv)
+        {
+            if (pv is YoonVector2N pVector)
+            {
+                YoonMatrix2N pMatrix = new YoonMatrix2N();
+                pMatrix.SetMovementUnit(pVector);
+                return pMatrix * this;
+            }
+            return this;
+        }
+
+        public IYoonVector GetNextVector(eYoonDir2D dir)
+        {
+            return GetNextVector(new YoonVector2N(dir));
+        }
+
+        public IYoonVector GetRotateVector(double angle)
+        {
+            YoonMatrix2N pMatrix = new YoonMatrix2N();
+            pMatrix.SetRotateUnit(angle);
+            return pMatrix * this;
+        }
+
+        public void Scale(int sx, int sy)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
             pMatrix.SetScaleUnit(sx, sy);
             YoonVector2N v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Move(int dx, int dy)
+        public void Move(int dx, int dy)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
             pMatrix.SetMovementUnit(dx, dy);
             YoonVector2N v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Move(IYoonVector pv)
+        public void Move(IYoonVector pv)
         {
             if (pv is YoonVector2N pVector)
             {
@@ -248,25 +283,23 @@ namespace YoonFactory
                 this.X = v.X;
                 this.Y = v.Y;
             }
-            return this;
         }
 
-        public IYoonVector Move(eYoonDir2D dir)
+        public void Move(eYoonDir2D dir)
         {
-            return Move(new YoonVector2N(dir));
+            Move(new YoonVector2N(dir));
         }
 
-        public IYoonVector Rotate(double angle)
+        public void Rotate(double angle)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
             pMatrix.SetRotateUnit(angle);
             YoonVector2N v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Rotate(IYoonVector center, double angle)
+        public void Rotate(IYoonVector center, double angle)
         {
             if (center is YoonVector2N pVecCenter)
             {
@@ -274,7 +307,6 @@ namespace YoonFactory
                 Rotate(angle);
                 Move(pVecCenter);
             }
-            return this;
         }
 
         public static YoonVector2N operator *(YoonMatrix3X3Int m, YoonVector2N v)
@@ -525,27 +557,62 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public IYoonVector Scale(double sx, double sy)
+        public IYoonVector GetScaleVector(double sx, double sy)
+        {
+            YoonMatrix2D pMatrix = new YoonMatrix2D();
+            pMatrix.SetScaleUnit(sx, sy);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(double dx, double dy)
+        {
+            YoonMatrix2D pMatrix = new YoonMatrix2D();
+            pMatrix.SetMovementUnit(dx, dy);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(IYoonVector pv)
+        {
+            if (pv is YoonVector2D pVector)
+            {
+                YoonMatrix2D pMatrix = new YoonMatrix2D();
+                pMatrix.SetMovementUnit(pVector);
+                return pMatrix * this;
+            }
+            return this;
+        }
+
+        public IYoonVector GetNextVector(eYoonDir2D dir)
+        {
+            return GetNextVector(new YoonVector2D(dir));
+        }
+
+        public IYoonVector GetRotateVector(double angle)
+        {
+            YoonMatrix2D pMatrix = new YoonMatrix2D();
+            pMatrix.SetRotateUnit(angle);
+            return pMatrix * this;
+        }
+
+        public void Scale(double sx, double sy)
         {
             YoonMatrix2D pMatrix = new YoonMatrix2D();
             pMatrix.SetScaleUnit(sx, sy);
             YoonVector2D v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Move(double dx, double dy)
+        public void Move(double dx, double dy)
         {
             YoonMatrix2D pMatrix = new YoonMatrix2D();
             pMatrix.SetMovementUnit(dx, dy);
             YoonVector2D v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Move(IYoonVector pv)
+        public void Move(IYoonVector pv)
         {
             if (pv is YoonVector2D pVector)
             {
@@ -555,25 +622,23 @@ namespace YoonFactory
                 this.X = v.X;
                 this.Y = v.Y;
             }
-            return this;
         }
 
-        public IYoonVector Move(eYoonDir2D dir)
+        public void Move(eYoonDir2D dir)
         {
-            return Move(new YoonVector2D(dir));
+            Move(new YoonVector2D(dir));
         }
 
-        public IYoonVector Rotate(double angle)
+        public void Rotate(double angle)
         {
             YoonMatrix2D pMatrix = new YoonMatrix2D();
             pMatrix.SetRotateUnit(angle);
             YoonVector2D v = pMatrix * this;
             this.X = v.X;
             this.Y = v.Y;
-            return this;
         }
 
-        public IYoonVector Rotate(IYoonVector center, double angle)
+        public void Rotate(IYoonVector center, double angle)
         {
             if (center is YoonVector2D pVecCenter)
             {
@@ -581,7 +646,6 @@ namespace YoonFactory
                 Rotate(angle);
                 Move(pVecCenter);
             }
-            return this;
         }
 
         public static YoonVector2D operator *(YoonMatrix3X3Double m, YoonVector2D v)
@@ -791,7 +855,32 @@ namespace YoonFactory
                 return 0.0;
         }
 
-        public IYoonVector Scale(double sx, double sy, double sz)
+        public IYoonVector GetScaleVector(double sx, double sy, double sz)
+        {
+            YoonMatrix3D pMatrix = new YoonMatrix3D();
+            pMatrix.SetScaleUnit(sx, sy, sz);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(double dx, double dy, double dz)
+        {
+            YoonMatrix3D pMatrix = new YoonMatrix3D();
+            pMatrix.SetMovementUnit(dx, dy, dz);
+            return pMatrix * this;
+        }
+
+        public IYoonVector GetNextVector(IYoonVector pv)
+        {
+            if (pv is YoonVector3D pVector)
+            {
+                YoonMatrix3D pMatrix = new YoonMatrix3D();
+                pMatrix.SetMovementUnit(pVector);
+                return pMatrix * this;
+            }
+            return this;
+        }
+
+        public void Scale(double sx, double sy, double sz)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
             pMatrix.SetScaleUnit(sx, sy, sz);
@@ -799,10 +888,9 @@ namespace YoonFactory
             this.X = v.X;
             this.Y = v.Y;
             this.Z = v.Z;
-            return this;
         }
 
-        public IYoonVector Move(double dx, double dy, double dz)
+        public void Move(double dx, double dy, double dz)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
             pMatrix.SetMovementUnit(dx, dy, dz);
@@ -810,10 +898,9 @@ namespace YoonFactory
             this.X = v.X;
             this.Y = v.Y;
             this.Z = v.Z;
-            return this;
         }
 
-        public IYoonVector Move(IYoonVector pv)
+        public void Move(IYoonVector pv)
         {
             if (pv is YoonVector3D pVector)
             {
@@ -824,10 +911,9 @@ namespace YoonFactory
                 this.Y = v.Y;
                 this.Z = v.Z;
             }
-            return this;
         }
 
-        public IYoonVector RotateX(double angle)
+        public void RotateX(double angle)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
             pMatrix.SetRotateXUnit(angle);
@@ -835,10 +921,9 @@ namespace YoonFactory
             this.X = v.X;
             this.Y = v.Y;
             this.Z = v.Z;
-            return this;
         }
 
-        public IYoonVector RotateY(double angle)
+        public void RotateY(double angle)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
             pMatrix.SetRotateYUnit(angle);
@@ -846,10 +931,9 @@ namespace YoonFactory
             this.X = v.X;
             this.Y = v.Y;
             this.Z = v.Z;
-            return this;
         }
 
-        public IYoonVector RotateZ(double angle)
+        public void RotateZ(double angle)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
             pMatrix.SetRotateZUnit(angle);
@@ -857,7 +941,6 @@ namespace YoonFactory
             this.X = v.X;
             this.Y = v.Y;
             this.Z = v.Z;
-            return this;
         }
 
         public static YoonVector3D operator *(YoonMatrix4X4Double m, YoonVector3D v)

@@ -9,8 +9,10 @@ namespace YoonFactory
     public enum eYoonDir2DMode : int
     {
         Fixed = 0,
-        Clock,
-        AntiClock,
+        Clock4,
+        AntiClock4,
+        Clock8,
+        AntiClock8,
         Increase,
         Decrease,
         Whirlpool,
@@ -56,9 +58,13 @@ namespace YoonFactory
             {
                 case eYoonDir2DMode.Fixed:
                     return e;
-                case eYoonDir2DMode.Clock:
+                case eYoonDir2DMode.Clock4:
+                    return e.PreviousQuadrant();
+                case eYoonDir2DMode.AntiClock4:
+                    return e.NextQuadrant();
+                case eYoonDir2DMode.Clock8:
                     return e.PreviousOctant();
-                case eYoonDir2DMode.AntiClock:
+                case eYoonDir2DMode.AntiClock8:
                     return e.NextOctant();
                 case eYoonDir2DMode.Increase:
                     return e.NextOrder();
@@ -476,6 +482,11 @@ namespace YoonFactory
                 default:
                     return eYoonDir2D.None;
             }
+        }
+
+        public static eYoonDir2D[] GetClockDirections()
+        {
+            return new eYoonDir2D[8] { eYoonDir2D.Right, eYoonDir2D.TopRight, eYoonDir2D.Top, eYoonDir2D.TopLeft, eYoonDir2D.Left, eYoonDir2D.BottomLeft, eYoonDir2D.Bottom, eYoonDir2D.BottomRight };
         }
 
         public static eYoonDir2D[] GetSquareDirections()

@@ -60,6 +60,28 @@ namespace YoonFactory
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
         }
+
+        public YoonObject(int nLabel, T pObject, int nCount)
+        {
+            Label = nLabel;
+            Score = DEFAULT_SCORE;
+            PixelCount = nCount;
+            switch (pObject)
+            {
+                case IYoonRect pRect:
+                    Object = (T)pRect.Clone();
+                    break;
+                case IYoonLine pLine:
+                    Object = (T)pLine.Clone();
+                    break;
+                case IYoonVector pVector:
+                    Object = (T)pVector.Clone();
+                    break;
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
+            }
+        }
+
         public YoonObject(int nLabel, T pObject, double dScore, int nCount)
         {
             Label = nLabel;

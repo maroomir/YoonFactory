@@ -453,7 +453,7 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.Rotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ += RotationDegree;   // 원점에서 D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock8, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
@@ -461,7 +461,7 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.OppoRotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ -= (RotationDegree * 2);   // 원점에서 -D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock8, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
@@ -967,7 +967,7 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.Rotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ += RotationDegree;   // 원점에서 D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Top, eYoonDir2DMode.Clock8, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Top)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;
@@ -975,7 +975,7 @@ namespace YoonFactory.Calibration
                     case eStepYoonCalibration.OppoRotate:
                         nJobStepBK = nJobStep;
                         m_pPoseRequest.RZ -= (RotationDegree * 2);   // 원점에서 -D만큼 회전 (TCP Z 기준)
-                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock, m_pPoseRequest));   // 이동
+                        OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Bottom, eYoonDir2DMode.AntiClock8, m_pPoseRequest));   // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Bottom)); // 촬상 및 위치 확인
                         nJobStep = eStepYoonCalibration.Wait;

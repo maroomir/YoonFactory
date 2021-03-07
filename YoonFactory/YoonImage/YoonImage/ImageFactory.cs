@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 
 namespace YoonFactory.Image
 {
@@ -1210,14 +1209,14 @@ namespace YoonFactory.Image
                 if (pSourceImage.Plane == 1)
                 {
                     byte[] pBuffer = pSourceImage.GetGrayBuffer();
-                    FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector.X, pVector.Y, (byte)nThreshold, bFillWhite, (byte)nValue, ref iTotalCount);
+                    FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector, (byte)nThreshold, bFillWhite, (byte)nValue, ref iTotalCount);
                     return new YoonImage(pBuffer, pSourceImage.Width, pSourceImage.Height, 1);
                 }
 
                 else if (pSourceImage.Plane == 4)
                 {
                     int[] pBuffer = pSourceImage.GetARGBBuffer();
-                    FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector.X, pVector.Y, nThreshold, bFillWhite, nValue, ref iTotalCount);
+                    FillFlood(ref pBuffer, ref iFillCount, pSourceImage.Width, pSourceImage.Height, pVector, nThreshold, bFillWhite, nValue, ref iTotalCount);
                     return new YoonImage(pBuffer, pSourceImage.Width, pSourceImage.Height, 1);
                 }
                 else
@@ -1239,341 +1238,67 @@ namespace YoonFactory.Image
                         pBuffer[pVector.Y * width + pVector.X] = value;
                         ////  Object 찾기와 연동하기 위한 Counter.
                         fillCount++;    // 실제로 Fill 된 Count
-                        ////  재귀 함수.
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y - 1, threshold, isWhite, value, ref totalCount);
+                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
+                        {
+                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                        }
                     }
                 }
                 else
                 {
-                    if (pBuffer[y * width + x] < threshold)
+                    if (pBuffer[pVector.Y * width + pVector.X] < threshold)
                     {
-                        pBuffer[y * width + x] = value;
+                        pBuffer[pVector.Y * width + pVector.X] = value;
                         fillCount++;
                         ////  화면에 Display할 경우 사용함.
-                        ////  재귀 함수.
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y - 1, threshold, isWhite, value, ref totalCount);
+                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
+                        {
+                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                        }
                     }
                 }
                 return true;
             }
 
             //  영역 가득 채우기  (영역 내에 value값 채우기)
-            public static bool FillFlood(ref byte[] pBuffer, ref int fillCount, int width, int height, int x, int y, byte threshold, bool isWhite, byte value, ref int totalCount)
+            public static bool FillFlood(ref byte[] pBuffer, ref int fillCount, int width, int height, YoonVector2N pVector, byte threshold, bool isWhite, byte value, ref int totalCount)
             {
-                if (x < 0 || x >= width) return true;
-                if (y < 0 || y >= height) return true;
+                if (pVector.X < 0 || pVector.X >= width) return true;
+                if (pVector.Y < 0 || pVector.Y >= height) return true;
                 totalCount++;   // FillFlood의 동작 횟수
                 if (totalCount > MAX_FILL_NUM) return false;
                 //// x, y가 지정치보다 크거나, stact count가 높을 때 Value 값 채우기를 그만한다.
                 if (isWhite)
                 {
-                    if (pBuffer[y * width + x] >= threshold)
+                    if (pBuffer[pVector.Y * width + pVector.X] >= threshold)
                     {
-                        pBuffer[y * width + x] = value;
+                        pBuffer[pVector.Y * width + pVector.X] = value;
                         ////  Object 찾기와 연동하기 위한 Counter.
                         fillCount++;    // 실제로 Fill 된 Count
-                        ////  재귀 함수.
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y - 1, threshold, isWhite, value, ref totalCount);
+                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
+                        {
+                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                        }
                     }
                 }
                 else
                 {
-                    if (pBuffer[y * width + x] < threshold)
+                    if (pBuffer[pVector.Y * width + pVector.X] < threshold)
                     {
-                        pBuffer[y * width + x] = value;
+                        pBuffer[pVector.Y * width + pVector.X] = value;
                         fillCount++;
                         ////  화면에 Display할 경우 사용함.
-                        ////  재귀 함수.
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x + 1, y - 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y + 1, threshold, isWhite, value, ref totalCount);
-                        FillFlood(ref pBuffer, ref fillCount, width, height, x - 1, y - 1, threshold, isWhite, value, ref totalCount);
+                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
+                        {
+                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                        }
                     }
                 }
                 return true;
-            }
-
-            //  start X, start Y에서 시작하는 선분(Line) 채우기.
-            //  재귀 함수를 사용해서 X, Y 방향을 모두 채우며, 채워야 할 Rect의 Pixel 갯수를 구한다.
-            public static int FillLine(ref byte[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, byte threshold, bool isWhite, byte value, int pixLeft, int pixRight, eYoonDir2D flag)
-            {
-                int x, y, level;
-                int left, right;
-                left = startX;
-                right = startX;
-                y = startY;
-                left = Scanner.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
-                right = Scanner.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
-                for (x = left; x <= right; x++)
-                {
-                    pBuffer[y * width + x] = value;
-                    fillCount++;
-
-                }
-                if (isWhite == false)
-                    goto FuncBlack;
-                ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDir2D.Top)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
-                    }
-                }
-                ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDir2D.Bottom)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
-                    }
-                }
-                goto FuncEnd;
-
-            FuncBlack:
-                ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDir2D.Top)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
-                    }
-                }
-                ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDir2D.Bottom)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
-                    }
-                }
-                goto FuncEnd;
-
-            FuncEnd:
-                return right;
-            }
-
-            public static int FillLine(ref int[] pBuffer, ref int fillCount, int width, int height, int startX, int startY, int threshold, bool isWhite, int value, int pixLeft, int pixRight, eYoonDir2D flag)
-            {
-                int x, y, level;
-                int left, right;
-                left = startX;
-                right = startX;
-                y = startY;
-                left = Scanner.ScanLeft(pBuffer, width, height, startX, startY, threshold, isWhite);
-                right = Scanner.ScanRight(pBuffer, width, height, startX, startY, threshold, isWhite);
-                for (x = left; x <= right; x++)
-                {
-                    pBuffer[y * width + x] = value;
-                    fillCount++;
-                    //////  화면에 그리기. 	// 지우기
-                    //		int i = m_ScanArea.Left + x;
-                    //		int j = m_ScanArea.Top + y;
-                    //		m_screenImage.Canvas.Pixels[i][j] = clRed;
-
-                }
-                if (isWhite == false)
-                    goto FuncBlack;
-                ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDir2D.Top)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
-                    }
-                }
-                ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDir2D.Bottom)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level >= threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
-                    }
-                }
-                goto FuncEnd;
-
-            FuncBlack:
-                ////  기준위치(x, y)에서 윗부분 채우기.
-                if (flag == eYoonDir2D.Top)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y - 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y - 1, threshold, isWhite, value, left, right, eYoonDir2D.Bottom);
-                    }
-                }
-                ////  기준위치(x, y)에서 아랫부분 채우기.
-                if (flag == eYoonDir2D.Bottom)
-                {
-                    for (x = left; x < pixLeft; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                    for (x = pixRight + 1; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, flag.Go(eYoonDir2DMode.AxisY));
-                    }
-                }
-                else
-                {
-                    for (x = left; x <= right; x++)
-                    {
-                        level = pBuffer[(y + 1) * width + x];
-                        if (level < threshold)
-                            x = FillLine(ref pBuffer, ref fillCount, width, height, x, y + 1, threshold, isWhite, value, left, right, eYoonDir2D.Top);
-                    }
-                }
-                goto FuncEnd;
-
-            FuncEnd:
-                return right;
             }
 
             public static YoonImage FillInside1D(YoonImage pSourceImage, int nThreshold = 128, bool bFillWhite = true, int nSize = 5)
@@ -2111,18 +1836,25 @@ namespace YoonFactory.Image
         }
 
         // 객체 찾기
-        public static class FineObject
+        public static class ObjectDetection
         {
             //  최대 크기 객체 찾기.
-            public static IYoonObject FindMaxObject(YoonRect2N scanArea, byte[] pBuffer, int imageWidth, out ObjectList<YoonRect2N> pListObjectInfo, int threshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
+            public static IYoonObject FindMaxObject(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return FindMaxObject(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
+            }
+
+            public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 YoonRect2N maxArea;
                 int maxLen = 0;
                 int maxLabel = 0;
                 int width, height, len;
                 double maxScore = 0.0;
-                ////  레이블링(Labeling) 작업. 찾은 객체 정보는 m_objectInfo에 저장.
-                FindObjectWithLabeling(scanArea, pBuffer, imageWidth, out pListObjectInfo, threshold, bWhite);
+                ////  Object 찾기 작
+                ObjectList<YoonRect2N> pListObjectInfo = FindObjects(pBuffer, imageWidth, scanArea, threshold, bWhite);
                 maxLen = 0;
                 maxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
@@ -2165,7 +1897,15 @@ namespace YoonFactory.Image
                 return new YoonObject<YoonRect2N>(maxLabel, maxArea, maxScore, maxLen);
             }
 
-            public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, int imageHeight, out ObjectList<YoonRect2N> pListObjectInfo, int threshold, bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
+            //  최대 크기 객체 찾기.
+            public static IYoonObject FindMaxObject(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return FindMaxObject(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold, bWhite);
+            }
+
+            public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, int imageHeight, byte threshold, bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 YoonRect2N maxArea;
                 int maxLen = 0;
@@ -2173,7 +1913,7 @@ namespace YoonFactory.Image
                 int width, height, len;
                 double maxScore = 0.0;
                 ////  객체 찾기. 찾은 객체 정보는 m_objectInfo에 저장.
-                FindObject(pBuffer, imageWidth, imageHeight, out pListObjectInfo, threshold, isWhite);
+                ObjectList<YoonRect2N> pListObjectInfo = FindObjects(pBuffer, imageWidth, imageHeight, threshold, isWhite);
                 maxLen = 0;
                 maxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
@@ -2214,31 +1954,32 @@ namespace YoonFactory.Image
             }
 
             //  객체 찾기.
-            public static ObjectList<YoonRect2N> FindAllObject(YoonRect2N scanArea, byte[] pBuffer, int imageWidth, byte threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindObjects(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false)
             {
-                int i, j, x, y;
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return FindObjects(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
+            }
+
+            public static ObjectList<YoonRect2N> FindObjects(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool isWhite)
+            {
                 YoonVector2N startPos, resultPos;
-                YoonRect2N foundRect, resultRect;
                 ObjectList<YoonRect2N> pListResult;
-                byte[] pTempBuffer;
-                int width, height;
-                int value;
-                width = scanArea.Width;
-                height = scanArea.Height;
+                int labelNo = 0;
+                int width = scanArea.Width;
+                int height = scanArea.Height;
                 if (threshold < 10) threshold = 10;
-                pTempBuffer = new byte[width * height];
+                byte[] pTempBuffer = new byte[width * height];
                 startPos = new YoonVector2N(0, 0);
                 resultPos = new YoonVector2N();
                 pListResult = new ObjectList<YoonRect2N>();
-                pListResult.Clear();
                 //// 임시 Buffer 상에 원본 Buffer 복사.  (일부 복사)
-                //	memcpy(pTempBuffer, pBuffer, sizeof(int)*width*hegiht);
-                for (j = 0; j < height; j++)
+                for (int j = 0; j < height; j++)
                 {
-                    y = scanArea.Top + j;
-                    for (i = 0; i < width; i++)
+                    int y = scanArea.Top + j;
+                    for (int i = 0; i < width; i++)
                     {
-                        x = scanArea.Left + i;
+                        int x = scanArea.Left + i;
                         pTempBuffer[j * width + i] = pBuffer[y * imageWidth + x];
                     }
                 }
@@ -2249,1749 +1990,245 @@ namespace YoonFactory.Image
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.LineScanHorizontal(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, eYoonDir2D.Right, startPos, threshold, isWhite) as YoonVector2N;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
                         break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, width, height, resultPos, threshold, isWhite) as YoonRect2N;
+                    //////  1 Pixel 이상의 Object를 Bind 한다.
+                    YoonObject<YoonRect2N> pObject = ProcessBind(pTempBuffer, width, height, eYoonDir2D.Right, resultPos, threshold, isWhite) as YoonObject<YoonRect2N>;
                     //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
+                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 || pObject.Object.Bottom == 0)
                         break;
                     ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 0;
-                    else value = 255;
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
-                    {
-                        pTempBuffer[(int)(resultPos.Y * width + resultPos.X)] = value;
-                        ////// 원본에서도 해당 Pos를 지운다.
-                        pBuffer[(int)(resultPos.Y * width + resultPos.X)] = (byte)value;
+                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 || pObject.Object.Bottom == -1)
                         continue;
-                    }
-                    //////  임시 Buffer의 각 Pixel들의 Gray Level이 threshold 이상인 경우 White, 아닌 경우 Black으로 매긴다.
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
-                    //		whiteCount  = 0;
-                    //		blackCount  = 0;
-                    //		for(j=foundRect.Top;	j<=foundRect.Bottom;	j++)
-                    //		{
-                    //			for(i=foundRect.Left;	i<=foundRect.Right;	i++)
-                    //			{
-                    //				if(pTempBuffer[j*width+i] >= threshold)
-                    //					whiteCount ++;
-                    //				else
-                    //					blackCount ++;
-                    //
-                    //				pTempBuffer[j*width+i] = value;
-                    //			}
-                    //		}
-                    //		//////  흑백 여부에 따라 Pixel Count가 달라진다.
-                    //		if(isWhite==true)
-                    //			m_fillCount = whiteCount;
-                    //		else
-                    //			m_fillCount = blackCount;
                     ////// 찾은 영역을 List 상에 저장한다.
-                    if (pListObjectInfo.Count < MAX_OBJECT)
+                    if (pListResult.Count < MAX_OBJECT)
                     {
-                        resultRect = new YoonRect2N(foundRect.CenterPos.X, foundRect.CenterPos.Y, foundRect.Width + 1, foundRect.Height + 1);
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = resultRect;
-                        pObjectInfo.PixelCount = fillCount;
-                        pListObjectInfo.Add(pObjectInfo);
+                        pObject.Label = labelNo++;
+                        pListResult.Add(pObject);
                     }
+                    ////// Start Pos를 Rect 끝으로 재조정한다
+                    startPos = pObject.Object.BottomRight.Clone() as YoonVector2N + new YoonVector2N(1, 1); // Buffer
                 }
+                return pListResult;
             }
 
             //  객체 찾기.
-            public static void FindAllObject(YoonRect2N scanArea, ushort[] pBuffer, out List<YoonRectObject> pListObjectInfo, int imageWidth, ushort threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindObjects(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
             {
-                int i, j, x, y;
-                YoonVector2N startPos, resultPos;
-                YoonRect2N foundRect, resultRect;
-                ushort[] pTempBuffer;
-                int width, height;
-                ushort value;
-                pListObjectInfo = new List<YoonRectObject>();
-                pListObjectInfo.Clear();
-                width = scanArea.Width;
-                height = scanArea.Height;
-                if (threshold < 10) threshold = 10;
-                pTempBuffer = new ushort[width * height];
-                startPos = new YoonVector2N(0, 0);
-                resultPos = new YoonVector2N();
-                //// 임시 Buffer 상에 원본 Buffer 복사.  (일부 복사)
-                //	memcpy(pTempBuffer, pBuffer, sizeof(int)*width*hegiht);
-                for (j = 0; j < height; j++)
-                {
-                    y = scanArea.Top + j;
-                    for (i = 0; i < width; i++)
-                    {
-                        x = scanArea.Left + i;
-                        pTempBuffer[j * width + i] = pBuffer[y * imageWidth + x];
-                    }
-                }
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, (ushort)0);       // white object를 찾기 위함.
-                else Fill.FillBound(ref pTempBuffer, width, height, (ushort)1023);       // black object를 찾기 위함. (Short)
-                                                                                   ////  Object를 전부 찾을 때까지 과정을 반복한다.
-                while (true)
-                {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.ScanObject(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
-                    //////  object 찾기 결과 끝에 도달한 경우...
-                    if (resultPos.X == -1 && resultPos.Y == -1)
-                        break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, width, height, resultPos, threshold, isWhite) as YoonRect2N;
-                    //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
-                        break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 0;
-                    else value = 1022;  // Short이므로 1022(4-BYTE)
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
-                    {
-                        pTempBuffer[(int)resultPos.Y * width + (int)resultPos.X] = value;
-                        ////// 원본에서도 해당 Pos를 지운다.
-                        //			pBuffer[resultPos.Y*width + resultPos.X]	 = value;
-                        continue;
-                    }
-                    //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
-                    ////// 찾은 영역을 List 상에 저장한다.
-                    if (pListObjectInfo.Count < MAX_OBJECT)
-                    {
-                        resultRect = new YoonRect2N(foundRect.CenterPos.X, foundRect.CenterPos.Y, foundRect.Width + 1, foundRect.Height + 1);
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = resultRect;
-                        pObjectInfo.PixelCount = fillCount;
-                        pListObjectInfo.Add(pObjectInfo);
-                    }
-                }
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return FindObjects(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold, bWhite);
             }
 
-            //  객체 찾기.
-            public static void FindObject(byte[] pBuffer, int width, int height, out ObjectList<YoonRect2N> pListObjectInfo, int threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindObjects(byte[] pBuffer, int width, int height, byte threshold, bool isWhite)
             {
                 YoonVector2N startPos, resultPos;
-                YoonRect2N foundRect, resultRect;
-                int[] pTempBuffer;
-                int value;
-                pListObjectInfo = new List<YoonRectObject>();
-                pListObjectInfo.Clear();
+                ObjectList<YoonRect2N> pListResult = new ObjectList<YoonRect2N>();
+                int labelNo = 0;
                 if (threshold < 10) threshold = 10;
-                pTempBuffer = new int[width * height];
+                byte[] pTempBuffer = new byte[width * height];
                 startPos = new YoonVector2N(0, 0);
                 resultPos = new YoonVector2N();
                 //// 임시 Buffer 상에 원본 Buffer 복사.   (전체 복사)
                 pBuffer.CopyTo(pTempBuffer, 0);
                 ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, 0);      // white object를 찾기 위함.
-                else Fill.FillBound(ref pTempBuffer, width, height, 1023);   // black object를 찾기 위함. (int)
-                                                                        ////  Object를 전부 찾을 때까지 과정을 반복한다.
+                if (isWhite) pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)0);  // white object를 찾기 위함.
+                else pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)255);    // black object를 찾기 위함.
+                ////  Object를 전부 찾을 때까지 과정을 반복한다.
                 while (true)
                 {
                     //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
+                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, eYoonDir2D.Right, startPos, threshold, isWhite) as YoonVector2N;
                     //////  object 찾기 결과 끝에 도달한 경우...
                     if (resultPos.X == -1 && resultPos.Y == -1)
                         break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, width, height, resultPos, threshold, isWhite) as YoonRect2N;
+                    //////  1 Pixel 이상의 Object를 Bind 하다.
+                    YoonObject<YoonRect2N> pObject = ProcessBind(pTempBuffer, width, height, eYoonDir2D.Right, resultPos, threshold, isWhite) as YoonObject<YoonRect2N>;
                     //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
+                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 || pObject.Object.Bottom == 0)
                         break;
                     ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 1;
-                    else value = 1022;  // int이므로 1022(4-BYTE)
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
-                    {
-                        pTempBuffer[(int)resultPos.Y * width + (int)resultPos.X] = value;
-                        ////// 원본에서도 해당 Pos를 지운다.
-                        //			pBuffer[resultPos.Y*width + resultPos.X]	 = value;
+                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 || pObject.Object.Bottom == -1)
                         continue;
-                    }
-                    //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
                     ////// 찾은 영역을 List 상에 저장한다.
-                    if (pListObjectInfo.Count < MAX_OBJECT)
+                    if (pListResult.Count < MAX_OBJECT)
                     {
-                        resultRect = new YoonRect2N(foundRect.CenterPos.X, foundRect.CenterPos.Y, foundRect.Width + 1, foundRect.Height + 1);
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = resultRect;
-                        pObjectInfo.PixelCount = fillCount;
-                        pListObjectInfo.Add(pObjectInfo);
+                        pObject.Label = labelNo++;
+                        pListResult.Add(pObject);
                     }
+                    ////// Start Pos를 Rect 끝으로 재조정한다
+                    startPos = pObject.Object.BottomRight.Clone() as YoonVector2N + new YoonVector2N(1, 1); // Buffer
                 }
+                return pListResult;
             }
 
-            //  객체 찾기.  단, 임시 Buffer 사용 없이 넘어온 pBuffer가 변경된다.
-            public static void FindObjectWithChange(ref int[] pBuffer, out List<YoonRectObject> pListObjectInfo, int width, int height, int threshold, bool isWhite)
+            private enum eYoonStepBinding
             {
-                YoonVector2N startPos, resultPos;
-                YoonRect2N foundRect, resultRect;
-                int[] pTempBuffer;
-                int value;
-                pListObjectInfo = new List<YoonRectObject>();
-                pListObjectInfo.Clear();
-                startPos = new YoonVector2N(0, 0);
-                resultPos = new YoonVector2N();
-                if (threshold < 10) threshold = 10;
-                //// 임시 Buffer를 원본 Buffer로 바로 연결한다.
-                pTempBuffer = pBuffer;
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, 0);      // white object를 찾기 위함.
-                else Fill.FillBound(ref pTempBuffer, width, height, 1023);   // black object를 찾기 위함. (int)
-                                                                        ////  Object를 전부 찾을 때까지 과정을 반복한다.
-                while (true)
-                {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
-                    //////  object 찾기 결과 끝에 도달한 경우...
-                    if (resultPos.X == -1 && resultPos.Y == -1)
-                        break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, width, height, resultPos, threshold, isWhite) as YoonRect2N;
-                    //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
-                        break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 1;
-                    else value = 1022;  // int이므로 1022(4-BYTE)
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
-                    {
-                        pTempBuffer[(int)resultPos.Y * width + (int)resultPos.X] = value;
-                        ////// 원본에서도 해당 Pos를 지운다.
-                        //			pBuffer[resultPos.Y*width + resultPos.X]	 = value;
-                        continue;
-                    }
-                    //////  임시 Buffer의 Pixel 수(m_fillCount)를 센다.
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
-                    ////// 찾은 영역을 List 상에 저장한다.
-                    if (pListObjectInfo.Count < MAX_OBJECT)
-                    {
-                        resultRect = new YoonRect2N(foundRect.CenterPos.X, foundRect.CenterPos.Y, foundRect.Width + 1, foundRect.Height + 1);
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = resultRect;
-                        pObjectInfo.PixelCount = fillCount;
-                        pListObjectInfo.Add(pObjectInfo);
-                    }
-                }
+                Init,
+                Check,
+                Go,
+                Ignore,
+                Stack,
+                Rotate,
+                Error,
+                Finish,
             }
 
-            //  객체 中 외곽선 찾기.
-            public static void FindObjectWithEdgeLine(int[] pBuffer, out List<IYoonVector> pListEdgeIPoint, int width, int height, int threshold, bool isWhite)
+            private static IYoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir, YoonVector2N vecStart, byte nThreshold, bool bWhite)
             {
-                YoonVector2N startPos, resultPos;
-                YoonVector2N pPos;
-                YoonRect2N foundRect;
-                int[] pTempBuffer;
-                int value;
-                startPos = new YoonVector2N(0, 0);
-                if (threshold < 10) threshold = 10;
-                pListEdgeIPoint = new List<IYoonVector>();
-                pListEdgeIPoint.Clear();
-                ////  임시 Buffer 상에 원본 Buffer 복사.  (전체 복사)
-                pTempBuffer = new int[width * height];
-                pBuffer.CopyTo(pTempBuffer, 0);
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, 0);      // white object를 찾는다.
-                else Fill.FillBound(ref pTempBuffer, width, height, 1023);   // black object를 찾는다.  (int)
-                                                                        ////  Object를 전부 찾을 때까지 반복한다.
-                while (true)
+                int pixelCount = 0;
+                int blankCount = 0;
+                bool bRun = true;
+                YoonRect2N resultRect = new YoonRect2N(vecStart.X, vecStart.Y, 0, 0);
+                eYoonDir2D dirSearch = nDir;
+                eYoonDir2D dirDefault = nDir;
+                eYoonDir2DMode nDirMode = eYoonDir2DMode.Clock4;
+                eYoonDir2DMode nRotateMode = eYoonDir2DMode.AxisX;
+                YoonVector2N vecCurrent = new YoonVector2N(vecStart);
+                eYoonStepBinding jobStep = eYoonStepBinding.Init;
+                eYoonStepBinding jobStepBk = jobStep;
+                while (bRun)
                 {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
-                    //////  Object 시작위치 저장.
-                    pPos = new YoonVector2N();
-                    pPos.X = startPos.X;
-                    pPos.Y = startPos.Y;
-                    pListEdgeIPoint.Add(pPos);
-                    if (resultPos.X == -1 && resultPos.Y == -1)
-                        break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, ref pListEdgeIPoint, width, height, resultPos, threshold, isWhite) as YoonRect2N;
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
-                        break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 1;
-                    else value = 1022;
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
+                    switch(jobStep)
                     {
-                        pTempBuffer[(int)resultPos.Y * width + (int)resultPos.X] = value;
-                        continue;
-                    }
-                    //		m_stackCount = 0;
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
-                    //////  "외곽찾기"이기 때문에 Object가 지나치게 큰 경우 예외처리한다.
-                    if (foundRect.Width >= width / 2 && foundRect.Height >= height / 2)
-                        break;
-                }
-            }
-
-            //  객체 中 외곽선 찾기.
-            public static void FindObjectWithEdgeLine(byte[] pBuffer, out List<IYoonVector> pListEdgeIYoonVector, int width, int height, int threshold, bool isWhite)
-            {
-                YoonVector2N startPos, resultPos;
-                YoonVector2N pPos;
-                YoonRect2N foundRect;
-                int[] pTempBuffer;
-                int value;
-                startPos = new YoonVector2N(0, 0);
-                resultPos = new YoonVector2N();
-                if (threshold < 10) threshold = 10;
-                pListEdgeIYoonVector = new List<IYoonVector>();
-                pListEdgeIYoonVector.Clear();
-                ////  임시 Buffer 상에 원본 Buffer 복사.  (전체 복사)
-                pTempBuffer = new int[width * height];
-                pBuffer.CopyTo(pTempBuffer, 0);
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) Fill.FillBound(ref pTempBuffer, width, height, 0);      // white object를 찾는다.
-                else Fill.FillBound(ref pTempBuffer, width, height, 255);   // black object를 찾는다.  (char)
-                                                                       ////  Object를 전부 찾을 때까지 반복한다.
-                while (true)
-                {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, startPos, threshold, isWhite) as YoonVector2N;
-                    startPos = resultPos;
-                    //////  Object 시작위치 저장.
-                    pPos = new YoonVector2N();
-                    pPos.X = startPos.X;
-                    pPos.Y = startPos.Y;
-                    pListEdgeIYoonVector.Add(pPos);
-                    if (resultPos.X == -1 && resultPos.Y == -1)
-                        break;
-                    //////  1 Pixel 이상의 Edge를 전부 찾는다.
-                    foundRect = FindEdge.EdgeDetection(ref pTempBuffer, ref pListEdgeIYoonVector, width, height, resultPos, threshold, isWhite) as YoonRect2N;
-                    if (foundRect.Left == 0 || foundRect.Top == 0 || foundRect.Right == 0 || foundRect.Bottom == 0)
-                        break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (isWhite) value = 1;
-                    else value = 255;
-                    if (foundRect.Left == -1 || foundRect.Top == -1 || foundRect.Right == -1 || foundRect.Bottom == -1)
-                    {
-                        pTempBuffer[(int)resultPos.Y * width + (int)resultPos.X] = value;
-                        continue;
-                    }
-                    //		m_stackCount = 0;
-                    int fillCount = 0;
-                    Fill.FillLine(ref pTempBuffer, ref fillCount, width, height, (int)resultPos.X, (int)resultPos.Y, threshold, isWhite, value, 0, 0, eYoonDir2D.None);
-                    //////  "외곽찾기"이기 때문에 Object가 지나치게 큰 경우 예외처리한다.
-                    if (foundRect.Width >= width / 2 && foundRect.Height >= height / 2)
-                        break;
-                }
-            }
-
-            //  Labeling 후 객체 찾기.
-            public static void FindObjectWithLabeling(YoonRect2N scanArea, byte[] pBuffer, int width, out ObjectList<YoonRect2N> pListObject, int threshold, bool isWhite)
-            {
-                int x, y;
-                int labelNum, labelNo;
-                ////  초기화.
-                int scanWidth = scanArea.Width;
-                int scanHeight = scanArea.Height;
-                YoonRect2N foundRect = new YoonRect2N(0, 0, 0, 0);
-                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
-                pListObject = new List<YoonRectObject>();
-                pListObject.Clear();
-                ////  Label 관련 멤버변수 초기화
-                List<int> pListLabelAtBuffer = new List<int>(scanWidth * scanHeight);
-                int labelWidth = scanWidth;
-                int labelHeight = scanHeight;
-                IYoonRect labelArea = scanArea;
-                ////  임시 Buffer 위에 Buffer 복사하기.  (일부복사)
-                for (int j = 0; j < scanHeight; j++)
-                {
-                    y = scanArea.Top + j;
-                    for (int i = 0; i < scanWidth; i++)
-                    {
-                        x = scanArea.Left + i;
-                        pTempBuffer[j * scanWidth + i] = pBuffer[y * width + x];
-                    }
-                }
-                //// 임시 Buffer 위에 Buffer 복사하기.  (회색반전)
-                //	if(isWhite)
-                //	{
-                //		for(int j=0;	j<scanHeight;	j++)
-                //		{
-                //			y = scanArea.Top + j;
-                //			for(int i=0;	i<scanWidth;	i++)
-                //			{
-                //				x						   = scanArea.Left + i;
-                //				pTempBuffer[j*scanWidth+i] = pBuffer[y*width+x];
-                //			}
-                //		}
-                //	}
-                //	else
-                //	{
-                //		for(int j=0;	j<scanHeight;	j++)
-                //		{
-                //			y = scanArea.Top + j;
-                //			for(int i=0;	i<scanWidth;	i++)
-                //			{
-                //				x			     	   = scanArea.Left + i;
-                //				pTempBuffer[j*ScanW+i] = 255 - pBuffer[y*width+x];
-                //			}
-                //		}
-                //		threshold = 255 - threshold;
-                //	}
-                ////  Label 붙이기
-                labelNum = Label.Labeling(ref pTempBuffer, ref pListLabelAtBuffer, scanWidth, scanHeight, threshold, isWhite);
-                YoonRectObject[] pArrayObjectInfo = new YoonRectObject[labelNum];
-                for (int i = 0; i < labelNum; i++)
-                {
-                    pArrayObjectInfo[i].PickArea = new YoonRect2N(scanWidth, scanHeight, -scanWidth, -scanHeight);
-                    pArrayObjectInfo[i].PixelCount = 0;
-                }
-                for (int j = 0; j < scanHeight; j++)
-                {
-                    for (int i = 0; i < scanWidth; i++)
-                    {
-                        labelNo = pListLabelAtBuffer[j * scanWidth + i];
-                        if (labelNo < 1 || labelNo > labelNum)
-                            continue;
-                        //////  Label 별로 묶여진 영역(사각형)의 좌표 산출하기.
-                        foundRect.CenterPos.X = (i < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Left) ? i + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.X;
-                        foundRect.CenterPos.Y = (j < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Top) ? j + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.Y;
-                        foundRect.Width = (i > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Right) ? i - foundRect.Left : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width;
-                        foundRect.Height = (j > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Bottom) ? j - foundRect.Top : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height;
-                        pArrayObjectInfo[labelNo - 1].PickArea = foundRect;
-                        pArrayObjectInfo[labelNo - 1].PixelCount++;
-                    }
-                }
-                ////  찾은 객체를 삽입시키기.
-                YoonRect2N tempArea;
-                //  int	  margin = 3;
-                //  int	  x1, x2, y1, y2;
-                //  int	  startX, centerX, endX;
-                //  int	  startY, centerY, endY;
-                //  int	  differX, differY, referX, referY;
-                //  bool  isFind;
-                int diffLeft, diffRight, diffTop, diffBottom;
-                for (int i = 0; i < labelNum; i++)
-                {
-                    tempArea = pArrayObjectInfo[i].PickArea as YoonRect2N;
-                    diffLeft = tempArea.Left;
-                    diffRight = scanWidth - tempArea.Right;
-                    diffTop = tempArea.Top;
-                    diffBottom = scanHeight - tempArea.Bottom;
-                    ////  찾은 객체에 대한 영역 검증 수행.
-                    ////  영역 검증은 외곽선에 붙어있는 영역 한정해서 수행함.
-                    //		if(diffLeft<=margin || diffRight<=margin || diffTop<=margin || diffBottom<=margin)
-                    //		{
-                    //			centerX = (tempArea.Left + tempArea.Right)/2;
-                    //			centerY = (tempArea.Top  + tempArea.Bottom)/2;
-                    //			startX  = centerX - 3;
-                    //			endX	= centerX + 3;
-                    //			if(startX < tempArea.Left)		startX = tempArea.Left;
-                    //			if(endX  >= tempArea.Right)		endX   = tempArea.Right;
-                    //			y1 		= tempArea.Top;
-                    //			y2 		= tempArea.Top;
-                    //			//////  Top 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Top;	jj<tempArea.Bottom;	jj++)
-                    //			{
-                    //				for(int ii=stx; ii<=endx; ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuff[jj*scanWidth+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						y1 = jj;
-                    //						isFind = true;
-                    //						break;
-                    //					}
-                    //				}
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			//////  Bottom 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Bottom;	jj>=tempArea.Top;	jj--)
-                    //			{
-                    //				for(int ii=startX;	ii<=endX;	ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*scanWidth+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //                        y2 = jj;
-                    //						isFind = true;
-                    //                        break;
-                    //                  }
-                    //              }
-                    //				if(isFind)
-                    //                  break;
-                    //			}
-                    //			startY = centerY - 3;
-                    //			endY   = centerY + 3;
-                    //			if(startY<tempArea.Top)		startY	= tempArea.Top;
-                    //			if(endY>=tempArea.Bottom)	endY	= tempArea.Bottom;
-                    //			x1 = tempArea.Left;
-                    //			x2 = tempArea.Left;
-                    //			//////  Left 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Left;	ii<=tempArea.Right;	ii++)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*scanWidth+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x1 = ii;
-                    //						isFind = true;
-                    //                        break;
-                    //                    }
-                    //                }
-                    //                if(isFind)
-                    //                    break;
-                    //			}
-                    //			//////  Right 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Right;	ii>=tempArea.Left;	ii--)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*scanWidth+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x2 = ii;
-                    //						isFind = true;
-                    //                        break;
-                    //                  }
-                    //              }
-                    //				if(isFind)
-                    //                    break;
-                    //			}
-                    //			differX 	= x2 - x1;
-                    //			differY 	= y2 - y1;
-                    //			referX	= tempArea.Width()/2;
-                    //			referY	= tempArea.Height()/2;
-                    //			if(differY<referY && differX<referX)
-                    //			{
-                    //				continue;
-                    //			}
-                    //		}
-                    ////  멤버변수에 객체 삽입.
-                    if (pListObject.Count < MAX_OBJECT)
-                    {
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = pArrayObjectInfo[i].PickArea;
-                        pObjectInfo.PixelCount = pArrayObjectInfo[i].PixelCount;
-                        pListObject.Add(pObjectInfo);
-                    }
-                }
-            }
-
-            public static void FindObjectWithLabeling(ref byte[] pBuffer, out List<YoonRectObject> pListObject, int width, int height, int threshold, bool isWhite)
-            {
-                int labelNum, labelNo;
-                YoonRect2N foundRect;
-                //	byte[] pTempBuffer;
-                //	pTempBuffer = new byte[width*height];
-                foundRect = new YoonRect2N(0, 0, 0, 0);
-                ////  멤버변수 초기화.
-                pListObject = new List<YoonRectObject>();
-                pListObject.Clear();
-                List<int> pListLabelAtBuffer = new List<int>(width * height);
-                int labelWidth = width;
-                int labelHeight = height;
-                IYoonRect labelArea = new YoonRect2N(0, 0, width, height);
-                ////  Label 붙이기
-                labelNum = Label.Labeling(ref pBuffer, ref pListLabelAtBuffer, width, height, threshold, isWhite);
-                YoonRectObject[] pArrayObjectInfo = new YoonRectObject[labelNum];
-                for (int i = 0; i < labelNum; i++)
-                {
-                    pArrayObjectInfo[i].PickArea = new YoonRect2N(width, height, -width, -height);
-                    pArrayObjectInfo[i].PixelCount = 0;
-                }
-                for (int j = 0; j < height; j++)
-                {
-                    for (int i = 0; i < width; i++)
-                    {
-                        labelNo = pListLabelAtBuffer[j * width + i];
-                        if (labelNo < 1 || labelNo > labelNum)
-                            continue;
-                        //////  Label 별로 묶여진 영역(사각형)의 좌표 산출하기.
-                        foundRect.CenterPos.X = (i < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Left) ? i + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.X;
-                        foundRect.CenterPos.Y = (j < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Top) ? j + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.Y;
-                        foundRect.Width = (i > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Right) ? i - foundRect.Left : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width;
-                        foundRect.Height = (j > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Bottom) ? j - foundRect.Top : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height;
-                        pArrayObjectInfo[labelNo - 1].PickArea = foundRect;
-                        pArrayObjectInfo[labelNo - 1].PixelCount++;
-                    }
-                }
-                ////  찾은 객체를 삽입시키기.
-                YoonRect2N tempArea;
-                int diffLeft, diffRight, diffTop, diffBottom;
-                for (int i = 0; i < labelNum; i++)
-                {
-                    tempArea = pArrayObjectInfo[i].PickArea as YoonRect2N;
-                    diffLeft = tempArea.Left;
-                    diffRight = width - tempArea.Right;
-                    diffTop = tempArea.Top;
-                    diffBottom = height - tempArea.Bottom;
-                    ////  찾은 객체에 대한 영역 검증 수행.
-                    ////  영역 검증은 외곽선에 붙어있는 영역 한정해서 수행함.
-                    //		if(diffLeft<=margin || diffRight<=margin || diffTop<=margin || diffBottom<=margin)
-                    //		{
-                    //			centerX = (tempArea.Left + tempArea.Right)/2;
-                    //			centerY = (tempArea.Top  + tempArea.Bottom)/2;
-                    //			startX  = centerX - 3;
-                    //			endX	= centerX + 3;
-                    //			if(startX < tempArea.Left)		startX = tempArea.Left;
-                    //			if(endX  >= tempArea.Right)		endX   = tempArea.Right;
-                    //			y1 		= tempArea.Top;
-                    //			y2 		= tempArea.Top;
-                    //			//////  Top 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Top;	jj<tempArea.Bottom;	jj++)
-                    //			{
-                    //				for(int ii=startX;	ii<=endY;	ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						y1 = jj;
-                    //						isFind = true;
-                    //						break;
-                    //					}
-                    //				}
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			//////  Bottom 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Bottom;	jj>=tempArea.Top;	jj--)
-                    //			{
-                    //				for(int ii=startX;	ii<=endX;	ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						y2 = jj;
-                    //						isFind = true;
-                    //						break;
-                    //				  }
-                    //			  }
-                    //				if(isFind)
-                    //				  break;
-                    //			}
-                    //			startY = centerY - 3;
-                    //			endY   = centerY + 3;
-                    //			if(startY<tempArea.Top)		startY	= tempArea.Top;
-                    //			if(endY>=tempArea.Bottom)	endY	= tempArea.Bottom;
-                    //			x1 = tempArea.Left;
-                    //			x2 = tempArea.Left;
-                    //			//////  Left 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Left;	ii<=tempArea.Right;	ii++)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x1 = ii;
-                    //						isFind = true;
-                    //						break;
-                    //					}
-                    //				}
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			//////  Right 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Right;	ii>=tempArea.Left;	ii--)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x2 = ii;
-                    //						isFind = true;
-                    //						break;
-                    //				  }
-                    //			  }
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			differX = x2 - x1;
-                    //			differY = y2 - y1;
-                    //			referX	= tempArea.Width()/2;
-                    //			referY	= tempArea.Height()/2;
-                    //			if(differY<referY && differX<referX)
-                    //			{
-                    //				continue;
-                    //			}
-                    //		}
-                    //		OBJECT_INFO pTempObject = new OBJECT_INFO;
-                    //		pTempObject.pickArea 	 = pObject[i].pickArea;
-                    //		pTempObject.pixelCount  = pObject[i].pixelCount;
-                    //		pList.Add(pTempObject);
-                    ////  멤버변수에 객체 삽입.
-                    if (pListObject.Count < MAX_OBJECT)
-                    {
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = pArrayObjectInfo[i].PickArea;
-                        pObjectInfo.PixelCount = pArrayObjectInfo[i].PixelCount;
-                        pListObject.Add(pObjectInfo);
-                    }
-                }
-            }
-
-            public static void FindObjectWithLabeling(ref byte[] pBuffer, out List<YoonRectObject> pListObject, int width, int height, int thresholdLow, int thresholdHigh)
-            {
-                int labelNum, labelNo;
-                YoonRect2N foundRect = new YoonRect2N(0, 0, 0, 0);
-                //	byte[] pTempBuffer;
-                //	pTempBuffer = new byte[width*height];
-                ////  멤버변수 초기화.
-                pListObject = new List<YoonRectObject>();
-                pListObject.Clear();
-                List<int> pListLabelAtBuffer = new List<int>(width * height);
-                int labelWidth = width;
-                int labelHeight = height;
-                IYoonRect labelArea = new YoonRect2N(0, 0, width, height);
-                ////  Label 붙이기
-                labelNum = Label.Labeling(ref pBuffer, ref pListLabelAtBuffer, width, height, thresholdLow, thresholdHigh);
-                YoonRectObject[] pArrayObjectInfo = new YoonRectObject[labelNum];
-                for (int i = 0; i < labelNum; i++)
-                {
-                    pArrayObjectInfo[i].PickArea = new YoonRect2N(width, height, -width, -height);
-                    pArrayObjectInfo[i].PixelCount = 0;
-                }
-                for (int j = 0; j < height; j++)
-                {
-                    for (int i = 0; i < width; i++)
-                    {
-                        labelNo = pListLabelAtBuffer[j * width + i];
-                        if (labelNo < 1 || labelNo > labelNum)
-                            continue;
-                        //////  Label 별로 묶여진 영역(사각형)의 좌표 산출하기.
-                        foundRect.CenterPos.X = (i < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Left) ? i + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.X;
-                        foundRect.CenterPos.Y = (j < (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Top) ? j + (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height / 2 : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).CenterPos.Y;
-                        foundRect.Width = (i > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Right) ? i - foundRect.Left : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Width;
-                        foundRect.Height = (j > (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Bottom) ? j - foundRect.Top : (pArrayObjectInfo[labelNo - 1].PickArea as YoonRect2N).Height;
-                        pArrayObjectInfo[labelNo - 1].PickArea = foundRect;
-                        pArrayObjectInfo[labelNo - 1].PixelCount++;
-                    }
-                }
-                ////  찾은 객체를 삽입시키기.
-                YoonRect2N tempArea;
-                int diffLeft, diffRight, diffTop, diffBottom;
-                for (int i = 0; i < labelNum; i++)
-                {
-                    tempArea = pArrayObjectInfo[i].PickArea as YoonRect2N;
-                    diffLeft = tempArea.Left;
-                    diffRight = width - tempArea.Right;
-                    diffTop = tempArea.Top;
-                    diffBottom = height - tempArea.Bottom;
-                    ////  찾은 객체에 대한 영역 검증 수행.
-                    ////  영역 검증은 외곽선에 붙어있는 영역 한정해서 수행함.
-                    //		if(diffLeft<=margin || diffRight<=margin || diffTop<=margin || diffBottom<=margin)
-                    //		{
-                    //			centerX = (tempArea.Left + tempArea.Right)/2;
-                    //			centerY = (tempArea.Top  + tempArea.Bottom)/2;
-                    //			startX  = centerX - 3;
-                    //			endX	= centerX + 3;
-                    //			if(startX < tempArea.Left)		startX = tempArea.Left;
-                    //			if(endX  >= tempArea.Right)		endX   = tempArea.Right;
-                    //			y1 		= tempArea.Top;
-                    //			y2 		= tempArea.Top;
-                    //			//////  Top 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Top;	jj<tempArea.Bottom;	jj++)
-                    //			{
-                    //				for(int ii=startX;	ii<=endY;	ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						y1 = jj;
-                    //						isFind = true;
-                    //						break;
-                    //					}
-                    //				}
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			//////  Bottom 방향 Scan.
-                    //			isFind = false;
-                    //			for(int jj=tempArea.Bottom;	jj>=tempArea.Top;	jj--)
-                    //			{
-                    //				for(int ii=startX;	ii<=endX;	ii++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						y2 = jj;
-                    //						isFind = true;
-                    //						break;
-                    //				  }
-                    //			  }
-                    //				if(isFind)
-                    //				  break;
-                    //			}
-                    //			startY = centerY - 3;
-                    //			endY   = centerY + 3;
-                    //			if(startY<tempArea.Top)		startY	= tempArea.Top;
-                    //			if(endY>=tempArea.Bottom)	endY	= tempArea.Bottom;
-                    //			x1 = tempArea.Left;
-                    //			x2 = tempArea.Left;
-                    //			//////  Left 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Left;	ii<=tempArea.Right;	ii++)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x1 = ii;
-                    //						isFind = true;
-                    //						break;
-                    //					}
-                    //				}
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			//////  Right 방향 Scan.
-                    //			isFind = false;
-                    //			for(int ii=tempArea.Right;	ii>=tempArea.Left;	ii--)
-                    //			{
-                    //				for(int jj=startY;	jj<=endY;	jj++)
-                    //				{
-                    //					labelNo = m_pLabelBuffer[jj*width+ii];
-                    //					if(labelNo == i+1)
-                    //					{
-                    //						x2 = ii;
-                    //						isFind = true;
-                    //						break;
-                    //				  }
-                    //			  }
-                    //				if(isFind)
-                    //					break;
-                    //			}
-                    //			differX = x2 - x1;
-                    //			differY = y2 - y1;
-                    //			referX	= tempArea.Width()/2;
-                    //			referY	= tempArea.Height()/2;
-                    //			if(differY<referY && differX<referX)
-                    //			{
-                    //				continue;
-                    //			}
-                    //		}
-                    //		OBJECT_INFO pTempObject = new OBJECT_INFO;
-                    //		pTempObject.pickArea 	 = pObject[i].pickArea;
-                    //		pTempObject.pixelCount  = pObject[i].pixelCount;
-                    //		pList.Add(pTempObject);
-                    ////  멤버변수에 객체 삽입.
-                    if (pListObject.Count < MAX_OBJECT)
-                    {
-                        YoonRectObject pObjectInfo = new YoonRectObject();
-                        pObjectInfo.PickArea = pArrayObjectInfo[i].PickArea;
-                        pObjectInfo.PixelCount = pArrayObjectInfo[i].PixelCount;
-                        pListObject.Add(pObjectInfo);
-                    }
-                }
-            }
-        }
-
-        // 레이블링
-        public static class Label
-        {
-
-            #region 레이블링 매기기
-            //  레이블링.
-            public static int Labeling(ref byte[] pBuffer, ref List<int> pBufferToLabelNo, int width, int height, int threshold, bool isWhite)
-            {
-                int x, y, i;
-                int tempLabelCount;     // 임시적인 Label Counter.
-                int maxLabel, minLabel; // Label 갯수 재조정을 위한 값.
-                int thresholdLow, thresholdHigh;
-                int tempLabelNo;    // Pixel 위치에 기록하는 임시 Label No.
-                int labelCount;     // Label Number를 재조정한 후 최종적으로 Labelling되는 카운터.
-                List<int> pLinkedList;
-                List<int> pTempLabelBuffer;
-                if (isWhite)
-                {
-                    thresholdLow = threshold;
-                    thresholdHigh = 255;
-                }
-                else
-                {
-                    thresholdLow = 0;
-                    thresholdHigh = threshold;
-                }
-                ////  Labelling 관련 Buffer 선언.
-                tempLabelCount = 1;
-                pLinkedList = new List<int>((int)MAX_LABEL);  // Number 재조정을 위한 1차원 Linked List 배열
-                pTempLabelBuffer = new List<int>((width + 2) * (height + 2)); // Numbering을 위한 임시 Number Buffer (Bitmap 크기에 2를 더한 Size로 함.)
-                if (pLinkedList == null) return -1;
-                if (pTempLabelBuffer == null) return -1;
-                ////  임시 Labeling
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        if (pBuffer[y * width + x] >= thresholdLow && pBuffer[y * width + x] <= thresholdHigh)
-                        {
-                            //// 임시 Buffer(int*) 상의 해당 Pixel 위치에 Label(int)을 부여한다.
-                            if (pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)] == 0)
+                        case eYoonStepBinding.Init:
+                            switch (nDir)
                             {
-                                //////  Label할 번호를 임시 Counter에서 얻어온다.
-                                tempLabelNo = tempLabelCount;
-                                tempLabelCount++;
-                                //////  총 Label 번호를 초과할 경우 Error Coude Return.
-                                if (tempLabelCount >= MAX_LABEL)
-                                    return -1;
+                                case eYoonDir2D.Top:
+                                    nRotateMode = eYoonDir2DMode.AxisY;
+                                    nDirMode = eYoonDir2DMode.Clock4;
+                                    jobStep = eYoonStepBinding.Go;
+                                    break;
+                                case eYoonDir2D.Right:
+                                    nRotateMode = eYoonDir2DMode.AxisX;
+                                    nDirMode = eYoonDir2DMode.Clock4;
+                                    jobStep = eYoonStepBinding.Go;
+                                    break;
+                                case eYoonDir2D.Bottom:
+                                    nRotateMode = eYoonDir2DMode.AxisY;
+                                    nDirMode = eYoonDir2DMode.Clock4;
+                                    jobStep = eYoonStepBinding.Go;
+                                    break;
+                                case eYoonDir2D.Left:
+                                    nRotateMode = eYoonDir2DMode.AxisX;
+                                    nDirMode = eYoonDir2DMode.AntiClock4;
+                                    jobStep = eYoonStepBinding.Go;
+                                    break;
+                                default:
+                                    jobStep = eYoonStepBinding.Error;
+                                    break;
                             }
-                            ////  해당 Pixel의 Label 번호가 있을 경우, 그냥 가져온다.
+                            break;
+                        case eYoonStepBinding.Check:
+                            byte value = pBuffer[vecCurrent.Y * nWidth + vecCurrent.X];
+                            if (bWhite && value >= nThreshold)
+                                jobStep = eYoonStepBinding.Stack;
+                            else if (!bWhite && value <= nThreshold)
+                                jobStep = eYoonStepBinding.Stack;
                             else
                             {
-                                tempLabelNo = pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)];
-                            }
-                            ////  임시 Label 번호를 부착한다.
-                            pBufferToLabelNo[y * width + x] = tempLabelNo;  // 해당 Pixel에 임시 Label을 부착한다.
-                            pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)] = tempLabelNo;    // 임시 Buffer 상의 해당 Pixel 위치에 기록한다.
-                            pTempLabelBuffer[(y + 2) * (width + 2) + (x + 2)] = tempLabelNo;    // 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                            pTempLabelBuffer[(y + 2) * (width + 2) + (x + 1)] = tempLabelNo;
-                            pTempLabelBuffer[(y + 2) * (width + 2) + (x + 0)] = tempLabelNo;
-                            ////  수평으로 연결된 점들의 경우, 알고리즘 속도 증가를 위해 연속해서 레이블링한다.
-                            for (; x < width; x++)
-                            {
-                                //					if(pBuffer[y*width+x] == 0)
-                                //						break;
-                                if (pBuffer[y * width + x] < thresholdLow || pBuffer[y * width + x] > thresholdHigh)
-                                    break;
-                                pBufferToLabelNo[y * width + x] = tempLabelNo;  // 해당 Pixel에 임시 Label을 부착한다.
-                                pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)] = tempLabelNo;    // 임시 Buffer 상의 해당 Pixel 위치에 기록한다.
-                                pTempLabelBuffer[(y + 2) * (width + 2) + (x + 2)] = tempLabelNo;    // 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                                pTempLabelBuffer[(y + 0) * (width + 2) + (x + 2)] = tempLabelNo;
-                            }
-                            //				pTempLabelBuffer[(y+1)*(width+2)+(x+1)] = tempLabelNo;		// 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                        }
-                    }
-                }
-                //// Label 번호 재조정을 위해 Linked List를 초기화한다.
-                for (i = 1; i < tempLabelCount; i++)
-                {
-                    pLinkedList[i] = i;
-                }
-                //// Label 번호 Buffer (pLabelBuffer)와 임시 Labeling Buffer(pTempLabelBuffer)를 조사해서 작은 값을 찾는다.
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        if (pBufferToLabelNo[y * width + x] > 0)
-                        {
-                            //////  실제 Labeling된 번호와 임시로 Labeling된 번호가 서로 일치하지 않는다면 동치쌍임.
-                            if (pBufferToLabelNo[y * width + x] != pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)])
-                            {
-                                maxLabel = pBufferToLabelNo[y * width + x];
-                                minLabel = pTempLabelBuffer[(y + 1) * (width + 2) + (x + 1)];
-                                //////  동치쌍일 경우, Linked List를 조사해서 최저값을 찾는다.
-                                //////  이 함수들을 통해 Linked List와 Label num가 일치하는 위치를 찾을 수 있다.
-                                while (pLinkedList[maxLabel] != maxLabel)
-                                {
-                                    maxLabel = pLinkedList[maxLabel];
-                                }
-                                while (pLinkedList[minLabel] != minLabel)
-                                {
-                                    minLabel = pLinkedList[minLabel];
-                                }
-                                //////  두 값 중에서 더 작은 값을 기준으로 Linked List를 조정한다.
-                                maxLabel = pLinkedList[maxLabel];
-                                minLabel = pLinkedList[minLabel];
-                                if (maxLabel > minLabel)
-                                {
-                                    pLinkedList[maxLabel] = pLinkedList[minLabel];
-                                }
+                                if (jobStepBk == eYoonStepBinding.Stack)
+                                    jobStep = eYoonStepBinding.Rotate;
+                                else if (jobStepBk == eYoonStepBinding.Ignore)
+                                    jobStep = eYoonStepBinding.Ignore;
                                 else
-                                {
-                                    pLinkedList[minLabel] = pLinkedList[maxLabel];
-                                }
+                                    jobStep = eYoonStepBinding.Error;
                             }
-                        }
-                    }
-                }
-                labelCount = 1;
-                //// 동치 값들이 모두 조정된 후, Label용 Linked List가 가장 작은 값으로 Labelling을 확정한다.
-                for (i = 1; i < tempLabelCount; i++)
-                {
-                    if (pLinkedList[i] == i)
-                    {
-                        pLinkedList[i] = labelCount;
-                        labelCount++;
-                    }
-                    else
-                    {
-                        pLinkedList[i] = pLinkedList[pLinkedList[i]];
-                    }
-                }
-                tempLabelCount = labelCount - 1;
-                //// Linked List로부터 라벨 값들을 얻어서, Label Buffer의 해당 Pixel 위치 상에 최종적으로 레이블링한다.
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        pBufferToLabelNo[y * width + x] = pLinkedList[pBufferToLabelNo[y * width + x]];
-                    }
-                }
-                return tempLabelCount;
-            }
-
-            //  레이블링.
-            delegate byte CallImageBuffer(byte[] pInsertBuffer, int x, int y);
-            delegate int CallLabelBuffer(List<int> pInsertBuffer, int x, int y);
-            delegate void CallLabelling(ref List<int> pInsertBuffer, int x, int y, int labelNo);
-            public static int Labeling(ref byte[] pBuffer, ref List<int> pBufferToLabelNo, int width, int height, int thresholdLow, int thresholdHigh)
-            {
-                int x, y, i;
-                int tempLabelCount;     // 임시적인 Label Counter.
-                int maxLabel, minLabel; // Label No 재조정을 위한 Label 값.
-                int tempLabelNo;        // Pixel 위치에 기록하는 임시 Label No.
-                int labelCount;         // Label Number를 재조정한 후 최종적으로 Labelling되는 카운터.
-                List<int> pLinkedList;
-                List<int> pTempLabelBuffer;
-                CallImageBuffer CallBackImageBuffer = (pInsertBuffer, X, Y) => pInsertBuffer[Y * width + X];
-                CallLabelBuffer CallBackLabelBuffer = (pInsertBuffer, X, Y) => pInsertBuffer[Y * width + X];
-                CallLabelBuffer CallBackTempLabelBuffer = (pInsertBuffer, X, Y) => pInsertBuffer[(Y + 1) * width + (X + 1)];
-                CallLabelling CallBackLabelling = delegate (ref List<int> pInsertBuffer, int X, int Y, int No) { pInsertBuffer[Y * width + X] = No; };
-                CallLabelling CallBackTempLabeling = delegate (ref List<int> pInsertBuffer, int X, int Y, int No) { pInsertBuffer[(Y + 1) * width + (X + 1)] = No; };
-                tempLabelCount = 1;
-                pLinkedList = new List<int>((int)MAX_LABEL);       // Label No 재조정을 위한 1차원 Linked List 배열
-                pTempLabelBuffer = new List<int>(((width + 2) * (height + 2))); // umbering을 위한 임시 Number Buffer (Bitmap 크기에 2를 더한 Size로 함.)
-                if (pLinkedList == null) return -1;
-                if (pTempLabelBuffer == null) return -1;
-                ////  임시 Labeling 시작.
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        if (CallBackImageBuffer(pBuffer, x, y) >= thresholdLow && CallBackImageBuffer(pBuffer, x, y) <= thresholdHigh)
-                        {
-                            ////  임시 Buffer(int*) 상의 해당 Pixel 위치에 Label(int)을 부여한다.
-                            if (CallBackTempLabelBuffer(pTempLabelBuffer, x, y) == 0)
-                            {
-                                //////  Label할 번호를 임시 Counter에서 얻어온다.
-                                tempLabelNo = tempLabelCount;
-                                tempLabelCount++;
-                                //////  총 Label 번호를 초과할 경우 Error Coude Return.
-                                if (tempLabelCount >= MAX_LABEL)
-                                    return -1;
-                            }
-                            ////  해당 Pixel의 Label 번호가 있을 경우, 그냥 가져온다.
+                            break;
+                        case eYoonStepBinding.Go:
+                            vecCurrent.Move(dirSearch);
+                            jobStep = eYoonStepBinding.Check;
+                            break;
+                        case eYoonStepBinding.Ignore:
+                            jobStepBk = jobStep;
+                            if (blankCount++ >= resultRect.Width)
+                                jobStep = eYoonStepBinding.Finish;
                             else
+                                jobStep = eYoonStepBinding.Go;
+                            break;
+                        case eYoonStepBinding.Stack:
+                            jobStepBk = jobStep;
+                            blankCount = 0;
+                            pixelCount++;
+                            if (vecCurrent.X < resultRect.Left)
+                                resultRect.CenterPos.X = vecCurrent.X + resultRect.Width / 2;
+                            if (vecCurrent.X > resultRect.Right)
+                                resultRect.Width = vecCurrent.X - resultRect.Left;
+                            if (vecCurrent.Y < resultRect.Top)
+                                resultRect.CenterPos.Y = vecCurrent.Y + resultRect.Height / 2;
+                            if (vecCurrent.Y > resultRect.Bottom)
+                                resultRect.Height = vecCurrent.Y - resultRect.Top;
+                            if (vecCurrent.X == vecStart.X && vecCurrent.Y == vecStart.Y)
+                                jobStep = eYoonStepBinding.Finish;
+                            else
+                                jobStep = eYoonStepBinding.Go;
+                            break;
+                        case eYoonStepBinding.Rotate:
+                            dirSearch = dirSearch.Go(nDirMode);
+                            if (dirSearch == dirDefault.Go(nRotateMode))
                             {
-                                tempLabelNo = CallBackTempLabelBuffer(pTempLabelBuffer, x, y);
+                                dirDefault = dirSearch;
+                                jobStep = eYoonStepBinding.Ignore;
                             }
-                            ////  임시 Label 번호를 부착한다.
-                            CallBackLabelling(ref pBufferToLabelNo, x, y, tempLabelNo); // 해당 Pixel에 임시 Label을 부착한다.
-                            CallBackTempLabeling(ref pTempLabelBuffer, x, y, tempLabelNo);  // 임시 Buffer 상의 해당 Pixel 위치에 기록한다.
-                            CallBackTempLabeling(ref pTempLabelBuffer, x + 1, y + 1, tempLabelNo);  // 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                            CallBackTempLabeling(ref pTempLabelBuffer, x, y + 1, tempLabelNo);
-                            CallBackTempLabeling(ref pTempLabelBuffer, x - 1, y + 1, tempLabelNo);
-                            ////  수평으로 연결된 점들의 경우, 알고리즘 속도 증가를 위해 연속해서 레이블링한다.
-                            for (; x < width; x++)
-                            {
-                                //					if(CallBackImageBuffer(pBuffer,x,y) == 0)
-                                //						break;
-                                if (CallBackImageBuffer(pBuffer, x, y) < thresholdLow || CallBackImageBuffer(pBuffer, x, y) > thresholdHigh)
-                                    break;
-                                CallBackLabelling(ref pBufferToLabelNo, x, y, tempLabelNo); // 해당 Pixel에 임시 Label을 부착한다.
-                                CallBackTempLabeling(ref pTempLabelBuffer, x, y, tempLabelNo);  // 임시 Buffer 상의 해당 Pixel 위치에 기록한다.
-                                CallBackTempLabeling(ref pTempLabelBuffer, x + 1, y + 1, tempLabelNo);  // 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                                CallBackTempLabeling(ref pTempLabelBuffer, x + 1, y - 1, tempLabelNo);
-                            }
-                            //				CallBackTempLabelBuffer(pTempLabelBuffer, x, y) = tempLabelNo;			// 임시 Buffer의 인접 Pixel을 위한 Label 번호를 미리 기록한다.
-                        }
+                            else
+                                jobStep = eYoonStepBinding.Go;
+                            break;
+                        case eYoonStepBinding.Error:
+                            resultRect = new YoonRect2N(-1, -1, 0, 0);
+                            bRun = false;
+                            break;
+                        case eYoonStepBinding.Finish:
+                            bRun = false;
+                            break;
                     }
                 }
-                //// Label 번호 재조정을 위해 Linked List를 초기화한다.
-                for (i = 1; i < tempLabelCount; i++)
-                {
-                    pLinkedList[i] = i;
-                }
-                //// Label 번호 Buffer (pLabelBuffer)와 임시 Labeling Buffer(pTempLabelBuffer)를 조사해서 작은 값을 찾는다.
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        if (CallBackLabelBuffer(pBufferToLabelNo, x, y) > 0)
-                        {
-                            //////  실제 Labeling된 번호와 임시로 Labeling된 번호가 서로 일치하지 않는다면 동치쌍임.
-                            if (CallBackLabelBuffer(pBufferToLabelNo, x, y) != CallBackTempLabelBuffer(pTempLabelBuffer, x, y))
-                            {
-                                maxLabel = CallBackLabelBuffer(pBufferToLabelNo, x, y);
-                                minLabel = CallBackTempLabelBuffer(pTempLabelBuffer, x, y);
-                                //////  동치쌍일 경우, Linked List를 조사해서 최저값을 찾는다.
-                                //////  이 함수들을 통해 Linked List와 Label num가 일치하는 위치를 찾을 수 있다.
-                                while (pLinkedList[maxLabel] != maxLabel)
-                                {
-                                    maxLabel = pLinkedList[maxLabel];
-                                }
-                                while (pLinkedList[minLabel] != minLabel)
-                                {
-                                    minLabel = pLinkedList[minLabel];
-                                }
-                                //////  두 값 중에서 더 작은 값을 기준으로 Linked List를 조정한다.
-                                maxLabel = pLinkedList[maxLabel];
-                                minLabel = pLinkedList[minLabel];
-                                if (maxLabel > minLabel)
-                                {
-                                    pLinkedList[maxLabel] = pLinkedList[minLabel];
-                                }
-                                else
-                                {
-                                    pLinkedList[minLabel] = pLinkedList[maxLabel];
-                                }
-                            }
-                        }
-                    }
-                }
-                labelCount = 1;
-                //// 동치 값들이 모두 조정된 후, Label용 Linked List가 가장 작은 값으로 Labelling을 확정한다.
-                for (i = 1; i < tempLabelCount; i++)
-                {
-                    if (pLinkedList[i] == i)
-                    {
-                        pLinkedList[i] = labelCount;
-                        labelCount++;
-                    }
-                    else
-                    {
-                        pLinkedList[i] = pLinkedList[pLinkedList[i]];
-                    }
-                }
-                tempLabelCount = labelCount - 1;
-                //// Linked List로부터 라벨 값들을 얻어서, Label Buffer의 해당 Pixel 위치 상에 최종적으로 레이블링한다.
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        CallBackLabelling(ref pBufferToLabelNo, x, y, pLinkedList[CallBackLabelBuffer(pBufferToLabelNo, x, y)]);
-                    }
-                }
-                return tempLabelCount;
+                return new YoonObject<YoonRect2N>(0, resultRect, pixelCount);
             }
-
-            //  Color Image(4BYTE)의 레이블링.
-            public static int Labeling(ref int[] pImageBuffer, ref int[] pBufferToLabelNo, int imageWidth, int imageHeight, YoonRect2N scanArea, int threshold, bool isWhite)
-            {
-                int i, j;
-                int temp, tempLabel;
-                int labelCount;
-                int[] pEqualTable0, pEqualTable1;
-                int[] pLabelList;
-                //	int equalTable[MAX_LABEL][2];
-                pEqualTable0 = new int[imageWidth * imageHeight];
-                pEqualTable1 = new int[imageWidth * imageHeight];
-                pLabelList = new int[imageWidth * imageHeight];
-                tempLabel = 0;
-                labelCount = 0;
-                ////  Linked 비교를 위한 Equal Tabel 초기화.
-                for (j = 0; j < imageHeight; j++)
-                {
-                    for (i = 0; i < imageWidth; i++)
-                    {
-                        pLabelList[j * imageWidth + i] = 0;
-                        pEqualTable0[j * imageWidth + i] = 0;
-                        pEqualTable1[j * imageWidth + i] = 0;
-                    }
-                }
-                ////  1차 Scanning.
-                int maxLabel, minLabel, minEqual;
-                int upper, left, current;
-                maxLabel = 0;
-                minLabel = 0;
-                minEqual = 0;
-                if (isWhite == true)
-                {
-                    for (j = scanArea.Top + 1; j < scanArea.Bottom; j++)
-                    {
-                        for (i = scanArea.Left + 1; i < scanArea.Right; i++)
-                        {
-                            upper = (j - 1) * imageWidth + i;
-                            left = j * imageWidth + (i - 1);
-                            current = j * imageWidth + i;
-                            if (pImageBuffer[current] >= threshold)
-                            {
-                                if ((pLabelList[upper] != 0) && (pLabelList[left] != 0))
-                                {
-
-                                    if (pLabelList[upper] == pLabelList[left])
-                                    {
-                                        pLabelList[current] = pLabelList[upper];
-                                    }
-                                    else
-                                    {
-                                        maxLabel = (pLabelList[upper] > pLabelList[left]) ? pLabelList[upper] : pLabelList[left];
-                                        minLabel = (pLabelList[upper] < pLabelList[left]) ? pLabelList[upper] : pLabelList[left];
-                                        pLabelList[current] = minLabel;
-                                        minEqual = (pEqualTable1[maxLabel] < pEqualTable1[minLabel]) ? pEqualTable1[maxLabel] : pEqualTable1[minLabel];
-                                        pEqualTable1[maxLabel] = minEqual;
-                                        pEqualTable1[minLabel] = minEqual;
-                                    }
-                                }
-                                else if (pLabelList[upper] != 0)
-                                {
-                                    pLabelList[current] = pLabelList[upper];
-                                }
-                                else if (pLabelList[left] != 0)
-                                {
-                                    pLabelList[current] = pLabelList[left];
-                                }
-                                else
-                                {
-                                    labelCount++;
-                                    pLabelList[current] = labelCount;
-                                    pEqualTable0[labelCount] = labelCount;
-                                    pEqualTable1[labelCount] = labelCount;
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for (j = scanArea.Top + 1; j < scanArea.Bottom; j++)
-                    {
-                        for (i = scanArea.Left + 1; i < scanArea.Right; i++)
-                        {
-                            upper = (j - 1) * imageWidth + i;
-                            left = j * imageWidth + (i - 1);
-                            current = j * imageWidth + i;
-                            if (pImageBuffer[current] < threshold)
-                            {
-                                if ((pLabelList[upper] != 0) && (pLabelList[left] != 0))
-                                {
-                                    if (pLabelList[upper] == pLabelList[left])
-                                    {
-                                        pLabelList[current] = pLabelList[upper];
-                                    }
-                                    else
-                                    {
-                                        maxLabel = (pLabelList[upper] > pLabelList[left]) ? pLabelList[upper] : pLabelList[left];
-                                        minLabel = (pLabelList[upper] < pLabelList[left]) ? pLabelList[upper] : pLabelList[left];
-                                        pLabelList[current] = minLabel;
-                                        minEqual = (pEqualTable1[maxLabel] < pEqualTable1[minLabel]) ? pEqualTable1[maxLabel] : pEqualTable1[minLabel];
-                                        pEqualTable1[maxLabel] = minEqual;
-                                        pEqualTable1[minLabel] = minEqual;
-                                    }
-                                }
-                                else if (pLabelList[upper] != 0)
-                                {
-                                    pLabelList[current] = pLabelList[upper];
-                                }
-                                else if (pLabelList[left] != 0)
-                                {
-                                    pLabelList[current] = pLabelList[left];
-                                }
-                                else
-                                {
-                                    labelCount++;
-                                    pLabelList[current] = labelCount;
-                                    pEqualTable0[labelCount] = labelCount;
-                                    pEqualTable1[labelCount] = labelCount;
-                                }
-                            }
-                        }
-                    }
-                }
-                ////  Equal Table 정렬
-                int count;
-                List<int> pHash;
-                for (i = 1; i <= labelCount; i++)
-                {
-                    temp = pEqualTable1[i];
-                    if (temp != pEqualTable0[i])
-                    {
-                        pEqualTable1[i] = pEqualTable1[temp];
-                    }
-                }
-                pHash = new List<int>(labelCount + 1);
-                for (i = 1; i <= labelCount; i++)
-                {
-                    pHash[pEqualTable1[i]] = pEqualTable1[i];
-                }
-                count = 1;
-                for (i = 1; i <= labelCount; i++)
-                {
-                    if (pHash[i] != 0)
-                    {
-                        pHash[i] = count++;
-                    }
-                }
-                for (i = 1; i <= labelCount; i++)
-                {
-                    pEqualTable1[i] = pHash[pEqualTable1[i]];
-                }
-                ////  찾아낸 Label 갯수 Count
-                tempLabel = pEqualTable1[0 * imageWidth + 0];
-                for (j = 0; j < imageHeight; j++)
-                {
-                    for (i = 0; i < imageWidth; i++)
-                    {
-                        if (tempLabel < pEqualTable1[j * imageWidth + i])
-                            tempLabel = pEqualTable1[j * imageWidth + i];
-                    }
-                }
-                for (j = 0; j < imageHeight; j++)
-                {
-                    for (i = 0; i < imageWidth; i++)
-                    {
-                        temp = pLabelList[j * imageWidth + i];
-                        pBufferToLabelNo[j * imageWidth + i] = pEqualTable1[temp];
-                    }
-                }
-                return tempLabel;
-            }
-            #endregion
-        }
-
-        // 외곽선 검출
-        public static class FindEdge
-        {
-
-            #region 외곽선 검출하기
-            public static IYoonRect EdgeDetection(ref int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
-            {
-                int direction;
-                YoonVector2N currentPoint;
-                YoonVector2N startVector, nextVector;
-                YoonRect2N resultRect;
-                uint length;
-                double x, y, value;
-                direction = 0;
-                length = 0;
-                resultRect = new YoonRect2N(width, height, -width, -height);
-                startVector = new YoonVector2N(eYoonDir2D.Right);
-                nextVector = new YoonVector2N();
-                currentPoint = startPos;
-                ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector.Direction = startVector.Direction.NextQuadrant();
-                ////  White Edge를 찾는 경우...
-                if (isWhite)
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = currentPoint.X + nextVector.X;
-                        y = currentPoint.Y + nextVector.Y;
-                        value = pBuffer[(int)y * width + (int)x];
-                        //////  threshold보다 현재 값이 더 큰 경우. (White IYoonVector 찾기에 성공한 경우)
-                        if (value >= threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-                ////  Black Edge를 찾는 경우...
-                else
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = currentPoint.X + nextVector.X;
-                        y = currentPoint.Y + nextVector.Y;
-                        value = pBuffer[(int)y * width + (int)x];
-                        //////  threshold가 현재 값보다 더 작은 경우. (Black IYoonVector 찾기에 성공한 경우)
-                        if (value < threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                //				    pFoundLength = 1;
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-            }
-
-            public static IYoonRect EdgeDetection(ref ushort[] pBuffer, int width, int height, YoonVector2N startPos, ushort threshold, bool isWhite)
-            {
-                int direction;
-                YoonVector2N currentPoint;
-                YoonVector2N startVector, nextVector;
-                YoonRect2N resultRect;
-                uint length;
-                double x, y;
-                ushort value;
-                direction = 0;
-                length = 0;
-                resultRect = new YoonRect2N(width, height, -width, -height);
-                startVector = new YoonVector2N(eYoonDir2D.Right);
-                nextVector = new YoonVector2N();
-                currentPoint = startPos;
-                ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector.Direction = startVector.Direction.NextQuadrant();
-                ////  White Edge를 찾는 경우...
-                if (isWhite)
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = currentPoint.X + nextVector.X;
-                        y = currentPoint.Y + nextVector.Y;
-                        value = pBuffer[(int)y * width + (int)x];
-                        //////  threshold보다 현재 값이 더 큰 경우. (White IYoonVector 찾기에 성공한 경우)
-                        if (value >= threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                //				    pFoundLength = 1;
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-                ////  Black Edge를 찾는 경우...
-                else
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = currentPoint.X + nextVector.X;
-                        y = currentPoint.Y + nextVector.Y;
-                        value = pBuffer[(int)y * width + (int)x];
-                        //////  threshold가 현재 값보다 더 작은 경우. (Black IYoonVector 찾기에 성공한 경우)
-                        if (value < threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                //				    pFoundLength = 1;
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-            }
-
-            public static IYoonRect EdgeDetection(ref int[] pBuffer, ref List<IYoonVector> pListEdgePos, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
-            {
-                int direction;
-                YoonVector2N currentPoint;
-                YoonVector2N startVector, nextVector;
-                YoonRect2N resultRect;
-                uint length;
-                int x, y, value;
-                if (pListEdgePos == null)
-                    pListEdgePos = new List<IYoonVector>();
-                direction = 0;
-                length = 0;
-                resultRect = new YoonRect2N(width, height, -width, -height);
-                currentPoint = startPos;
-                startVector = new YoonVector2N(1, 0);
-                nextVector = new YoonVector2N();
-                ////  시작방향에서 90도 꺾은 다음 방향 벡터를 얻는다.
-                nextVector.Direction = startVector.Direction.NextQuadrant();
-                ////  White Edge를 찾는 경우...
-                if (isWhite)
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = (int)currentPoint.X + (int)nextVector.X;
-                        y = (int)currentPoint.Y + (int)nextVector.Y;
-                        value = pBuffer[y * width + x];
-                        //////  threshold보다 현재 값이 더 큰 경우. (White IYoonVector 찾기에 성공한 경우)
-                        if (value >= threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //////  찾은 IYoonVector 위치를 저장한다.
-                            YoonVector2N pPos = new YoonVector2N();
-                            pPos.X = x;
-                            pPos.Y = y;
-                            pListEdgePos.Add(pPos);
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                //				    pFoundLength = 1;
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-                ////  Black Edge를 찾는 경우...
-                else
-                {
-                    while (true)
-                    {
-                        //////  다음 IYoonVector로 변경 후  Gray Level을 검사한다.
-                        x = (int)currentPoint.X + (int)nextVector.X;
-                        y = (int)currentPoint.Y + (int)nextVector.Y;
-                        value = pBuffer[y * width + x];
-                        //////  threshold가 현재 값보다 더 작은 경우. (Black IYoonVector 찾기에 성공한 경우)
-                        if (value < threshold)
-                        {
-                            length++;
-                            ////// 다음 IYoonVector로 변경한다.
-                            currentPoint.X = currentPoint.X + nextVector.X;
-                            currentPoint.Y = currentPoint.Y + nextVector.Y;
-                            //////  찾은 IYoonVector 위치를 저장한다.
-                            YoonVector2N pPos = new YoonVector2N();
-                            pPos.X = x;
-                            pPos.Y = y;
-                            pListEdgePos.Add(pPos);
-                            //				int i = m_scanArea.Left + ix;
-                            //				int j = m_scanArea.Top + iy;
-                            //				m_screenImage.Canvas.Pixels[i][j] = clRed;
-                            //////  상,하,좌,우 순서에 맞게 배열해서 result rect에 넣자.
-                            if (currentPoint.X < resultRect.Left)
-                                resultRect.CenterPos.X = currentPoint.X + resultRect.Width / 2;
-                            if (currentPoint.X > resultRect.Right)
-                                resultRect.Width = currentPoint.X - resultRect.Left;
-                            if (currentPoint.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = currentPoint.Y + resultRect.Height / 2;
-                            if (currentPoint.Y > resultRect.Bottom)
-                                resultRect.Height = currentPoint.Y - resultRect.Top;
-                            //////  실행 中 시작 IYoonVector에 재도달했을 경우, 여태껏 확장한 result rect를 내보낸다.
-                            if (currentPoint.X == startPos.X && currentPoint.Y == startPos.Y)
-                            {
-                                //					*pFoundLength = length;
-                                return resultRect;
-                            }
-                            ////// 원하는 Pixel을 찾았으면 90도 방향을 얻는다.
-                            nextVector.Direction = nextVector.Direction.NextQuadrant();
-                            direction = 0;
-                        }
-                        else
-                        {
-                            ////// 원하는 Pixel이 아니면 45도 방향으로 돌린다.
-                            nextVector.Direction = nextVector.Direction.NextOctant();
-                            direction++;
-                            ////// direction이 8개 이상이면 Pixel이 튄 경우이다.
-                            if (direction >= 7)
-                            {
-                                pBuffer[(int)currentPoint.Y * width + (int)currentPoint.X] = 0;
-                                direction = 0;
-                                resultRect = new YoonRect2N(-1, -1, 0, 0);
-                                //				    pFoundLength = 1;
-                                return resultRect;
-                            }
-                        }
-                    }
-                }
-            }
-            #endregion
         }
 
         // Pixel 이진화
         public static class Binary
         {
-            #region 이진화
-            //  이진화.
-            public static void BinaryThreshold(ref byte[] pBuffer, int bufferWidth, int threshold, YoonRect2N scanArea)
+            public static YoonImage Binarize(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold)
             {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return new YoonImage(Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold),
+                    pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+            }
+
+            public static byte[] Binarize(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea, byte threshold)
+            {
+                byte[] pResultBuffer = new byte[pBuffer.Length];
                 for (int j = scanArea.Top; j < scanArea.Bottom; j++)
                 {
                     for (int i = scanArea.Left; i < scanArea.Right; i++)
                     {
                         if (pBuffer[j * bufferWidth + i] < threshold)
-                            pBuffer[j * bufferWidth + i] = 0;
+                            pResultBuffer[j * bufferWidth + i] = 0;
                         else
-                            pBuffer[j * bufferWidth + i] = 255;
+                            pResultBuffer[j * bufferWidth + i] = 255;
                     }
                 }
+                return pResultBuffer;
             }
 
-            public static void BinaryThreshold(ref int[] pBuffer, int bufferWidth, int bufferHeight, int threshold)
+            public static YoonImage Binarize(YoonImage pSourceImage, byte nThreshold)
             {
-                int tempThreshold;
-                int count;
-                int sum;
-                int[] pTempBuffer;
-                sum = 0;
-                count = 0;
-                tempThreshold = threshold;
-                pTempBuffer = new int[bufferWidth * bufferHeight];
-                pBuffer.CopyTo(pTempBuffer, 0);
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return new YoonImage(Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold),
+                    pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+            }
+
+            public static byte[] Binarize(byte[] pBuffer, int bufferWidth, int bufferHeight, byte threshold)
+            {
+                int sum = 0;
+                int count = 0;
+                byte tempThreshold = threshold;
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
                 ////  threshold 값 보정.
                 if (threshold < 1)
                 {
@@ -3999,14 +2236,14 @@ namespace YoonFactory.Image
                     {
                         for (int i = 0; i < bufferWidth; i++)
                         {
-                            sum += pTempBuffer[j * bufferWidth + i];
+                            sum += pBuffer[j * bufferWidth + i];
                             count++;
                         }
                     }
                     if (count < 1)
                         tempThreshold = 255;
                     else
-                        tempThreshold = sum / count + 20;
+                        tempThreshold = (byte)(sum / count + 20);
                 }
                 ////  이진화.
                 for (int j = 0; j < bufferHeight; j++)
@@ -4014,70 +2251,26 @@ namespace YoonFactory.Image
                     for (int i = 0; i < bufferWidth; i++)
                     {
                         if (pBuffer[j * bufferWidth + i] < tempThreshold)
-                            pBuffer[j * bufferWidth + i] = 0;
+                            pResultBuffer[j * bufferWidth + i] = 0;
                         else
-                            pBuffer[j * bufferWidth + i] = 255;
+                            pResultBuffer[j * bufferWidth + i] = 255;
                     }
                 }
+                return pResultBuffer;
             }
-            #endregion
-
-            #region 영역 내 자동이진화
-            public static void BinaryBlock(ref byte[] pBuffer, int bufferWidth, int bufferHeight, int scanWidth, int scanHeight)
-            {
-                int x, y;
-                int sum, threshold;
-                int count;
-                byte[] pTempBuffer;
-                pTempBuffer = new byte[bufferWidth * bufferHeight];
-                pBuffer.CopyTo(pTempBuffer, 0);
-                for (int j = 0; j < bufferHeight; j++)
-                {
-                    for (int i = 0; i < bufferWidth; i++)
-                    {
-                        ////  threshold 자동 산출.
-                        sum = 0;
-                        count = 0;
-                        for (int jj = 0; jj < scanHeight; jj++)
-                        {
-                            for (int ii = 0; ii < scanWidth; ii++)
-                            {
-                                x = i + ii;
-                                y = j + jj;
-                                if (x < 0 || x >= bufferWidth || y < 0 || y >= bufferHeight)
-                                    continue;
-                                sum += pTempBuffer[y * bufferWidth + x];
-                                count++;
-                            }
-                        }
-                        if (count < 1)
-                            threshold = 255;
-                        else
-                            threshold = sum / count;
-                        ////  threshold에 따른 이진화.
-                        if (pBuffer[j * bufferWidth + i] < threshold)
-                            pBuffer[j * bufferWidth + i] = 0;
-                        else
-                            pBuffer[j * bufferWidth + i] = 255;
-                    }
-                }
-            }
-            #endregion
         }
 
         // 영상 침식/ 팽창
         public static class Morphology
         {
-            #region 침식 연산
             //  침식 연산.
-            public static void Erosion(ref byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static byte[] Erosion(byte[] pBuffer, int bufferWidth, int bufferHeight)
             {
-                int[,] mask = new int[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
                 int i, j, x, y;
-                int posX, posY, value, minValue;
-                byte[] pTempBuffer;
-                pTempBuffer = new byte[bufferWidth * bufferHeight];
-                pBuffer.CopyTo(pTempBuffer, 0);
+                int posX, posY;
+                int value, minValue;
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
                 ////  침식 연산용 Masking.
                 for (y = 0; y < bufferHeight - 2; y++)
                 {
@@ -4091,7 +2284,7 @@ namespace YoonFactory.Image
                             {
                                 posX = x + i;
                                 posY = y + j;
-                                value = mask[i, j] + pTempBuffer[posY * bufferWidth + posX];
+                                value = pBuffer[posY * bufferWidth + posX];
                                 if (value < minValue)
                                     minValue = value;
                             }
@@ -4099,22 +2292,103 @@ namespace YoonFactory.Image
                         //////  다음 IYoonVector에 해당 Gray Level 대입.
                         posX = x + 1;
                         posY = y + 1;
-                        pBuffer[posY * bufferWidth + posX] = (byte)minValue;
+                        pResultBuffer[posY * bufferWidth + posX] = (byte)minValue;
                     }
                 }
+                return pResultBuffer;
             }
 
-            public static void ErosionBinary(ref byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            public static byte[] Erosion(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            {
+                int i, j, x, y;
+                int posX, posY;
+                int value, minValue;
+                int scanWidth = scanArea.Width;
+                int scanHeight = scanArea.Height;
+                byte[] pResultBuffer = new byte[pBuffer.Length];
+                Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
+                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
+                for (j = 0; j < scanHeight; j++)
+                    for (i = 0; i < scanWidth; i++)
+                        pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + scanArea.Left + i];
+                ////  침식 연산용 Masking.
+                for (y = 0; y < scanHeight - 2; y++)
+                {
+                    for (x = 0; x < scanWidth - 2; x++)
+                    {
+                        minValue = 100000;
+                        //////  주변의 아홉개 IYoonVector 中 최소 Gray Level 산출.
+                        for (j = 0; j < 3; j++)
+                        {
+                            for (i = 0; i < 3; i++)
+                            {
+                                posX = x + i;
+                                posY = y + j;
+                                value = pTempBuffer[posY * bufferWidth + posX];
+                                if (value < minValue)
+                                    minValue = value;
+                            }
+                        }
+                        //////  다음 IYoonVector에 해당 Gray Level 대입.
+                        posX = scanArea.Left + x + 1;
+                        posY = scanArea.Top + y + 1;
+                        pResultBuffer[posY * bufferWidth + posX] = (byte)minValue;
+                    }
+                }
+                return pResultBuffer;
+            }
+
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight)
+            {
+                int i, j, x, y;
+                int posX, posY;
+                int sum;
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[,] mask = new byte[3, 3] { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } };
+                Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
+                for (y = 0; y < bufferHeight - 2; y++)
+                {
+                    for (x = 0; x < bufferWidth - 2; x++)
+                    {
+                        sum = 0;
+                        //////  주변이 모두 흰색일 경우에만 흰색(255)으로 표시할 수 있음.
+                        for (i=0; i<3; i++)
+                        {
+                            for(j=0; j<3; j++)
+                            {
+                                posX = x + i;
+                                posY = y + j;
+                                if (pBuffer[posY * bufferWidth + posX] == mask[i, j])
+                                    sum++;
+                            }
+                        }
+                        //////  다음 IYoonVector에 침식 Gray Level 결과 대입.
+                        posX = x + 1;
+                        posY = y + 1;
+                        if (sum == 9)
+                        {
+                            pResultBuffer[posY * bufferWidth + posX] = 255;
+                        }
+                        else
+                        {
+                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                        }
+                    }
+                }
+                return pResultBuffer;
+            }
+
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
             {
                 int x, y, i, j;
-                int x1, y1, sum;
-                int scanWidth, scanHeight;
-                byte[] pTempBuffer;
-                int[,] mask = new int[3, 3] { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } };
-                scanWidth = scanArea.Width;
-                scanHeight = scanArea.Height;
-                pTempBuffer = new byte[scanWidth * scanHeight];
-                //	memcpy(pTempBuffer, pBuffer, sizeof(byte)*scanWidth*scanHeight);
+                int posX, posY;
+                int sum;
+                int scanWidth = scanArea.Width;
+                int scanHeight = scanArea.Height;
+                byte[] pResultBuffer = new byte[pBuffer.Length];
+                Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
+                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
+                byte[,] mask = new byte[3, 3] { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } };
                 for (j = 0; j < scanHeight; j++)
                     for (i = 0; i < scanWidth; i++)
                         pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + scanArea.Left + i];
@@ -4124,38 +2398,41 @@ namespace YoonFactory.Image
                     for (x = 0; x < scanWidth - 2; x++)
                     {
                         sum = 0;
+                        //////  주변이 모두 흰색일 경우에만 흰색(255)으로 표시할 수 있음.
                         for (i = 0; i < 3; i++)
                         {
                             for (j = 0; j < 3; j++)
                             {
-                                if (pTempBuffer[(y + j) * scanWidth + (x + i)] == mask[i, j])
+                                posX = x + i;
+                                posY = y + j;
+                                if (pTempBuffer[posY * scanWidth + posX] == mask[i, j])
                                     sum++;
                             }
                         }
-                        //////  주변이 모두 흰색일 경우에만 흰색(255)으로 표시할 수 있음.
                         //////  다음 IYoonVector에 침식 Gray Level 결과 대입.
-                        x1 = scanArea.Left + x + 1;
-                        y1 = scanArea.Top + y + 1;
+                        posX = scanArea.Left + x + 1;
+                        posY = scanArea.Top + y + 1;
                         if (sum == 9)
                         {
-                            pBuffer[y1 * bufferWidth + x1] = 255;
+                            pResultBuffer[posY * bufferWidth + posX] = 255;
                         }
                         else
                         {
-                            pBuffer[y1 * bufferWidth + x1] = 0;
+                            pResultBuffer[posY * bufferWidth + posX] = 0;
                         }
                     }
                 }
+                return pResultBuffer;
             }
 
             //  size 조정 가능한 침식 연산.
-            public static void ErosionBinary(ref byte[] pBuffer, int bufferWidth, int bufferHeight, int size)
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight, int size)
             {
                 bool isBlack;
-                int i, j, x, y, x1, y1;
-                byte[] pTempBuffer;
-                pTempBuffer = new byte[bufferWidth * bufferHeight];
-                pBuffer.CopyTo(pTempBuffer, 0);
+                int i, j, x, y;
+                int posX, posY;
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
                 //// 침식 연산 Masking 작업.
                 for (y = 0; y < bufferHeight - size; y++)
                 {
@@ -4168,7 +2445,9 @@ namespace YoonFactory.Image
                             for (j = 0; j < size; j++)
                             {
                                 //////  주변의 Pixel들中 하나라도 검은색이면 검은색(0)임.
-                                if (pTempBuffer[(y + j) * bufferWidth + (x + i)] == 0)
+                                posX = x + i;
+                                posY = y + j;
+                                if (pBuffer[(y + j) * bufferWidth + (x + i)] == 0)
                                 {
                                     isBlack = true;
                                     break;
@@ -4176,22 +2455,21 @@ namespace YoonFactory.Image
                             }
                         }
                         //////  다음 IYoonVector에 침식 판단 결과 대입.
-                        x1 = x + size / 2;
-                        y1 = y + size / 2;
+                        posX = x + size / 2;
+                        posY = y + size / 2;
                         if (isBlack)
                         {
-                            pBuffer[y1 * bufferWidth + x1] = 0;
+                            pResultBuffer[posY * bufferWidth + posX] = 0;
                         }
                         else
                         {
-                            pBuffer[y1 * bufferWidth + x1] = 255;
+                            pResultBuffer[posY * bufferWidth + posX] = 255;
                         }
                     }
                 }
+                return pResultBuffer;
             }
-            #endregion
 
-            #region 팽창연산
             //  팽장 연산.
             public static void Dilation(ref byte[] pBuffer, int bufferWidth, int bufferHeight)
             {
@@ -4352,7 +2630,6 @@ namespace YoonFactory.Image
                     }
                 }
             }
-            #endregion
         }
 
         // 검사 객체 정렬
@@ -4862,109 +3139,84 @@ namespace YoonFactory.Image
             }
 
             //  Object, Pattern 등의 시작위치 찾기
-            public static IYoonVector Scan2D(byte[] pBuffer, int width, int height, YoonVector2N startPos, byte threshold, bool isWhite)
+            public static IYoonVector Scan2D(byte[] pBuffer, int width, int height, eYoonDir2D nDir, YoonVector2N startPos, byte threshold, bool isWhite)
             {
-                int x, y;
-                ushort value;
-                YoonVector2N matchPoint;
-                matchPoint = new YoonVector2N();
-                x = startPos.X;
-                y = startPos.Y;
+                if (startPos.X >= width && startPos.Y >= height)
+                    return new YoonVector2N(-1, -1);
+                if (startPos.X < 0 && startPos.Y < 0)
+                    return new YoonVector2N(-1, -1);
+                if (startPos.X >= width || startPos.X < 0)
+                {
+                    startPos.Move(eYoonDir2D.Bottom);
+                    return Scan2D(pBuffer, width, height, nDir.ReverseX(), startPos, threshold, isWhite);
+                }
+                if (startPos.Y >= height || startPos.Y < 0)
+                {
+                    startPos.Move(eYoonDir2D.Right);
+                    return Scan2D(pBuffer, width, height, nDir.ReverseY(), startPos, threshold, isWhite);
+                }
                 ////  White IYoonVector를 찾는다.
                 if (isWhite)
                 {
-                    for (int j = y; j < height; j++)
+                    if (pBuffer[startPos.Y * width + startPos.X] >= threshold)
+                        return startPos.Clone();
+                    else
                     {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value >= threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
+                        startPos.Move(nDir);
+                        return Scan2D(pBuffer, width, height, nDir, startPos, threshold, isWhite);
                     }
                 }
                 ////  Black IYoonVector를 찾는다.
                 else
                 {
-                    for (int j = y; j < height; j++)
+                    if (pBuffer[startPos.Y * width + startPos.X] < threshold)
+                        return startPos.Clone();
+                    else
                     {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value < threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
+                        startPos.Move(nDir);
+                        return Scan2D(pBuffer, width, height, nDir, startPos, threshold, isWhite);
                     }
                 }
-                matchPoint.X = -1;
-                matchPoint.Y = -1;
-                return matchPoint;
             }
 
-            public static IYoonVector Scan2D(int[] pBuffer, int width, int height, YoonVector2N startPos, int threshold, bool isWhite)
+            public static IYoonVector Scan2D(int[] pBuffer, int width, int height, eYoonDir2D nDir, YoonVector2N startPos, int threshold, bool isWhite)
             {
-                int x, y, value;
-                YoonVector2N matchPoint;
-                matchPoint = new YoonVector2N();
-                x = startPos.X;
-                y = startPos.Y;
-                ////  White Point를 찾는다.
+                if (startPos.X >= width && startPos.Y >= height)
+                    return new YoonVector2N(-1, -1);
+                if (startPos.X < 0 && startPos.Y < 0)
+                    return new YoonVector2N(-1, -1);
+                if (startPos.X >= width || startPos.X < 0)
+                {
+                    startPos.Move(eYoonDir2D.Bottom);
+                    return Scan2D(pBuffer, width, height, nDir.ReverseX(), startPos, threshold, isWhite);
+                }
+                if (startPos.Y >= height || startPos.Y < 0)
+                {
+                    startPos.Move(eYoonDir2D.Right);
+                    return Scan2D(pBuffer, width, height, nDir.ReverseY(), startPos, threshold, isWhite);
+                }
+                ////  White IYoonVector를 찾는다.
                 if (isWhite)
                 {
-                    for (int j = y; j < height; j++)
+                    if (pBuffer[startPos.Y * width + startPos.X] >= threshold)
+                        return startPos.Clone();
+                    else
                     {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value >= threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
+                        startPos.Move(nDir);
+                        return Scan2D(pBuffer, width, height, nDir, startPos, threshold, isWhite);
                     }
                 }
-                ////  Black Point를 찾는다.
+                ////  Black IYoonVector를 찾는다.
                 else
                 {
-                    for (int j = y; j < height; j++)
+                    if (pBuffer[startPos.Y * width + startPos.X] < threshold)
+                        return startPos.Clone();
+                    else
                     {
-                        y = j;
-                        for (int i = x; i < width; i++)
-                        {
-                            x = i;
-                            value = pBuffer[y * width + x];
-                            if (value < threshold)
-                            {
-                                matchPoint.X = x;
-                                matchPoint.Y = y;
-                                return matchPoint;
-                            }
-                        }
-                        x = 0;
+                        startPos.Move(nDir);
+                        return Scan2D(pBuffer, width, height, nDir, startPos, threshold, isWhite);
                     }
                 }
-                matchPoint.X = -1;
-                matchPoint.Y = -1;
-                return matchPoint;
             }
         }
 
@@ -5239,7 +3491,7 @@ namespace YoonFactory.Image
         }
 
         // Image에 각종 도형 그리기
-        public static class Draw
+        public static class Draw // -> YoonImage
         {
             #region 각종 그리기
             //  삼각형 칠하기.
