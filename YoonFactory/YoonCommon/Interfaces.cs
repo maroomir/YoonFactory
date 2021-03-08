@@ -75,6 +75,7 @@ namespace YoonFactory
         IYoonVector GetNextVector(IYoonVector v);
         IYoonVector GetNextVector(eYoonDir2D dir);
         IYoonVector GetRotateVector(double angle);
+        IYoonVector GetRotateVector(IYoonVector center, double angle);
         void Scale(T sx, T sy);
         void Move(T dx, T dy);
         void Move(IYoonVector v);
@@ -174,10 +175,10 @@ namespace YoonFactory
         T Top { get; }
         T Right { get; }
         T Bottom { get; }
-        IYoonVector TopLeft { get; }
-        IYoonVector TopRight { get; }
-        IYoonVector BottomLeft { get; }
-        IYoonVector BottomRight { get; }
+        IYoonVector2D<T> TopLeft { get; }
+        IYoonVector2D<T> TopRight { get; }
+        IYoonVector2D<T> BottomLeft { get; }
+        IYoonVector2D<T> BottomRight { get; }
 
         T Area();
     }

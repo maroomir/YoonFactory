@@ -983,7 +983,7 @@ namespace YoonFactory.Cognex
 
                 foreach (int nID in pResult.CogShapeDictionary.Keys)
                 {
-                    if (!pResult.ObjectDictionary.ContainsKey(nID) || (pResult.ObjectDictionary[nID] as YoonRectObject).PixelCount < nMinimumPixelCount) continue;
+                    if (!pResult.ObjectDictionary.ContainsKey(nID) || (pResult.ObjectDictionary[nID] as YoonObject<YoonRect2D>).PixelCount < nMinimumPixelCount) continue;
 
                     CogRectangleAffine cogRectAffine = pResult.CogShapeDictionary[nID] as CogRectangleAffine;
                     {
@@ -1015,10 +1015,10 @@ namespace YoonFactory.Cognex
             {
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
-                if (pResult.ObjectDictionary[0] is YoonRectObject pObjectPattern)
+                if (pResult.ObjectDictionary[0] is YoonObject<YoonRectAffine2D> pObjectPattern)
                 {
-                    YoonVector2D pMatchPos = pObjectPattern.FeaturePos as YoonVector2D;
-                    YoonRectAffine2D pPickArea = pObjectPattern.PickArea as YoonRectAffine2D;
+                    YoonVector2D pMatchPos = pObjectPattern.Object.CenterPos as YoonVector2D;
+                    YoonRectAffine2D pPickArea = pObjectPattern.Object;
                     if (pMatchPos.X == 0.0 && pMatchPos.Y == 0.0)
                         return false;
                     if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pObjectPattern.Score == 0)
@@ -1067,10 +1067,10 @@ namespace YoonFactory.Cognex
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
 
-                if (pResult.ObjectDictionary[0] is YoonRectObject pObjectPattern)
+                if (pResult.ObjectDictionary[0] is YoonObject<YoonRectAffine2D> pObjectPattern)
                 {
-                    YoonVector2D pMatchPos = pObjectPattern.FeaturePos as YoonVector2D;
-                    YoonRectAffine2D pPickArea = pObjectPattern.PickArea as YoonRectAffine2D;
+                    YoonVector2D pMatchPos = pObjectPattern.Object.CenterPos as YoonVector2D;
+                    YoonRectAffine2D pPickArea = pObjectPattern.Object;
                     if (pMatchPos.X == 0.0 && pMatchPos.Y == 0.0)
                         return false;
                     if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pObjectPattern.Score == 0)

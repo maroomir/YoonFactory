@@ -3453,7 +3453,7 @@ namespace YoonFactory.Image
                 return GetMinMaxThreshold(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea);
             }
 
-            public static byte GetMinMaxThreshold(ref byte[] pBuffer, int imageWidth, YoonRect2N scanArea)
+            public static byte GetMinMaxThreshold(byte[] pBuffer, int imageWidth, YoonRect2N scanArea)
             {
                 int average, sum, count;
                 int i, j, ii, jj;
@@ -3697,7 +3697,7 @@ namespace YoonFactory.Image
             }
 
             //  삼각형 그리기.
-            public static void DrawTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDir2D direction, int penWidth, Color penColor, double zoom)
+            public static void DrawTriangle(ref Bitmap pImage, int x, int y, int size, eYoonDir2D direction, Color penColor, int penWidth,  double zoom)
             {
                 PointF[] pIYoonVector = new PointF[3];
                 pIYoonVector[0].X = (float)(x * zoom);
@@ -3739,24 +3739,24 @@ namespace YoonFactory.Image
             }
 
             //  사각형 그리기.
-            public static void DrawRect(ref Bitmap pImage, YoonRect2N rect, int penWidth, Color penColor, double ratio)
+            public static void DrawRect(ref Bitmap pImage, YoonRect2N rect, Color penColor, int penWidth, double zoom)
             {
                 if (rect.Right <= rect.Left || rect.Bottom <= rect.Top)
                     return;
-                DrawLine(ref pImage, rect.Left, rect.Top, rect.Right, rect.Top, penWidth, penColor, ratio);
-                DrawLine(ref pImage, rect.Right, rect.Top, rect.Right, rect.Bottom, penWidth, penColor, ratio);
-                DrawLine(ref pImage, rect.Right, rect.Bottom, rect.Left, rect.Bottom, penWidth, penColor, ratio);
-                DrawLine(ref pImage, rect.Left, rect.Bottom, rect.Left, rect.Top, penWidth, penColor, ratio);
+                DrawLine(ref pImage, rect.Left, rect.Top, rect.Right, rect.Top, penColor, penWidth, zoom);
+                DrawLine(ref pImage, rect.Right, rect.Top, rect.Right, rect.Bottom, penColor, penWidth, zoom);
+                DrawLine(ref pImage, rect.Right, rect.Bottom, rect.Left, rect.Bottom, penColor, penWidth, zoom);
+                DrawLine(ref pImage, rect.Left, rect.Bottom, rect.Left, rect.Top, penColor, penWidth, zoom);
             }
 
             //  선분 그리기.
-            public static void DrawLine(ref Bitmap pImage, int x, int y, int x1, int y1, int penWidth, Color penColor, double ratio)
+            public static void DrawLine(ref Bitmap pImage, int x, int y, int x1, int y1, Color penColor, int penWidth, double zoom)
             {
                 double deltaX, deltaY, deltaX1, deltaY1;
-                deltaX = (double)x * ratio;
-                deltaY = (double)y * ratio;
-                deltaX1 = (double)x1 * ratio;
-                deltaY1 = (double)y1 * ratio;
+                deltaX = (double)x * zoom;
+                deltaY = (double)y * zoom;
+                deltaX1 = (double)x1 * zoom;
+                deltaY1 = (double)y1 * zoom;
                 using (Graphics graph = Graphics.FromImage(pImage))
                 {
                     Pen pen = new Pen(penColor, penWidth);
@@ -3765,7 +3765,7 @@ namespace YoonFactory.Image
             }
 
             //  글자 적기.
-            public static void DrawText(ref Bitmap pImage, int x, int y, string text, int fontSize, Color fontColor, double ratio)
+            public static void DrawText(ref Bitmap pImage, int x, int y, Color fontColor, string text, int fontSize,  double ratio)
             {
                 float deltaX, deltaY, size;
                 deltaX = (float)(x * ratio);
@@ -3782,7 +3782,7 @@ namespace YoonFactory.Image
             }
 
             //  십자가 그리기.
-            public static void DrawCross(ref Bitmap pImage, int x, int y, int size, int penWidth, Color penColor, double zoom)
+            public static void DrawCross(ref Bitmap pImage, int x, int y, Color penColor, int size, int penWidth, double zoom)
             {
                 float deltaX, deltaY;
                 float x1, x2, y1, y2;
@@ -3801,7 +3801,7 @@ namespace YoonFactory.Image
             }
 
             //  타원 그리기.
-            public static void DrawEllipse(ref Bitmap pImage, YoonRect2N rect, int penWidth, Color penColor, double ratio)
+            public static void DrawEllipse(ref Bitmap pImage, YoonRect2N rect, Color penColor, int penWidth, double ratio)
             {
                 int x1, y1, x2, y2;
                 x1 = (int)Math.Round(rect.Left * ratio);
@@ -3820,16 +3820,50 @@ namespace YoonFactory.Image
         public static class Transform
         {
             //  Image 확대, 축소하기.
-            public static void Zoom(out int[] pDestination, int destWidth, int destHeight, ref int[] pSource, int sourceWidth, int sourceHeight)
+            public static YoonImage Zoom(YoonImage pSourceImage, double dRatio)
+            {
+                if (pSourceImage.Plane == 1)
+                    return new YoonImage(Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+                else if (pSourceImage.Plane == 4)
+                    return new YoonImage(Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatio),
+                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
+                else
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+            }
+
+            public static YoonImage Zoom(YoonImage pSourceImage, double dRatioX, double dRatioY)
+            {
+                if (pSourceImage.Plane == 1)
+                    return new YoonImage(Zoom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
+                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+                else if (pSourceImage.Plane == 4)
+                    return new YoonImage(Zoom(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, dRatioX, dRatioY),
+                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
+                else
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+            }
+
+            public static byte[] Zoom(byte[] pBuffer, int sourceWidth, int sourceHeight, double dRatio)
+            {
+                return Zoom(pBuffer, sourceWidth, sourceHeight, (int)(sourceWidth * dRatio), (int)(sourceHeight * dRatio));
+            }
+
+            public static byte[] Zoom(byte[] pBuffer, int sourceWidth, int sourceHeight, double dRatioX, double dRatioY)
+            {
+                return Zoom(pBuffer, sourceWidth, sourceHeight, (int)(sourceWidth * dRatioX), (int)(sourceHeight * dRatioY));
+            }
+
+            public static byte[] Zoom(byte[] pBuffer, int sourceWidth, int sourceHeight, int destWidth, int destHeight)
             {
                 int i, j, x, y;
                 float x1, y1, x2, y2;                               // 좌표
                 float ratioX, ratioY;
-                int intensity1, intensity2, intensity3, intensity4; // Gray Level
+                byte intensity1, intensity2, intensity3, intensity4; // Gray Level
                 float value1, value2, resultLevel;
                 ratioX = (float)destWidth / (float)(sourceWidth - 1);
                 ratioY = (float)destHeight / (float)(sourceHeight - 1);
-                pDestination = new int[destWidth * destHeight];
+                byte[] pDestination = new byte[destWidth * destHeight];
                 ////  비율별 확대, 축소
                 for (j = 1; j < sourceHeight; j++)
                 {
@@ -3842,10 +3876,61 @@ namespace YoonFactory.Image
 
                         if (x2 >= destWidth) x2 = destWidth - 1;
                         if (y2 >= destHeight) y2 = destHeight - 1;
-                        intensity1 = pSource[(j - 1) * sourceWidth + (i - 1)];
-                        intensity2 = pSource[(j - 1) * sourceWidth + i];
-                        intensity3 = pSource[j * sourceWidth + (i - 1)];
-                        intensity4 = pSource[j * sourceWidth + i];
+                        intensity1 = pBuffer[(j - 1) * sourceWidth + (i - 1)];
+                        intensity2 = pBuffer[(j - 1) * sourceWidth + i];
+                        intensity3 = pBuffer[j * sourceWidth + (i - 1)];
+                        intensity4 = pBuffer[j * sourceWidth + i];
+                        for (y = (int)y1; y <= (int)y2; y++)
+                        {
+                            for (x = (int)x1; x <= (int)x2; x++)
+                            {
+                                value1 = (x - x2) * intensity1 / (x1 - x2) + (x - x1) * intensity2 / (x2 - x1);
+                                value2 = (x - x2) * intensity3 / (x1 - x2) + (x - x1) * intensity4 / (x2 - x1);
+                                resultLevel = (y - y2) * value1 / (y1 - y2) + (y - y1) * value2 / (y2 - y1);
+                                pDestination[y * destWidth + x] = (byte)resultLevel;
+                            }
+                        }
+                    }
+                }
+                return pDestination;
+            }
+
+            public static int[] Zoom(int[] pBuffer, int sourceWidth, int sourceHeight, double dRatio)
+            {
+                return Zoom(pBuffer, sourceWidth, sourceHeight, (int)(sourceWidth * dRatio), (int)(sourceHeight * dRatio));
+            }
+
+            public static int[] Zoom(int[] pBuffer, int sourceWidth, int sourceHeight, double dRatioX, double dRatioY)
+            {
+                return Zoom(pBuffer, sourceWidth, sourceHeight, (int)(sourceWidth * dRatioX), (int)(sourceHeight * dRatioY));
+            }
+
+            public static int[] Zoom(int[] pBuffer, int sourceWidth, int sourceHeight, int destWidth, int destHeight)
+            {
+                int i, j, x, y;
+                float x1, y1, x2, y2;                               // 좌표
+                float ratioX, ratioY;
+                int intensity1, intensity2, intensity3, intensity4; // Gray Level
+                float value1, value2, resultLevel;
+                ratioX = (float)destWidth / (float)(sourceWidth - 1);
+                ratioY = (float)destHeight / (float)(sourceHeight - 1);
+                int[] pDestination = new int[destWidth * destHeight];
+                ////  비율별 확대, 축소
+                for (j = 1; j < sourceHeight; j++)
+                {
+                    for (i = 1; i < sourceWidth; i++)
+                    {
+                        x1 = (float)(i - 1) * ratioX;
+                        y1 = (float)(j - 1) * ratioY;
+                        x2 = (float)i * ratioX;
+                        y2 = (float)j * ratioY;
+
+                        if (x2 >= destWidth) x2 = destWidth - 1;
+                        if (y2 >= destHeight) y2 = destHeight - 1;
+                        intensity1 = pBuffer[(j - 1) * sourceWidth + (i - 1)];
+                        intensity2 = pBuffer[(j - 1) * sourceWidth + i];
+                        intensity3 = pBuffer[j * sourceWidth + (i - 1)];
+                        intensity4 = pBuffer[j * sourceWidth + i];
                         for (y = (int)y1; y <= (int)y2; y++)
                         {
                             for (x = (int)x1; x <= (int)x2; x++)
@@ -3858,10 +3943,19 @@ namespace YoonFactory.Image
                         }
                     }
                 }
+                return pDestination;
             }
 
             //  회전.
-            public static void Rotate(ref byte[] pBuffer, int bufferWidth, int bufferHeight, int centerX, int centerY, double angle)
+            public static YoonImage Rotate(YoonImage pSourceImage, YoonVector2N vecCenter, double dAngle)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return new YoonImage(Rotate(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, vecCenter.X, vecCenter.Y, dAngle),
+                    pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+            }
+
+            public static byte[] Rotate(byte[] pBuffer, int bufferWidth, int bufferHeight, int centerX, int centerY, double angle)
             {
                 int i, j;
                 int x1, y1, x2, y2;
@@ -3869,51 +3963,12 @@ namespace YoonFactory.Image
                 double posX1, posY1, posX2, posY2;
                 double level1, level2, level3, level4, tempLevel;
                 double roundX, roundY;
-                byte[] pTempBuffer;
                 if (Math.Abs(angle) < 0.001)
-                    return;
+                    angle = 0.001;
                 theta = angle * 3.141592 / 180.0;
                 sinTheta = Math.Sin(theta);
                 cosTheta = Math.Cos(theta);
-                ////  임시 Buffer에 Image를 복사한다.
-                pTempBuffer = new byte[bufferWidth * bufferHeight];
-                Array.Clear(pTempBuffer, 0, pTempBuffer.Length);
-                ////  임시 Buffer에 회전 처리한 Image를 복사한다.
-                //	for(y=0;	y<bufferHeight;	y++)
-                //	{
-                //		for(x=0;	x<bufferWidth;	x++)
-                //		{
-                //			i  = -1.0*((double)(y-centerY)*sin) + (double)centerX;
-                //			j  = (double)(x-centerX)*cos;
-                //			x2 = i + j;
-                //			if(x2<0)			x2 = 0;
-                //			if(x2>=bufferWidth)	x2 = bufferWidth-1;
-                //			//////
-                //			m  = (x - centerX)*sinTheta + centerY;
-                //			n  = (y - centerY)*cosTheta;
-                //			y2 = m + n;
-                //			if(y2<0)				y2 = 0;
-                //			if(y2>=bufferHeight)	y2 = bufferHeight-1;
-                //			//////
-                //			pTempBuffer[y2*bufferWidth+x2] = pBuffer[y*bufferWidth+x];
-                //		}
-                //	}
-                //	for(j=0;	j<bufferHeight;	j++)
-                //	{
-                //		y = j - centerY;
-                //		for(i=0;	i<bufferWidth;	i++)
-                //		{
-                //			x  = i - centerX;
-                //			x2 = ROUND((double)centerX + (double)x*cosTheta - (double)y*sinTheta);
-                //			y2 = ROUND((double)centerY + (double)x*sinTheta + (double)y*cosTheta);
-                //			if(x2<0)				x2 = 0;
-                //			if(x2>=bufferWidth)		x2 = bufferWidth-1;
-                //			if(y2<0)				y2 = 0;
-                //			if(y2>=bufferHeight)	y2 = bufferHeight-1;
-                //			//pTempBuffer[y2*bufferWidth+x2] = pBuffer[j*bufferWidth+i];
-                //			pTempBuffer[j*bufferWidth+i]   = pBuffer[y2*bufferWidth+x2];
-                //		}
-                //	}
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
                 ////  회전 알고리즘.
                 for (j = 0; j < bufferHeight; j++)
                 {
@@ -3944,27 +3999,45 @@ namespace YoonFactory.Image
                         tempLevel = (1.0 - roundX) * (1.0 - roundY) * level1 + roundX * (1.0 - roundY) * level2 + (1.0 - roundX) * roundY * level3 + roundX * roundY * level4;
                         if (tempLevel < 0) tempLevel = 0;
                         if (tempLevel > 255) tempLevel = 255;
-                        pTempBuffer[j * bufferWidth + i] = (byte)tempLevel;
+                        pResultBuffer[j * bufferWidth + i] = (byte)tempLevel;
                     }
                 }
-                pTempBuffer.CopyTo(pBuffer, 0);
+                return pResultBuffer;
             }
 
             //  Image 반전.
-            public static void Reverse(ref byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static YoonImage Reverse(YoonImage pSourceImage)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return new YoonImage(Reverse(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
+                    pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+            }
+
+            public static byte[] Reverse(byte[] pBuffer, int bufferWidth, int bufferHeight)
             {
                 int i, j;
+                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
                 for (j = 0; j < bufferHeight; j++)
                 {
                     for (i = 0; i < bufferWidth; i++)
                     {
-                        pBuffer[j * bufferWidth + i] = (byte)(255 - pBuffer[j * bufferWidth + i]);
+                        pResultBuffer[j * bufferWidth + i] = (byte)(255 - pBuffer[j * bufferWidth + i]);
                     }
                 }
+                return pResultBuffer;
             }
 
             //  직사각형 Image를 평행사변형꼴로 기울인다.
-            public static void Warp(ref byte[] pSource, int sourceWidth, int sourceHeight, YoonVector2N[] pEdgePos, ref byte[] pDestination, int destWidth, int destHeight)
+            public static YoonImage Warp(YoonImage pSourceImage, YoonRectAffine2D pRect)
+            {
+                if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return new YoonImage(Warp(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, pRect),
+                    pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
+            }
+
+            public static byte[] Warp(byte[] pSourceBuffer, int sourceWidth, int sourceHeight, YoonRectAffine2D pRect)
             {
                 int iX, iY;
                 int x1, y1, x2, y2;
@@ -3974,39 +4047,25 @@ namespace YoonFactory.Image
                 double rightTopToRightBottom_x, rightTopToRightBottom_y;
                 double leftBottomToRightBottom_x, leftBottomToRightBottom_y;
                 double newLeftBottomX, newLeftBottomY, newRightBottomX, newRightBottomY;
-                YoonVector2N leftTop, rightTop, leftBottom, rightBottom;
-                leftTop = new YoonVector2N();
-                rightTop = new YoonVector2N();
-                leftBottom = new YoonVector2N();
-                rightBottom = new YoonVector2N();
-                ////  원래 값을 임시 Buffer에 보관해 놓는다.
-                Array.Clear(pDestination, 0, pDestination.Length);
-                //	enum { EDGE_LEFT_TOP, EDGE_RIGHT_TOP, EDGE_RIGHT_BOTTOM, EDGE_LEFT_BOTTOM, EDGE_TOTAL}; // 각 Edge의 순서 설정.
-                leftTop.X = pEdgePos[(int)eYoonDir2D.TopLeft].X;
-                leftTop.Y = pEdgePos[(int)eYoonDir2D.TopLeft].Y;
-                rightTop.X = pEdgePos[(int)eYoonDir2D.TopRight].X;
-                rightTop.Y = pEdgePos[(int)eYoonDir2D.TopRight].Y;
-                leftBottom.X = pEdgePos[(int)eYoonDir2D.BottomLeft].X;
-                leftBottom.Y = pEdgePos[(int)eYoonDir2D.BottomLeft].Y;
-                rightBottom.X = pEdgePos[(int)eYoonDir2D.BottomRight].X;
-                rightBottom.Y = pEdgePos[(int)eYoonDir2D.BottomRight].Y;
-                leftTopToLeftBottom_X = leftTop.X - leftBottom.X;
-                leftTopToLeftBottom_Y = leftTop.Y - leftBottom.Y;
-                rightTopToRightBottom_x = rightTop.X - rightBottom.X;
-                rightTopToRightBottom_y = rightTop.Y - rightBottom.Y;
+                int bufferSize = (int)(pRect.Width * pRect.Height);
+                byte[] pResultBuffer = new byte[bufferSize];
+                leftTopToLeftBottom_X = pRect.TopLeft.X - pRect.BottomLeft.X;
+                leftTopToLeftBottom_Y = pRect.TopLeft.Y - pRect.BottomLeft.Y;
+                rightTopToRightBottom_x = pRect.TopRight.X - pRect.BottomRight.X;
+                rightTopToRightBottom_y = pRect.TopRight.Y - pRect.BottomRight.Y;
                 ////  보간 작업을 실시한다.
-                for (iY = 0; iY < destHeight; iY++)
+                for (iY = 0; iY < pRect.Height; iY++)
                 {
-                    newLeftBottomX = leftBottom.X + (double)(destHeight - iY) * leftTopToLeftBottom_X / destHeight;
-                    newLeftBottomY = leftBottom.Y + (double)(destHeight - iY) * leftTopToLeftBottom_Y / destHeight;
-                    newRightBottomX = rightBottom.X + (double)(destHeight - iY) * rightTopToRightBottom_x / destHeight;
-                    newRightBottomY = rightBottom.Y + (double)(destHeight - iY) * rightTopToRightBottom_y / destHeight;
+                    newLeftBottomX = pRect.BottomLeft.X + (double)(pRect.Height - iY) * leftTopToLeftBottom_X / pRect.Height;
+                    newLeftBottomY = pRect.BottomLeft.Y + (double)(pRect.Height - iY) * leftTopToLeftBottom_Y / pRect.Height;
+                    newRightBottomX = pRect.BottomRight.X + (double)(pRect.Height - iY) * rightTopToRightBottom_x / pRect.Height;
+                    newRightBottomY = pRect.BottomRight.Y + (double)(pRect.Height - iY) * rightTopToRightBottom_y / pRect.Height;
                     leftBottomToRightBottom_x = newRightBottomX - newLeftBottomX;
                     leftBottomToRightBottom_y = newRightBottomY - newLeftBottomY;
-                    for (iX = 0; iX < destWidth; iX++)
+                    for (iX = 0; iX < pRect.Width; iX++)
                     {
-                        dx = newLeftBottomX + iX * leftBottomToRightBottom_x / destWidth;
-                        dy = newLeftBottomY + iX * leftBottomToRightBottom_y / destWidth;
+                        dx = newLeftBottomX + iX * leftBottomToRightBottom_x / pRect.Width;
+                        dy = newLeftBottomY + iX * leftBottomToRightBottom_y / pRect.Width;
                         x1 = (int)dx;
                         y1 = (int)dy;
                         x2 = x1 + 1;
@@ -4015,17 +4074,18 @@ namespace YoonFactory.Image
                         if (y2 >= sourceHeight) y2 = sourceHeight - 1;
                         roundX = dx - x1;
                         roundY = dy - y1;
-                        level1 = pSource[y1 * sourceWidth + x1];
-                        level2 = pSource[y1 * sourceWidth + x2];
-                        level3 = pSource[y2 * sourceWidth + x1];
-                        level4 = pSource[y2 * sourceWidth + x2];
+                        level1 = pSourceBuffer[y1 * sourceWidth + x1];
+                        level2 = pSourceBuffer[y1 * sourceWidth + x2];
+                        level3 = pSourceBuffer[y2 * sourceWidth + x1];
+                        level4 = pSourceBuffer[y2 * sourceWidth + x2];
                         tempLevel = (1.0 - roundX) * (1.0 - roundY) * level1 + roundX * (1.0 - roundY) * level2 + (1.0 - roundX) * roundY * level3 + roundX * roundY * level4;
                         //////  Level이 지나칠 경우 0 또는 255로 정의.
                         if (tempLevel < 0) tempLevel = 0;
                         if (tempLevel > 255) tempLevel = 255;
-                        pDestination[iY * destWidth + iX] = (byte)tempLevel;
+                        pResultBuffer[iY * (int)pRect.Width + iX] = (byte)tempLevel;
                     }
                 }
+                return pResultBuffer;
             }
         }
     }

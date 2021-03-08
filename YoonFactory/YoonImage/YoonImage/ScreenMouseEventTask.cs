@@ -96,7 +96,7 @@ namespace YoonFactory.Image
                 return new YoonRect2N(0, 0, 0, 0);
             m_pCurrentRect = new YoonRect2N(mousePoint.X, mousePoint.Y, 0, 0);
             ////  2. 가져온 시작위치의 Mouse IYoonVector 그리기 (영점부터 Mouse 시작점 위치까지)
-            ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, 2, Color.Yellow, 1.0);
+            ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, Color.Yellow, 2, 1.0);
             m_originRectX1 = m_pCurrentRect.Left;
             m_originRectY1 = m_pCurrentRect.Top;
             m_originRectX2 = m_pCurrentRect.Right;
@@ -136,8 +136,8 @@ namespace YoonFactory.Image
             {
                 //////  마우스 위치 얻기 時 IYoonVector 위치에 XOR(반전) 형태로 십자가가 그려진다.
                 case eYoonMouseMode.GetPosition:
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, 2, Color.Yellow, 1.0);
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, 2, Color.Yellow, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, Color.Yellow, 2, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, Color.Yellow, 2, 1.0);
                     m_mousePosition.X = e.X;
                     m_mousePosition.Y = e.Y;
                     m_mouseMode = eYoonMouseMode.GetNone;
@@ -184,7 +184,7 @@ namespace YoonFactory.Image
             {
                 case eYoonMouseMode.GetRectangle:
                     Cursor.Current = Cursors.Default;
-                    ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, 1, Color.Aqua, 1.0);
+                    ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, Color.Aqua, 1, 1.0);
                     m_mouseMode = eYoonMouseMode.GetNone;
                     break;
                 default:
@@ -210,12 +210,12 @@ namespace YoonFactory.Image
             {
                 case eYoonMouseMode.GetPosition:
                     //////  Mouse가 움직일때마다 십자가를 그린다.
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, 1, Color.Yellow, 1.0);
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, 1, Color.Yellow, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, Color.Yellow, 1, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, Color.Yellow, 1, 1.0);
                     m_prevMousePositionX = X;
                     m_prevMousePositionY = Y;
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, 1, Color.Yellow, 1.0);
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, 1, Color.Yellow, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_prevMousePositionX, 0, m_prevMousePositionX, height, Color.Yellow, 1, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, 0, m_prevMousePositionY, width, m_prevMousePositionY, Color.Yellow, 1, 1.0);
                     break;
                 case eYoonMouseMode.GetCircle:
                     dx = X - m_centerPositionX;
@@ -223,17 +223,17 @@ namespace YoonFactory.Image
                     ////// 두 점 사이 거리를 구하기 위한 공식(Hypot)
                     radius = (int)Math.Sqrt(Math.Pow((double)dx, 2.0) + Math.Pow((double)dy, 2.0));
                     if (m_prevMousePositionX > -4 && m_prevMousePositionY > -4)
-                        ImageFactory.Draw.DrawLine(ref m_screenImage, m_centerPositionX, m_centerPositionY, m_prevMousePositionX, m_prevMousePositionY, 1, Color.Yellow, 1.0);
+                        ImageFactory.Draw.DrawLine(ref m_screenImage, m_centerPositionX, m_centerPositionY, m_prevMousePositionX, m_prevMousePositionY, Color.Yellow, 1, 1.0);
                     m_prevMousePositionX = X;
                     m_prevMousePositionY = Y;
-                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_centerPositionX, m_centerPositionY, m_prevMousePositionX, m_prevMousePositionY, 1, Color.Yellow, 1.0);
+                    ImageFactory.Draw.DrawLine(ref m_screenImage, m_centerPositionX, m_centerPositionY, m_prevMousePositionX, m_prevMousePositionY, Color.Yellow, 1, 1.0);
                     break;
                 case eYoonMouseMode.GetRectangle:
                     //////  Mouse 움직임에 따라 Width와 Height가 변해야한다.
                     if (m_drawMode == eYoonMouseMode.GetWidth)
                     {
                         rect = new YoonRect2N(m_originRectX1, m_originRectY1, m_originRectX2 - m_originRectX1, m_originRectY2 - m_originRectY1);
-                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, 1, Color.Yellow, 1.0);
+                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, Color.Yellow, 1, 1.0);
                         //////  우선 현재의 Rect를 그리고...
                         rect.Width = X - rect.Left;
                         rect.Height = Y - rect.Top;
@@ -249,7 +249,7 @@ namespace YoonFactory.Image
                             Cursor.Position = mousePoint;
                         }
                         //////  움직인 후의 Rect를 다시 그린다.
-                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, 1, Color.Yellow, 1.0);
+                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, Color.Yellow, 1, 1.0);
                         m_originRectX2 = rect.Right;
                         m_originRectY2 = rect.Bottom;
                         m_pCurrentRect.Width = rect.Right - rect.Left;
@@ -259,14 +259,14 @@ namespace YoonFactory.Image
                     else if (m_drawMode == eYoonMouseMode.GetCenter)
                     {
                         rect = new YoonRect2N(m_originRectX1, m_originRectY1, m_originRectX2 - m_originRectX1, m_originRectY2 - m_originRectY1);
-                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, 1, Color.Yellow, 1.0);
+                        ImageFactory.Draw.DrawRect(ref m_screenImage, rect, Color.Yellow, 1, 1.0);
                         //////  우선 현재의 Rect를 그리고...
                         centerX = (m_pCurrentRect.Left + m_pCurrentRect.Right) / 2;      // centerX -= centerX%4;
                         centerY = (m_pCurrentRect.Top + m_pCurrentRect.Bottom) / 2;     // centerY -= centerY%4;
                         m_pCurrentRect = new YoonRect2N(m_pCurrentRect.Left + X - centerX, m_pCurrentRect.Top + Y - centerY,
                             m_pCurrentRect.Width + X - centerX, m_pCurrentRect.Height + Y - centerY);
                         //////  움직인 후의 Rect를 다시 그린다.
-                        ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, 1, Color.Yellow, 1.0);
+                        ImageFactory.Draw.DrawRect(ref m_screenImage, m_pCurrentRect, Color.Yellow, 1, 1.0);
                         m_originRectX1 = m_pCurrentRect.Left;
                         m_originRectY1 = m_pCurrentRect.Top;
                         m_originRectX2 = m_pCurrentRect.Right;

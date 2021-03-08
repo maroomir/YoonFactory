@@ -255,6 +255,19 @@ namespace YoonFactory
             return pMatrix * this;
         }
 
+        public IYoonVector GetRotateVector(IYoonVector center, double angle)
+        {
+            if (center is YoonVector2N pVecCenter)
+            {
+                YoonVector2N pVecResult = new YoonVector2N(this);
+                pVecResult.Move(-pVecCenter);
+                pVecResult.Rotate(angle);
+                pVecResult.Move(pVecCenter);
+                return pVecResult;
+            }
+            return this;
+        }
+
         public void Scale(int sx, int sy)
         {
             YoonMatrix2N pMatrix = new YoonMatrix2N();
@@ -592,6 +605,19 @@ namespace YoonFactory
             YoonMatrix2D pMatrix = new YoonMatrix2D();
             pMatrix.SetRotateUnit(angle);
             return pMatrix * this;
+        }
+
+        public IYoonVector GetRotateVector(IYoonVector center, double angle)
+        {
+            if (center is YoonVector2D pVecCenter)
+            {
+                YoonVector2D pVecResult = new YoonVector2D(this);
+                pVecResult.Move(-pVecCenter);
+                pVecResult.Rotate(angle);
+                pVecResult.Move(pVecCenter);
+                return pVecResult;
+            }
+            return this;
         }
 
         public void Scale(double sx, double sy)

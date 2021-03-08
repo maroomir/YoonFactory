@@ -32,6 +32,7 @@ namespace YoonFactory
         }
         #endregion
 
+        private const int DEFAULT_LABEL = 0;
         private const int DEFAULT_PIX_COUNT = 0;
         private const double DEFAULT_SCORE = 0.0;
 
@@ -39,6 +40,39 @@ namespace YoonFactory
         public double Score { get; set; }
         public T Object { get; set; }
         public int PixelCount { get; set; }
+
+        public YoonObject()
+        {
+            Label = DEFAULT_LABEL;
+            Score = DEFAULT_SCORE;
+            PixelCount = DEFAULT_PIX_COUNT;
+            switch (Object)
+            {
+                case YoonRect2N pRect2N:
+                    pRect2N = new YoonRect2N();
+                    break;
+                case YoonRect2D pRect2D:
+                    pRect2D = new YoonRect2D();
+                    break;
+                case YoonRectAffine2D pRectAffine2D:
+                    pRectAffine2D = new YoonRectAffine2D();
+                    break;
+                case YoonLine2N pLine2N:
+                    pLine2N = new YoonLine2N();
+                    break;
+                case YoonLine2D pLine2D:
+                    pLine2D = new YoonLine2D();
+                    break;
+                case YoonVector2N pVector2N:
+                    pVector2N = new YoonVector2N();
+                    break;
+                case YoonVector2D pVector2D:
+                    pVector2D = new YoonVector2D();
+                    break;
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
+            }
+        }
 
         public YoonObject(int nLabel, T pObject)
         {

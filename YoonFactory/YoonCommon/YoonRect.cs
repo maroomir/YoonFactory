@@ -64,22 +64,22 @@ namespace YoonFactory
             get => (CenterPos as YoonVector2N).Y + Height / 2;
         }
 
-        public IYoonVector TopLeft
+        public IYoonVector2D<int> TopLeft
         {
             get => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
         }
 
-        public IYoonVector TopRight
+        public IYoonVector2D<int> TopRight
         {
             get => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
         }
 
-        public IYoonVector BottomLeft
+        public IYoonVector2D<int> BottomLeft
         {
             get => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
         }
 
-        public IYoonVector BottomRight
+        public IYoonVector2D<int> BottomRight
         {
             get => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
         }
@@ -170,22 +170,22 @@ namespace YoonFactory
             get => CenterPos.Y + Height / 2;
         }
 
-        public IYoonVector TopLeft
+        public IYoonVector2D<double> TopLeft
         {
             get => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
         }
 
-        public IYoonVector TopRight
+        public IYoonVector2D<double> TopRight
         {
             get => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
         }
 
-        public IYoonVector BottomLeft
+        public IYoonVector2D<double> BottomLeft
         {
             get => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
         }
 
-        public IYoonVector BottomRight
+        public IYoonVector2D<double> BottomRight
         {
             get => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
         }

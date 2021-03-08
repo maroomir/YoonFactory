@@ -4,6 +4,20 @@ namespace YoonFactory
 {
     public class YoonRectAffine2D : IYoonRect, IYoonRect2D<double>
     {
+        public bool Equals(IYoonRect r)
+        {
+            if (r is YoonRectAffine2D rect)
+            {
+                if (CenterPos.X == rect.CenterPos.X &&
+                    CenterPos.Y == rect.CenterPos.Y &&
+                    Width == rect.Width &&
+                    Height == rect.Height &&
+                    Rotation == rect.Rotation)
+                    return true;
+            }
+            return false;
+        }
+
         public IYoonRect Clone()
         {
             YoonRectAffine2D r = new YoonRectAffine2D(0.0, 0.0, 0.0);
@@ -63,10 +77,10 @@ namespace YoonFactory
                 m_dRotation = value;
                 InitRectOrigin(m_vecCenter as YoonVector2D, m_dWidth, m_dHeight);
 
-                m_vecCornerRotate_TopLeft = m_vecCornerOrigin_TopLeft.Rotate(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_BottomLeft = m_vecCornerOrigin_BottomLeft.Rotate(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_TopRight = m_vecCornerOrigin_TopRight.Rotate(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_BottomRight = m_vecCornerOrigin_BottomRight.Rotate(m_vecCenter, m_dRotation) as YoonVector2D;
+                m_vecCornerRotate_TopLeft = m_vecCornerOrigin_TopLeft.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
+                m_vecCornerRotate_BottomLeft = m_vecCornerOrigin_BottomLeft.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
+                m_vecCornerRotate_TopRight = m_vecCornerOrigin_TopRight.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
+                m_vecCornerRotate_BottomRight = m_vecCornerOrigin_BottomRight.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
             }
         }
 
@@ -117,25 +131,35 @@ namespace YoonFactory
             get => CenterPos.Y + Height / 2;
         }
 
-        public IYoonVector TopLeft
+        public IYoonVector2D<double> TopLeft
         {
             get => m_vecCornerRotate_TopLeft;
 
         }
 
-        public IYoonVector TopRight
+        public IYoonVector2D<double> TopRight
         {
             get => m_vecCornerRotate_TopRight;
         }
 
-        public IYoonVector BottomLeft
+        public IYoonVector2D<double> BottomLeft
         {
             get => m_vecCornerRotate_BottomLeft;
         }
 
-        public IYoonVector BottomRight
+        public IYoonVector2D<double> BottomRight
         {
             get => m_vecCornerRotate_BottomRight;
+        }
+
+        public YoonRectAffine2D()
+        {
+            CenterPos = new YoonVector2D();
+            CenterPos.X = 0;
+            CenterPos.Y = 0;
+            Width = 0;
+            Height = 0;
+            Rotation = 0;
         }
 
         public YoonRectAffine2D(double dWidth, double dHeight, double dTheta)
