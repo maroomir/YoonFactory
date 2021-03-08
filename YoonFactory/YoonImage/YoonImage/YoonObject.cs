@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace YoonFactory
 {
-    public class YoonObject<T> : IYoonObject
+    public class YoonObject<T> : IYoonObject where T : IYoonFigure
     {
         #region Supported IDisposable Pattern
         ~YoonObject()

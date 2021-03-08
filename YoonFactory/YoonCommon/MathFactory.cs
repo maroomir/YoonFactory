@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace YoonFactory
 {
@@ -356,7 +357,81 @@ namespace YoonFactory
             return result;
         }
 
+        // Histogram Peak
+        public static List<int> GetHistogramPeak(int[] pHistogram, int size, int nDiffParam)
+        {
+            int i;
+            int x0, x1, x2;
+            int prevDiff, currDiff, tempDiff;
+            int minLevel, referLevel;
+            List<int> pListPeakPos = new List<int>();
+            minLevel = 100000;
+            currDiff = 0;
+            prevDiff = 0;
+            minLevel = 0;
+            for (i = 1; i < size; i++)
+            {
+                currDiff = pHistogram[i] - pHistogram[i - 1];
+                if (i == 1)
+                {
+                    prevDiff = currDiff;
+                    continue;
+                }
+                ////  이전 IYoonVector에 비해 증가 추세일 때
+                if (currDiff >= 0)
+                {
+                    ////  하한점에서 치고 올라오는 경우.
+                    if (prevDiff < 0)
+                    {
+                        minLevel = pHistogram[i];
+                    }
+                }
+                ////  이전 IYoonVector에 비해 감소 추세일 때
+                else
+                {
+                    ////  상한점에서 떨어지고 있는 경우.
+                    if (prevDiff >= 0)
+                    {
+                        tempDiff = pHistogram[i] - minLevel;
+                        ////  상한점에서 하한점까지 사이 길이가 기준값(diffHeight)보다 큰 경우.
+                        if (tempDiff >= nDiffParam)
+                        {
+                            pListPeakPos.Add(i - 1);
+                        }
+                    }
+                }
+                prevDiff = currDiff;
+            }
+            ////  정확한 센터를 잡기 위해서 Reference를 계산한다.
+            for (int iPeak = 0; iPeak < pListPeakPos.Count; iPeak++)
+            {
+                x0 = pListPeakPos[iPeak];
+                if (x0 < 0 || x0 >= size)
+                    continue;
+                referLevel = pHistogram[x0] - 5;  // 5 Level 낮은 부분 검색함.
+                                                  ////  왼쪽으로 스캔함.
+                x1 = x0;
+                for (i = x0; i >= 0; i--)
+                {
+                    if (pHistogram[i] <= referLevel)
+                    {
+                        x1 = i;
+                        break;
+                    }
+                }
+                ////  오른쪽으로 스캔함.
+                x2 = x0;
+                for (i = x0; i < size; i++)
+                {
+                    if (pHistogram[i] <= referLevel)
+                    {
+                        x2 = i;
+                        break;
+                    }
+                }
+                pListPeakPos[iPeak] = (x1 + x2) / 2;
+            }
+            return pListPeakPos;
+        }
     }
-
-
 }

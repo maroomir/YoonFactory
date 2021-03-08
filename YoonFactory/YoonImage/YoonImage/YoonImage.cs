@@ -517,6 +517,127 @@ namespace YoonFactory.Image
             return new YoonImage(pByte, Width, Height, PixelFormat.Format8bppIndexed);
         }
 
+        public void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
+        {
+            float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
+            float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                graph.FillRectangle(brush, startX, startY, (float)pRect.Width, (float)pRect.Height);
+            }
+        }
+
+        public void FillRect(YoonRect2D pRect, Color fillColor, double dRatio = 1.0)
+        {
+            float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
+            float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                graph.FillRectangle(brush, startX, startY, (float)pRect.Width, (float)pRect.Height);
+            }
+        }
+
+        public void FillPoligon(YoonVector2N[] pArrayPoint, Color fillColor, double dRatio = 1.0)
+        {
+            PointF[] pArrayDraw = new PointF[pArrayPoint.Length];
+            for (int iPoint = 0; iPoint < pArrayPoint.Length; iPoint++)
+            {
+                pArrayDraw[iPoint].X = (float)pArrayPoint[iPoint].X * (float)dRatio;
+                pArrayDraw[iPoint].Y = (float)pArrayPoint[iPoint].Y * (float)dRatio;
+            }
+
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                graph.FillPolygon(brush, pArrayDraw);
+            }
+        }
+
+        public void FillCanvas(Color fillColor)
+        {
+            Rectangle pRectCanvas = new Rectangle(0, 0, m_pBitmap.Width, m_pBitmap.Height);
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                Region pRegion = new Region(pRectCanvas);
+                graph.FillRegion(brush, pRegion);
+            }
+        }
+
+        public void DrawRect(YoonRect2N pRect, Color penColor, int nPenWidth = 1, double dRatio = 1.0)
+        {
+            if (pRect.Right <= pRect.Left || pRect.Bottom <= pRect.Top)
+                return;
+            DrawLine((YoonVector2N)pRect.TopLeft, (YoonVector2N)pRect.TopRight, penColor, nPenWidth, dRatio);
+            DrawLine((YoonVector2N)pRect.TopRight, (YoonVector2N)pRect.BottomRight, penColor, nPenWidth, dRatio);
+            DrawLine((YoonVector2N)pRect.BottomLeft, (YoonVector2N)pRect.BottomRight, penColor, nPenWidth, dRatio);
+            DrawLine((YoonVector2N)pRect.TopLeft, (YoonVector2N)pRect.BottomLeft, penColor, nPenWidth, dRatio);
+        }
+
+        public void DrawLine(YoonVector2N vecPos1, YoonVector2N vecPos2, Color penColor, int penWidth, double dRatio = 1.0)
+        {
+            double deltaX, deltaY, deltaX1, deltaY1;
+            deltaX = vecPos1.X * dRatio;
+            deltaY = vecPos1.Y * dRatio;
+            deltaX1 = vecPos2.X * dRatio;
+            deltaY1 = vecPos2.Y * dRatio;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Pen pen = new Pen(penColor, penWidth);
+                graph.DrawLine(pen, new PointF((float)Math.Round(deltaX), (float)Math.Round(deltaY)), new PointF((float)Math.Round(deltaX1), (float)Math.Round(deltaY1)));
+            }
+        }
+
+        public void DrawText(YoonVector2N vecPos, Color fontColor, string text, int fontSize = 8,  double dRatio = 1.0)
+        {
+            float deltaX, deltaY, size;
+            deltaX = (float)(vecPos.X * dRatio);
+            deltaY = (float)(vecPos.Y * dRatio);
+            size = (float)fontSize;
+            if (size < 10) size = 10;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Brush brush = new SolidBrush(fontColor);
+                FontFamily fontFamily = new FontFamily("Tahoma");
+                Font font = new Font(fontFamily, size, FontStyle.Regular, GraphicsUnit.Pixel);
+                graph.DrawString(text, font, brush, deltaX, deltaY);
+            }
+        }
+
+        public void DrawCross(YoonVector2N vecPos, Color penColor, int size, int penWidth = 1, double dRatio = 1.0)
+        {
+            float deltaX, deltaY;
+            float x1, x2, y1, y2;
+            deltaX = (float)(vecPos.X * dRatio);
+            deltaY = (float)(vecPos.Y * dRatio);
+            x1 = deltaX - size;
+            x2 = deltaX + size;
+            y1 = deltaY - size;
+            y2 = deltaY + size;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Pen pen = new Pen(penColor, (float)penWidth);
+                graph.DrawLine(pen, new PointF(x1, deltaY), new PointF(x2, deltaY));
+                graph.DrawLine(pen, new PointF(deltaX, y1), new PointF(deltaX, y2));
+            }
+        }
+
+        public void DrawEllipse(YoonRect2N rect, Color penColor, int penWidth = 1, double dRatio = 1.0)
+        {
+            int x1, y1, x2, y2;
+            x1 = (int)Math.Round(rect.Left * dRatio);
+            y1 = (int)Math.Round(rect.Top * dRatio);
+            x2 = (int)Math.Round(rect.Right * dRatio);
+            y2 = (int)Math.Round(rect.Bottom * dRatio);
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Pen pen = new Pen(penColor, (float)penWidth);
+                graph.DrawEllipse(pen, x1, y1, (x2 - x1), (y2 - y1));
+            }
+        }
+
         public bool SetOffset(byte offset)
         {
             if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
@@ -534,6 +655,94 @@ namespace YoonFactory.Image
                     bResult = false;
             }
             return bResult;
+        }
+
+        public int[] GetGrayHistogram()
+        {
+            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+                throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
+            if (m_pBitmap.PixelFormat != PixelFormat.Format8bppIndexed)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            int[] pHistogram = new int[256];
+            Array.Clear(pHistogram, 0, pHistogram.Length);
+            ////  Histogram 그래프를 만든다.
+            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            {
+                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                {
+                    byte value = GetGrayPixel(iX, iY);
+                    if (value > 255 || value < 0)
+                        continue;
+                    pHistogram[value]++;
+                }
+            }
+            return pHistogram;
+        }
+
+        public int[] GetRedHistogram()
+        {
+            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+                throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
+            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            int[] pHistogram = new int[256];
+            Array.Clear(pHistogram, 0, pHistogram.Length);
+            ////  Histogram 그래프를 만든다.
+            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            {
+                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                {
+                    byte value = GetRedPixel(iX, iY);
+                    if (value > 255 || value < 0)
+                        continue;
+                    pHistogram[value]++;
+                }
+            }
+            return pHistogram;
+        }
+
+        public int[] GetBlueHistogram()
+        {
+            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+                throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
+            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            int[] pHistogram = new int[256];
+            Array.Clear(pHistogram, 0, pHistogram.Length);
+            ////  Histogram 그래프를 만든다.
+            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            {
+                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                {
+                    byte value = GetBluePixel(iX, iY);
+                    if (value > 255 || value < 0)
+                        continue;
+                    pHistogram[value]++;
+                }
+            }
+            return pHistogram;
+        }
+
+        public int[] GetGreenHistogram()
+        {
+            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+                throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
+            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
+            int[] pHistogram = new int[256];
+            Array.Clear(pHistogram, 0, pHistogram.Length);
+            ////  Histogram 그래프를 만든다.
+            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            {
+                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                {
+                    byte value = GetGreenPixel(iX, iY);
+                    if (value > 255 || value < 0)
+                        continue;
+                    pHistogram[value]++;
+                }
+            }
+            return pHistogram;
         }
 
         public byte[] GetGrayBuffer()

@@ -44,7 +44,12 @@ namespace YoonFactory
         IYoonMatrix SetRotateZUnit(double angle);
     }
 
-    public interface IYoonVector
+    public interface IYoonFigure
+    {
+        //
+    }
+
+    public interface IYoonVector : IYoonFigure
     {
         int Count { get; }
 
@@ -136,7 +141,7 @@ namespace YoonFactory
         void Unit();
     }
 
-    public interface IYoonLine
+    public interface IYoonLine : IYoonFigure
     {
         IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
@@ -152,7 +157,7 @@ namespace YoonFactory
         T Length();
     }
 
-    public interface IYoonRect
+    public interface IYoonRect : IYoonFigure
     {
         IYoonRect Clone();
         void CopyFrom(IYoonRect pRect);
@@ -177,7 +182,7 @@ namespace YoonFactory
         T Area();
     }
 
-    public interface IYoonTriangle
+    public interface IYoonTriangle : IYoonFigure
     {
         IYoonTriangle Clone();
         void CopyFrom(IYoonTriangle t);
