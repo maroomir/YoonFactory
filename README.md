@@ -8,9 +8,11 @@ Windows 기반의 Machine Vision Software를 쉽고 빠르게 개발해보려는
 
 해당 프로젝트는 15개의 DLL 모듈과 4개의 Sample Program으로 이뤄져있습니다.
 
+
 ## Feature and Desing Concept ##
 
 YoonFactory는 쉽고, 빠르고, 일관된 방법으로 Vision Software를 제작할 수 있는 Library 입니다.
+
 
 ### Module Integration ###
 
@@ -36,6 +38,7 @@ pTcp.Close();
 ### Easy Management ###
 
 YoonFactory에 구현된 Interface와 Module을 사용하면 Parameter 관리, Log 기록 등을 비교적 간단하게 수행할 수 있습니다.
+
 
 ## DLL Module Introduction ##
 
@@ -73,6 +76,7 @@ YoonFactory의 Base를 이루는 Interface와 Component들을 갖고있기 때�
 
     수직다관절 로봇의 Joint 좌표를 저장하는 Component입니다.
 
+
 ### YoonFile ###
 
 YoonFile은 INI, CSV, XML, JSON 등의 확장자 File에 접근해서 Data를 저장하거나 불러오는 목적으로 사용합니다.
@@ -105,7 +109,8 @@ YoonParameter, YoonImage, YoonComm, YoonRobot 등의 내장 DLL에서도 자체 
 - YoonZip
 
     Method 및 Recipe에 대한 Zip 파일로의 압축을 지원합니다.
-	
+
+
 ### YoonLog ###
 
 YoonLog는 Software 실행 중에 발생하는 각종 Log를 Console 또는 Display 상에 기록하는 목적으로 사용합니다.
@@ -117,6 +122,7 @@ YoonLog는 Software 실행 중에 발생하는 각종 Log를 Console 또는 Disp
 - YoonDisplayer
 
     Log 사항을 Display 상에 표기 및 기록하며 이는 YoonFactory 폴더 내에 날짜별로 저장됩니다.
+
 
 ### YoonImage ###
 
@@ -151,7 +157,8 @@ YoonImage는 영상처리 Algorithm을 C#에서 가능한 범위 내에 구현�
 	- `PixelInspector를 통해 Source Image의 Gray Level 조건들을 분석할 수 있습니다.`
 	- `Draw를 통해 C#에서 지원하는 Bitmap Component 위에 각종 Figure를 그릴 수 있습니다.`
 	- `Transform을 통해 Source Image를 Resizing 하거나 변형시킬 수 있습니다.`
-	
+
+
 ### YoonCamera ###
 
 YoonCamera는 산업용 Camera에서 Image Buffer를 가져오려는 목적으로 사용됩니다.
@@ -167,7 +174,8 @@ YoonCamera는 산업용 Camera에서 Image Buffer를 가져오려는 목적으�
 
     Realsense 장치에서 Image 및 Depth Buffer의 주소값을 불러올 수 있습니다.
 	이 Component의 구현을 위해 Intel에서 제공하는 Intel.Realsense Wrapper를 사용했습니다.
-	
+
+
 ### YoonParameter ###
 
 YoonParameter는 Class 객체로 저장되는 Parameter 값을 쉽게 저장, 불러오기, 생성 및 적층을 하기 위한 목적으로 사용합니다.
@@ -190,6 +198,7 @@ YoonFile의 함수들을 사용해서 Parameter 값을 XML로 저장하고, 각�
 
     YoonParameter를 지원하지 않으나 IYoonContainer Interface를 상속받는 외부 Container들을 YoonTemplate와 유사하게 사용할 수 있습니다.
 
+
 ### YoonComm ###
 
 YoonComm은 다른 Robot, 장비 또는 장치들과 통신을 하기 위한 목적으로 사용됩니다.
@@ -210,11 +219,13 @@ YoonComm은 다른 Robot, 장비 또는 장치들과 통신을 하기 위한 목
     TCP/IP 연결에서 Client 기능을 수행할 때 사용하며, Server의 IP와 Port 번호를 지정하면 Client 접속할 때 까지 대기합니다.
 	자체적인 Retry Thread를 갖고 있어서 Server와의 연결이 이뤄지지 않을 시 자동으로 다시 Connect를 시도합니다.
 
+
 ### YoonRobot ###
 
 YoonRobot은 협동로봇을 원격 제어를 하기 위한 목적으로 제작되었으며, YoonComm의 TCP 연결 기능을 사용한 확장 Library입니다.
 
 YoonRobot을 통해 UR(Universial Robotics) 제품과 TM(Techman) 제품을 원격 제어할 수 있습니다.
+
 
 ### YoonCognex ###
 
@@ -244,11 +255,13 @@ YoonCognex를 정상적으로 사용하기 위해선 Cognex VisionPro를 사용�
 
     Cognex Library를 사용한 좌표 Calibration을 지원하는 Module 입니다.
 
+
 ### YoonCV ###
 
 YoonCV는 영상처리용 Open Source인 OpenCV를 Wrapping한 OpenCVSharp Package를 사용해서 전문척인 영상처리를 수행할 목적으로 제작되고 있습니다.
 
 현재 기능 개발을 위한 준비 중입니다.
+
 
 ### YoonAlign ###
 
@@ -257,6 +270,7 @@ YoonAlign은 Machine Vision의 대표적인 용도 중 하나인 Vision Align �
 YoonCalibration과 연동해서 Mapping 된 중심점과 좌표값을 사용해 Align을 합니다.
 
 다만 YoonAlign Module의 대부분의 기능들을 YoonVector로 흡수시킬 계획이며, 조만간 삭제될 예정입니다.
+
 
 ### YoonCalibration ###
 
@@ -270,17 +284,20 @@ YoonCalibration은 단일의 또는 다수의 Camera들을 사용해 Vision 좌�
 
     영상을 취득하는 Camera 또는 대상체가 고정된 상태에서 Feature Point들과 실측값으로 Calibration 하는 방법입니다. 
 
+
 ### YoonViewer ###
 
 YoonViewer는 WinForm 기반에서 사용 가능한 Image Viewer 전용 Component입니다.
 
 YoonImage와의 연동을 위해 추가 개발을 진행할 예정입니다.
 
+
 ### YoonWindows ###
 
 YoonWindows는 WinForm 또는 WPF에서 사용하는 Component들을 지원하는 Library 입니다.
 
 현재는 DatatableFactory만 존재하며 향후 개발 소요가 있을 경우 계속 추가해 나갈 계획입니다.
+
 
 ### YoonMono ###
 
