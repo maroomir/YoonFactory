@@ -107,19 +107,19 @@ YoonImage는 영상처리 Algorithm을 C#에서 가능한 범위 내에 구현�
     영상처리 결과로 출력되는 YoonRect, YoonLine 등의 Figure와 Label, Score 값 등을 담고있는 Component 입니다.
 - ImageFactory
     Image Factory는 YoonImage 및 Raw Buffer data를 사용해서 각종 영상처리 Algorithm이 구현된 Static class 입니다.
-	-`Converter를 통해 32bit Buffer를 8bit Buffer로 변환하거나 분할합니다.`
-	-`PatternMatch를 통해 Source Image 상에서 Pattern을 찾아 그 결과를 출력합니다.`
-	-`TwoImageProcess를 통해 2개의 Source Image를 병합하거나 뺄 수 있습니다.`
-	-`Filter를 통해 Source Image를 Soften 또는 Sharpen하게 만들거나 Edge만 출력시킬 수 있습니다.`
-	-`Fill을 통해 Source Image에서 특정 Point 및 Feature를 지우거나 내부를 채우게 할 수 있습니다.`
-	-`ObjectDetection을 통해 Source Image에서 주어진 조건을 만족시키는 Object를 찾아낼 수 있습니다.`
-	-`Binary를 통해 Source Image를 특정 Threshold 조건에 맞게 이진화시킬 수 있습니다.`
-	-`Morphology를 통해 Source Image의 암부를 침식시키거나 팽창시킬 수 있습니다.`
-	-`Sort를 통해 간단한 Object들을 조건에 맞게 정렬시킬 수 있습니다.`
-	-`Scanner를 통해 Buffer에서 Threshold 조건에 맞는 Pixel의 시작 위치를 알아낼 수 있습니다.`
-	-`PixelInspector를 통해 Source Image의 Gray Level 조건들을 분석할 수 있습니다.`
-	-`Draw를 통해 C#에서 지원하는 Bitmap Component 위에 각종 Figure를 그릴 수 있습니다.`
-	-`Transform을 통해 Source Image를 Resizing 하거나 변형시킬 수 있습니다.`
+	- `Converter를 통해 32bit Buffer를 8bit Buffer로 변환하거나 분할합니다.`
+	- `PatternMatch를 통해 Source Image 상에서 Pattern을 찾아 그 결과를 출력합니다.`
+	- `TwoImageProcess를 통해 2개의 Source Image를 병합하거나 뺄 수 있습니다.`
+	- `Filter를 통해 Source Image를 Soften 또는 Sharpen하게 만들거나 Edge만 출력시킬 수 있습니다.`
+	- `Fill을 통해 Source Image에서 특정 Point 및 Feature를 지우거나 내부를 채우게 할 수 있습니다.`
+	- `ObjectDetection을 통해 Source Image에서 주어진 조건을 만족시키는 Object를 찾아낼 수 있습니다.`
+	- `Binary를 통해 Source Image를 특정 Threshold 조건에 맞게 이진화시킬 수 있습니다.`
+	- `Morphology를 통해 Source Image의 암부를 침식시키거나 팽창시킬 수 있습니다.`
+	- `Sort를 통해 간단한 Object들을 조건에 맞게 정렬시킬 수 있습니다.`
+	- `Scanner를 통해 Buffer에서 Threshold 조건에 맞는 Pixel의 시작 위치를 알아낼 수 있습니다.`
+	- `PixelInspector를 통해 Source Image의 Gray Level 조건들을 분석할 수 있습니다.`
+	- `Draw를 통해 C#에서 지원하는 Bitmap Component 위에 각종 Figure를 그릴 수 있습니다.`
+	- `Transform을 통해 Source Image를 Resizing 하거나 변형시킬 수 있습니다.`
 	
 ### YoonCamera ###
 
@@ -181,12 +181,12 @@ YoonCognex를 정상적으로 사용하기 위해선 Cognex VisionPro를 사용�
 - CognexFactory
     YoonImage의 ImageFactory에 대응하는 Library로서 각종 영상처리 Algorithm이 Wrapping 된 Static class입니다.
 	YoonImage Component를 사용해서도 접근 가능하도록 기능 개선 예정입니다.
-	-`Converter를 통해 ICogImage를 상속하는 Cognex 전용 Image 객체를 변환시키거나 생성할 수 있습니다.`
-	-`PatternMatch를 통해 Cognex의 장점인 PatMax를 사용한 Pattern Matching을 수행할 수 있습니다.`
-	-`Editor를 통해 검사 조건에 맞게 ICogImage 객체를 변경할 수 있습니다.`
-	-`Draw를 통해 CogDisplay 객체에 검사 영역을 그릴 수 있습니다.`
-	-`Transform을 통해 ICogImage 객체를 Crop하거나 Resizing할 수 있습니다.`
-	-`TwoImageProcess를 통해 두 개의 CogImage를 합치거나 차영상을 구할 수 있습니다.`
+	- `Converter를 통해 ICogImage를 상속하는 Cognex 전용 Image 객체를 변환시키거나 생성할 수 있습니다.`
+	- `PatternMatch를 통해 Cognex의 장점인 PatMax를 사용한 Pattern Matching을 수행할 수 있습니다.`
+	- `Editor를 통해 검사 조건에 맞게 ICogImage 객체를 변경할 수 있습니다.`
+	- `Draw를 통해 CogDisplay 객체에 검사 영역을 그릴 수 있습니다.`
+	- `Transform을 통해 ICogImage 객체를 Crop하거나 Resizing할 수 있습니다.`
+	- `TwoImageProcess를 통해 두 개의 CogImage를 합치거나 차영상을 구할 수 있습니다.`
 - ToolFactory
     Cognex 고유 기능인 ICogTool을 사용해서 쉽고 간편하게 영상처리 작업을 구현할 수 있는 Static class 입니다.
 - CognexMapping
