@@ -1,4 +1,6 @@
-﻿using System.Xml.Serialization;
+﻿using System;
+using System.Xml.Serialization;
+using System.Drawing;
 
 namespace YoonFactory
 {
@@ -44,6 +46,16 @@ namespace YoonFactory
         public int Width { get; set; }
         [XmlAttribute]
         public int Height { get; set; }
+
+        public Rectangle ToRectangle
+        {
+            get => new Rectangle(Left, Top, Width, Height);
+        }
+
+        public RectangleF ToRectangleF
+        {
+            get => new RectangleF(Left, Top, Width, Height);
+        }
 
         public int Left
         {
@@ -92,6 +104,14 @@ namespace YoonFactory
             Width = 0;
             Height = 0;
         }
+        public YoonRect2N(YoonVector2N pos, int dw, int dh)
+        {
+            CenterPos = new YoonVector2N();
+            CenterPos.X = pos.X;
+            CenterPos.Y = pos.Y;
+            Width = dw;
+            Height = dh;
+        }
 
         public YoonRect2N(int dx, int dy, int dw, int dh)
         {
@@ -101,6 +121,67 @@ namespace YoonFactory
             Width = dw;
             Height = dh;
         }
+
+        public YoonRect2N(eYoonDir2D dir1, YoonVector2N pos1, eYoonDir2D dir2, YoonVector2N pos2)
+        {
+            if (dir1 == eYoonDir2D.TopLeft && dir2 == eYoonDir2D.BottomRight)
+            {
+                CenterPos = new YoonVector2N();
+                CenterPos.X = (pos2.X - pos1.X) / 2;
+                CenterPos.Y = (pos2.Y - pos1.Y) / 2;
+                Width = pos2.X - pos1.X;
+                Height = pos2.Y - pos1.Y;
+            }
+            else if (dir1 == eYoonDir2D.BottomRight && dir2 == eYoonDir2D.TopLeft)
+            {
+                CenterPos = new YoonVector2N();
+                CenterPos.X = (pos1.X - pos2.X) / 2;
+                CenterPos.Y = (pos1.Y - pos2.Y) / 2;
+                Width = pos1.X - pos2.X;
+                Height = pos1.Y - pos2.Y;
+            }
+            if (dir1 == eYoonDir2D.TopRight && dir2 == eYoonDir2D.BottomLeft)
+            {
+                CenterPos = new YoonVector2N();
+                CenterPos.X = (pos2.X - pos1.X) / 2;
+                CenterPos.Y = (pos1.Y - pos2.Y) / 2;
+                Width = pos2.X - pos1.X;
+                Height = pos1.Y - pos2.Y;
+            }
+            else if (dir1 == eYoonDir2D.BottomLeft && dir2 == eYoonDir2D.TopRight)
+            {
+                CenterPos = new YoonVector2N();
+                CenterPos.X = (pos1.X - pos2.X) / 2;
+                CenterPos.Y = (pos2.Y - pos1.Y) / 2;
+                Width = pos1.X - pos2.X;
+                Height = pos2.Y - pos1.Y;
+            }
+            else
+                throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
+        }
+
+        public YoonRect2N(YoonVector2N pos1, YoonVector2N pos2)
+        {
+            CenterPos = new YoonVector2N();
+            int posLeft = (pos1.X > pos2.X) ? pos2.X : pos1.X;
+            int posRight = (pos1.X < pos2.X) ? pos2.X : pos1.X;
+            int posTop = (pos1.Y > pos2.Y) ? pos2.Y : pos1.Y;
+            int posBottom = (pos1.Y < pos2.Y) ? pos2.Y : pos1.Y;
+            CenterPos.X = (posRight - posLeft) / 2;
+            CenterPos.Y = (posBottom - posTop) / 2;
+            Width = posRight - posLeft;
+            Height = posBottom - posTop;
+        }
+
+        public YoonRect2N(Rectangle pRect)
+        {
+            CenterPos = new YoonVector2N();
+            CenterPos.X = (pRect.Right - pRect.Left) / 2;
+            CenterPos.Y = (pRect.Bottom - pRect.Top) / 2;
+            Width = pRect.Width;
+            Height = pRect.Height;
+        }
+
         public int Area()
         {
             return Width * Height;
@@ -150,6 +231,16 @@ namespace YoonFactory
         [XmlAttribute]
         public double Height { get; set; }
 
+        public Rectangle ToRectangle
+        {
+            get => new Rectangle((int)Left, (int)Top, (int)Width, (int)Height);
+        }
+
+        public RectangleF ToRectangleF
+        {
+            get => new RectangleF((float)Left, (float)Top, (float)Width, (float)Height);
+        }
+
         public double Left
         {
             get => CenterPos.X - Width / 2;
@@ -198,6 +289,16 @@ namespace YoonFactory
             Width = 0;
             Height = 0;
         }
+
+        public YoonRect2D(YoonVector2D pos, double dw, double dh)
+        {
+            CenterPos = new YoonVector2D();
+            CenterPos.X = pos.X;
+            CenterPos.Y = pos.Y;
+            Width = dw;
+            Height = dh;
+        }
+
         public YoonRect2D(double dx, double dy, double dw, double dh)
         {
             CenterPos = new YoonVector2D();
@@ -206,6 +307,67 @@ namespace YoonFactory
             Width = dw;
             Height = dh;
         }
+
+        public YoonRect2D(RectangleF pRect)
+        {
+            CenterPos = new YoonVector2D();
+            CenterPos.X = (pRect.Right - pRect.Left) / 2;
+            CenterPos.Y = (pRect.Bottom - pRect.Top) / 2;
+            Width = pRect.Width;
+            Height = pRect.Height;
+        }
+
+        public YoonRect2D(eYoonDir2D dir1, YoonVector2D pos1, eYoonDir2D dir2, YoonVector2D pos2)
+        {
+            if (dir1 == eYoonDir2D.TopLeft && dir2 == eYoonDir2D.BottomRight)
+            {
+                CenterPos = new YoonVector2D();
+                CenterPos.X = (pos2.X - pos1.X) / 2;
+                CenterPos.Y = (pos2.Y - pos1.Y) / 2;
+                Width = pos2.X - pos1.X;
+                Height = pos2.Y - pos1.Y;
+            }
+            else if (dir1 == eYoonDir2D.BottomRight && dir2 == eYoonDir2D.TopLeft)
+            {
+                CenterPos = new YoonVector2D();
+                CenterPos.X = (pos1.X - pos2.X) / 2;
+                CenterPos.Y = (pos1.Y - pos2.Y) / 2;
+                Width = pos1.X - pos2.X;
+                Height = pos1.Y - pos2.Y;
+            }
+            if (dir1 == eYoonDir2D.TopRight && dir2 == eYoonDir2D.BottomLeft)
+            {
+                CenterPos = new YoonVector2D();
+                CenterPos.X = (pos2.X - pos1.X) / 2;
+                CenterPos.Y = (pos1.Y - pos2.Y) / 2;
+                Width = pos2.X - pos1.X;
+                Height = pos1.Y - pos2.Y;
+            }
+            else if (dir1 == eYoonDir2D.BottomLeft && dir2 == eYoonDir2D.TopRight)
+            {
+                CenterPos = new YoonVector2D();
+                CenterPos.X = (pos1.X - pos2.X) / 2;
+                CenterPos.Y = (pos2.Y - pos1.Y) / 2;
+                Width = pos1.X - pos2.X;
+                Height = pos2.Y - pos1.Y;
+            }
+            else
+                throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
+        }
+
+        public YoonRect2D(YoonVector2D pos1, YoonVector2D pos2)
+        {
+            CenterPos = new YoonVector2D();
+            double posLeft = (pos1.X > pos2.X) ? pos2.X : pos1.X;
+            double posRight = (pos1.X < pos2.X) ? pos2.X : pos1.X;
+            double posTop = (pos1.Y > pos2.Y) ? pos2.Y : pos1.Y;
+            double posBottom = (pos1.Y < pos2.Y) ? pos2.Y : pos1.Y;
+            CenterPos.X = (posRight - posLeft) / 2;
+            CenterPos.Y = (posBottom - posTop) / 2;
+            Width = posRight - posLeft;
+            Height = posBottom - posTop;
+        }
+
         public double Area()
         {
             return Width * Height;

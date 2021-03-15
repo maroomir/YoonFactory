@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace YoonFactory.Image
 {
-    public enum eYoonRGBMode : int
+    public enum eYoonMouseMode : int
     {
         None,
-        Parallel,
-        Mixed,
+        GetPosition,
+        GetRectangle,
+        GetCircle,
+        GetWidth,
+        GetCenter,
     }
 }

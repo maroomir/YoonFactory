@@ -110,6 +110,11 @@ namespace YoonFactory.Image
             get => m_pBitmap.Height;
         }
 
+        public Bitmap ToBitmap
+        {
+            get => m_pBitmap;
+        }
+
         public YoonImage()
             : this(DEFAULT_WIDTH, DEFAULT_HEIGHT, PixelFormat.Format8bppIndexed)
         {
@@ -517,6 +522,45 @@ namespace YoonFactory.Image
             return new YoonImage(pByte, Width, Height, PixelFormat.Format8bppIndexed);
         }
 
+        public void FillTriangle(int x, int y, int size, eYoonDir2D direction, Color fillColor, double zoom)
+        {
+            PointF[] pPoint = new PointF[3];
+            pPoint[0].X = (float)(x * zoom);
+            pPoint[0].Y = (float)(y * zoom);
+            switch (direction)
+            {
+                case eYoonDir2D.Top:
+                    pPoint[1].X = pPoint[0].X + (float)(size / 2 * zoom);
+                    pPoint[1].Y = pPoint[0].Y + (float)(size * zoom);
+                    pPoint[2].X = pPoint[0].X - (float)(size / 2 * zoom);
+                    pPoint[2].Y = pPoint[0].Y + (float)(size * zoom);
+                    break;
+                case eYoonDir2D.Bottom:
+                    pPoint[1].X = pPoint[0].X - (float)(size / 2 * zoom);
+                    pPoint[1].Y = pPoint[0].Y - (float)(size * zoom);
+                    pPoint[2].X = pPoint[0].X + (float)(size / 2 * zoom);
+                    pPoint[2].Y = pPoint[0].Y - (float)(size * zoom);
+                    break;
+                case eYoonDir2D.Left:
+                    pPoint[1].X = pPoint[0].X + (float)(size * zoom);
+                    pPoint[1].Y = pPoint[0].Y - (float)(size / 2 * zoom);
+                    pPoint[2].X = pPoint[0].X + (float)(size * zoom);
+                    pPoint[2].Y = pPoint[0].Y + (float)(size / 2 * zoom);
+                    break;
+                case eYoonDir2D.Right:
+                    pPoint[1].X = pPoint[0].X - (float)(size * zoom);
+                    pPoint[1].Y = pPoint[0].Y + (float)(size / 2 * zoom);
+                    pPoint[2].X = pPoint[0].X - (float)(size * zoom);
+                    pPoint[2].Y = pPoint[0].Y - (float)(size / 2 * zoom);
+                    break;
+            }
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                graph.FillPolygon(brush, pPoint);
+            }
+        }
+
         public void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
         {
             float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
@@ -536,6 +580,17 @@ namespace YoonFactory.Image
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillRectangle(brush, startX, startY, (float)pRect.Width, (float)pRect.Height);
+            }
+        }
+
+        public void FillRect(int centerX, int centerY, int width, int height, Color fillColor, double zoom)
+        {
+            float startX = (float)(centerX - width / 2) * (float)zoom;
+            float startY = (float)(centerY - height / 2) * (float)zoom;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                SolidBrush brush = new SolidBrush(fillColor);
+                graph.FillRectangle(brush, startX, startY, (float)width, (float)height);
             }
         }
 
@@ -566,6 +621,47 @@ namespace YoonFactory.Image
             }
         }
 
+        public void DrawTriangle(int x, int y, int size, eYoonDir2D direction, Color penColor, int penWidth, double zoom)
+        {
+            PointF[] pIYoonVector = new PointF[3];
+            pIYoonVector[0].X = (float)(x * zoom);
+            pIYoonVector[0].Y = (float)(y * zoom);
+            switch (direction)
+            {
+                case eYoonDir2D.Top:
+                    pIYoonVector[1].X = pIYoonVector[0].X + (float)(size / 2 * zoom);
+                    pIYoonVector[1].Y = pIYoonVector[0].Y + (float)(size * zoom);
+                    pIYoonVector[2].X = pIYoonVector[0].X - (float)(size / 2 * zoom);
+                    pIYoonVector[2].Y = pIYoonVector[0].Y + (float)(size * zoom);
+                    break;
+                case eYoonDir2D.Bottom:
+                    pIYoonVector[1].X = pIYoonVector[0].X - (float)(size / 2 * zoom);
+                    pIYoonVector[1].Y = pIYoonVector[0].Y - (float)(size * zoom);
+                    pIYoonVector[2].X = pIYoonVector[0].X + (float)(size / 2 * zoom);
+                    pIYoonVector[2].Y = pIYoonVector[0].Y - (float)(size * zoom);
+                    break;
+                case eYoonDir2D.Left:
+                    pIYoonVector[1].X = pIYoonVector[0].X + (float)(size * zoom);
+                    pIYoonVector[1].Y = pIYoonVector[0].Y - (float)(size / 2 * zoom);
+                    pIYoonVector[2].X = pIYoonVector[0].X + (float)(size * zoom);
+                    pIYoonVector[2].Y = pIYoonVector[0].Y + (float)(size / 2 * zoom);
+                    break;
+                case eYoonDir2D.Right:
+                    pIYoonVector[1].X = pIYoonVector[0].X - (float)(size * zoom);
+                    pIYoonVector[1].Y = pIYoonVector[0].Y + (float)(size / 2 * zoom);
+                    pIYoonVector[2].X = pIYoonVector[0].X - (float)(size * zoom);
+                    pIYoonVector[2].Y = pIYoonVector[0].Y - (float)(size / 2 * zoom);
+                    break;
+            }
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Pen pen = new Pen(penColor, (float)penWidth);
+                graph.DrawLine(pen, pIYoonVector[0], pIYoonVector[1]);
+                graph.DrawLine(pen, pIYoonVector[1], pIYoonVector[2]);
+                graph.DrawLine(pen, pIYoonVector[2], pIYoonVector[0]);
+            }
+        }
+
         public void DrawRect(YoonRect2N pRect, Color penColor, int nPenWidth = 1, double dRatio = 1.0)
         {
             if (pRect.Right <= pRect.Left || pRect.Bottom <= pRect.Top)
@@ -576,6 +672,16 @@ namespace YoonFactory.Image
             DrawLine((YoonVector2N)pRect.TopLeft, (YoonVector2N)pRect.BottomLeft, penColor, nPenWidth, dRatio);
         }
 
+        public void DrawRect(int centerX, int centerY, int width, int height, Color penColor, int nPenWidth, double dRatio)
+        {
+            if (width <= 0 || height <= 0)
+                return;
+            DrawLine(centerX - width / 2, centerY - height / 2, centerX + width / 2, centerY - height / 2, penColor, nPenWidth, dRatio);
+            DrawLine(centerX + width / 2, centerY - height / 2, centerX + width / 2, centerY + height / 2, penColor, nPenWidth, dRatio);
+            DrawLine(centerX - width / 2, centerY + height / 2, centerX + width / 2, centerY + height / 2, penColor, nPenWidth, dRatio);
+            DrawLine(centerX - width / 2, centerY - height / 2, centerX - width / 2, centerY + height / 2, penColor, nPenWidth, dRatio);
+        }
+
         public void DrawLine(YoonVector2N vecPos1, YoonVector2N vecPos2, Color penColor, int penWidth, double dRatio = 1.0)
         {
             double deltaX, deltaY, deltaX1, deltaY1;
@@ -583,6 +689,20 @@ namespace YoonFactory.Image
             deltaY = vecPos1.Y * dRatio;
             deltaX1 = vecPos2.X * dRatio;
             deltaY1 = vecPos2.Y * dRatio;
+            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            {
+                Pen pen = new Pen(penColor, penWidth);
+                graph.DrawLine(pen, new PointF((float)Math.Round(deltaX), (float)Math.Round(deltaY)), new PointF((float)Math.Round(deltaX1), (float)Math.Round(deltaY1)));
+            }
+        }
+
+        public void DrawLine(int x, int y, int x1, int y1, Color penColor, int penWidth, double zoom)
+        {
+            double deltaX, deltaY, deltaX1, deltaY1;
+            deltaX = (double)x * zoom;
+            deltaY = (double)y * zoom;
+            deltaX1 = (double)x1 * zoom;
+            deltaY1 = (double)y1 * zoom;
             using (Graphics graph = Graphics.FromImage(m_pBitmap))
             {
                 Pen pen = new Pen(penColor, penWidth);

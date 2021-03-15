@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using System.Drawing;
 
 namespace YoonFactory
 {
@@ -161,6 +162,16 @@ namespace YoonFactory
         }
         public int[] Array { get; set; } = new int[3];
 
+        public Point ToPoint
+        {
+            get => new Point(X, Y);
+        }
+
+        public PointF ToPointF
+        {
+            get => new PointF(X, Y);
+        }
+
         public YoonVector2N()
         {
             X = 0;
@@ -206,13 +217,23 @@ namespace YoonFactory
             return this;
         }
 
-        public double Distance(IYoonVector p)
+        public double Distance(IYoonVector pPos)
         {
-            if (p is YoonVector2N vec)
+            if (pPos is YoonVector2N vec)
             {
                 double dx = this.X - vec.X;
                 double dy = this.Y - vec.Y;
                 return Math.Sqrt(dx * dx + dy * dy);
+            }
+            else
+                return 0.0;
+        }
+
+        public double Angle2D(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector2N vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
             }
             else
                 return 0.0;
@@ -516,6 +537,16 @@ namespace YoonFactory
         }
         public double[] Array { get; set; } = new double[3];
 
+        public Point ToPoint
+        {
+            get => new Point((int)X, (int)Y);
+        }
+
+        public PointF ToPointF
+        {
+            get => new PointF((float)X, (float)Y);
+        }
+
         public YoonVector2D()
         {
             X = 0;
@@ -543,10 +574,12 @@ namespace YoonFactory
             Y = 0;
             W = 1;
         }
+
         public double Length()
         {
             return Math.Sqrt(X * X + Y * Y);
         }
+
         public IYoonVector Unit()
         {
             double len = this.Length();
@@ -558,6 +591,7 @@ namespace YoonFactory
             }
             return this;
         }
+
         public double Distance(IYoonVector p)
         {
             if (p is YoonVector2D vec)
@@ -565,6 +599,16 @@ namespace YoonFactory
                 double dx = this.X - vec.X;
                 double dy = this.Y - vec.Y;
                 return Math.Sqrt(dx * dx + dy * dy);
+            }
+            else
+                return 0.0;
+        }
+
+        public double Angle2D(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector2D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
             }
             else
                 return 0.0;
@@ -876,6 +920,36 @@ namespace YoonFactory
                 double dy = this.Y - vec.Y;
                 double dz = this.Z - vec.Z;
                 return Math.Sqrt(dx * dx + dy * dy);
+            }
+            else
+                return 0.0;
+        }
+
+        public double AngleX(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.Z - Z);
+            }
+            else
+                return 0.0;
+        }
+
+        public double AngleY(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.X - X, vec.Z - Z);
+            }
+            else
+                return 0.0;
+        }
+
+        public double AngleZ(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
             }
             else
                 return 0.0;

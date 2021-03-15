@@ -1,4 +1,5 @@
 ﻿using System.Xml.Serialization;
+using System.Drawing;
 
 namespace YoonFactory
 {
@@ -110,6 +111,16 @@ namespace YoonFactory
         private double m_dHeight = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
         private double m_dRotation = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
         #endregion
+
+        public Rectangle ToRectangle
+        {
+            get => new Rectangle((int)Left, (int)Top, (int)Width, (int)Height);
+        }
+
+        public RectangleF ToRectangleF
+        {
+            get => new RectangleF((float)Left, (float)Top, (float)Width, (float)Height);
+        }
 
         public double Left
         {

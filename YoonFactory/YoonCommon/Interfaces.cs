@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -68,6 +69,9 @@ namespace YoonFactory
         T X { get; set; }
         T Y { get; set; }
         T[] Array { get; set; }
+        Point ToPoint { get; }
+        PointF ToPointF { get; }
+        double Angle2D(IYoonVector pVector);
         eYoonDir2D Direction { get; set; }
         IYoonCart<T> Cartesian { get; set; }
         IYoonVector GetScaleVector(T sx, T sy);
@@ -91,6 +95,9 @@ namespace YoonFactory
         T Y { get; set; }
         T Z { get; set; }
         T[] Array { get; set; }
+        double AngleX(IYoonVector pVector);
+        double AngleY(IYoonVector pVector);
+        double AngleZ(IYoonVector pVector);
         IYoonCart<T> Cartesian { get; set; }
         IYoonVector GetScaleVector(T sx, T sy, T sz);
         IYoonVector GetNextVector(T dx, T dy, T dz);
@@ -147,6 +154,7 @@ namespace YoonFactory
         IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
         bool Equals(IYoonLine pLine);
+        
     }
 
     public interface IYoonLine2D<T> : IYoonLine where T : IComparable, IComparable<T>
@@ -168,6 +176,8 @@ namespace YoonFactory
     public interface IYoonRect2D<T> : IYoonRect where T : IComparable, IComparable<T>
     {
         IYoonVector2D<T> CenterPos { get; set; }
+        Rectangle ToRectangle { get; }
+        RectangleF ToRectangleF { get; }
 
         T Width { get; set; }
         T Height { get; set; }
