@@ -112,6 +112,16 @@ namespace YoonFactory
         private double m_dRotation = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
         #endregion
 
+        public Rectangle ToRectangle
+        {
+            get => new Rectangle((int)Left, (int)Top, (int)Width, (int)Height);
+        }
+
+        public RectangleF ToRectangleF
+        {
+            get => new RectangleF((float)Left, (float)Top, (float)Width, (float)Height);
+        }
+
         public double Left
         {
             get => CenterPos.X - Width / 2;
@@ -191,19 +201,6 @@ namespace YoonFactory
             Width = dWidth;
             Height = dHeight;
             Rotation = dTheta;
-        }
-
-        public bool IsContain(IYoonVector vec)
-        {
-            if (vec is YoonVector2D pPos)
-            {
-                if (m_vecCornerRotate_BottomLeft.X < pPos.X && m_vecCornerRotate_TopLeft.X < pPos.X &&
-                    pPos.X < m_vecCornerRotate_BottomRight.X && pPos.X < m_vecCornerRotate_TopRight.X &&
-                    m_vecCornerRotate_TopLeft.Y < pPos.Y && m_vecCornerRotate_TopRight.Y < pPos.Y &&
-                    pPos.Y < m_vecCornerRotate_BottomLeft.Y && pPos.Y < m_vecCornerRotate_BottomRight.Y)
-                    return true;
-            }
-            return false;
         }
 
         public double Area()

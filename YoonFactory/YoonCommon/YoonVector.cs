@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using System.Drawing;
 
 namespace YoonFactory
 {
@@ -161,6 +162,16 @@ namespace YoonFactory
         }
         public int[] Array { get; set; } = new int[3];
 
+        public Point ToPoint
+        {
+            get => new Point(X, Y);
+        }
+
+        public PointF ToPointF
+        {
+            get => new PointF(X, Y);
+        }
+
         public YoonVector2N()
         {
             X = 0;
@@ -216,17 +227,6 @@ namespace YoonFactory
             }
             else
                 return 0.0;
-        }
-
-        public eYoonDir2D DirectionTo(IYoonVector pPos)
-        {
-            if (pPos is YoonVector2N vec)
-            {
-                YoonVector2N pVecDiff = this - vec;
-                return pVecDiff.Direction;
-            }
-            else
-                return eYoonDir2D.None;
         }
 
         public double Angle2D(IYoonVector pPosObject)
@@ -537,6 +537,16 @@ namespace YoonFactory
         }
         public double[] Array { get; set; } = new double[3];
 
+        public Point ToPoint
+        {
+            get => new Point((int)X, (int)Y);
+        }
+
+        public PointF ToPointF
+        {
+            get => new PointF((float)X, (float)Y);
+        }
+
         public YoonVector2D()
         {
             X = 0;
@@ -592,17 +602,6 @@ namespace YoonFactory
             }
             else
                 return 0.0;
-        }
-
-        public eYoonDir2D DirectionTo(IYoonVector pPos)
-        {
-            if (pPos is YoonVector2D vec)
-            {
-                YoonVector2D pVecDiff = this - vec;
-                return pVecDiff.Direction;
-            }
-            else
-                return eYoonDir2D.None;
         }
 
         public double Angle2D(IYoonVector pPosObject)
