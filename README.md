@@ -4,12 +4,12 @@ YoonFactory는 제조 장비용 Machine Vision Software의 기능들을 Module�
 
 Windows 기반의 Machine Vision Software를 쉽고 빠르게 개발해보려는 목적으로 위 Library들을 설계했습니다.
 
-[개발자](maroomir@gmail.com)가 7년간 제조 장비 및 Robot 업체에서 개발하며 쌓은 경험과 개인적으로 공부한 지식을 토대로 만들었습니다.
+[개발자](https://github.com/maroomir/)가 7년간 제조 장비 및 Robot 업체에서 개발하며 쌓은 경험과 개인적으로 공부한 지식을 토대로 만들었습니다.
 
 해당 프로젝트는 15개의 DLL 모듈과 4개의 Sample Program으로 이뤄져있습니다.
 
 
-## Feature and Desing Concept ##
+## Feature and Design Concept ##
 
 YoonFactory는 쉽고, 빠르고, 일관된 방법으로 Vision Software를 제작할 수 있는 Library 입니다.
 
@@ -26,9 +26,9 @@ SaveFile() 이라는 함수만으로도 위 File 형식들을 저장하는 기�
 
 YoonFactory를 사용하지 않을시 복잡하게 구현해야 할 기능들을 쉽고 간단하게 구현할 수 있습니다.
 ```
-예를 들어 TCP 통신을 하고 str이라는 string을 보낸 후에 닫기 위해선 Server, Client 관계없이 다음 함수만 실행하면 됩니다.
+예를 들어 TCP 통신을 열고 string을 보낸 후에 닫기 위해선 아래 과정을 실행하면 됩니다.
 
-IYoonTcpIp pTcp = new YoonServer();
+IYoonTcpIp pTcp = new YoonServer(); // Client 사용시 YoonClient()
 pTcp.Port = "5000";
 pTcp.Open();
 pTcp.Send(str);
@@ -38,6 +38,22 @@ pTcp.Close();
 ### Easy Management ###
 
 YoonFactory에 구현된 Interface와 Module을 사용하면 Parameter 관리, Log 기록 등을 비교적 간단하게 수행할 수 있습니다.
+
+```
+예를 들어 Console창에 Log를 남기고 즉시 날짜별로 저장하기 위해 아래 과정을 실행하면 됩니다.
+
+YoonConsoler pCLM = new YoonConsoler(30); // 30일간 저장함
+pCLM.Write("Hello World!");
+```
+
+## Source transplant ##
+
+개발자의 개인 학습 및 자기개발 여력에 따라 YoonFactory는 Java, Python 등 다른 언어로 이식할 예정입니다.
+
+자기개발 여하에 따라 일부 새로운 기반에서 Test해보고 안정화 된 기능을 YoonFactory로 들여올 수도 있습니다!
+
+- [`YoonFactory.Java`](https://github.com/maroomir/YoonFactory.Java)
+- Python 구현 예정 ('21년 상반기 내)
 
 
 ## DLL Module Introduction ##
@@ -289,7 +305,9 @@ YoonCalibration은 단일의 또는 다수의 Camera들을 사용해 Vision 좌�
 
 YoonViewer는 WinForm 기반에서 사용 가능한 Image Viewer 전용 Component입니다.
 
-YoonImage와의 연동을 위해 추가 개발을 진행할 예정입니다.
+YoonImage와 연동 가능하며, Mouse 동작을 통한 Image 확대/ 축소도 지원하고 있습니다.
+
+영상처리 Algorithm 강화에 따라 향후 기능을 점점 더 확장할 예정입니다.
 
 
 ### YoonWindows ###
