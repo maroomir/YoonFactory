@@ -149,19 +149,23 @@ namespace YoonFactory
 
     public interface IYoonLine : IYoonFigure
     {
+        double Length { get; }
+
         IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
         bool Equals(IYoonLine pLine);
-        
+        bool IsContain(IYoonVector pVector);
+        double Distance(IYoonVector pVector);
     }
 
     public interface IYoonLine2D<T> : IYoonLine where T : IComparable, IComparable<T>
     {
-        IYoonVector2D<T> StartPos { get; set; }
-        IYoonVector2D<T> EndPos { get; set; }
+        IYoonVector2D<T> StartPos { get; }
+        IYoonVector2D<T> EndPos { get; }
         IYoonVector2D<T> CenterPos { get; }
 
-        T Length();
+        T X(T valueY);
+        T Y(T valueX);
     }
 
     public interface IYoonRect : IYoonFigure
@@ -170,6 +174,8 @@ namespace YoonFactory
         void CopyFrom(IYoonRect pRect);
         bool Equals(IYoonRect pRect);
         bool IsContain(IYoonVector pVector);
+
+        double Area();
     }
 
     public interface IYoonRect2D<T> : IYoonRect where T : IComparable, IComparable<T>
@@ -186,8 +192,6 @@ namespace YoonFactory
         IYoonVector2D<T> TopRight { get; }
         IYoonVector2D<T> BottomLeft { get; }
         IYoonVector2D<T> BottomRight { get; }
-
-        T Area();
     }
 
     public interface IYoonTriangle : IYoonFigure

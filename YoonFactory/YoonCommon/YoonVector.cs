@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Xml.Serialization;
-using System.Drawing;
 
 namespace YoonFactory
 {
@@ -363,9 +362,19 @@ namespace YoonFactory
         {
             return new YoonVector2N(v1.X + v2.X, v1.Y + v2.Y);
         }
+        public static YoonVector2N operator +(YoonVector2N v, eYoonDir2D d)
+        {
+            YoonVector2N pVector = new YoonVector2N(d);
+            return new YoonVector2N(v.X + pVector.X, v.Y + pVector.Y);
+        }
         public static YoonVector2N operator -(YoonVector2N v1, YoonVector2N v2)
         {
             return new YoonVector2N(v1.X - v2.X, v1.Y - v2.Y);
+        }
+        public static YoonVector2N operator -(YoonVector2N v, eYoonDir2D d)
+        {
+            YoonVector2N pVector = new YoonVector2N(d);
+            return new YoonVector2N(v.X - pVector.X, v.Y - pVector.Y);
         }
         public static YoonVector2N operator -(YoonVector2N v)
         {
@@ -743,6 +752,11 @@ namespace YoonFactory
         {
             return new YoonVector2D(v.X + c.X, v.Y + c.Y);
         }
+        public static YoonVector2D operator +(YoonVector2D v, eYoonDir2D d)
+        {
+            YoonVector2D pVector = new YoonVector2D(d);
+            return new YoonVector2D(v.X + pVector.X, v.Y + pVector.Y);
+        }
         public static YoonVector2D operator -(YoonVector2D v1, YoonVector2D v2)
         {
             return new YoonVector2D(v1.X - v2.X, v1.Y - v2.Y);
@@ -754,6 +768,11 @@ namespace YoonFactory
         public static YoonVector2D operator -(YoonVector2D v, YoonCartD c)
         {
             return new YoonVector2D(v.X - c.X, v.Y - c.Y);
+        }
+        public static YoonVector2D operator -(YoonVector2D v, eYoonDir2D d)
+        {
+            YoonVector2D pVector = new YoonVector2D(d);
+            return new YoonVector2D(v.X - pVector.X, v.Y - pVector.Y);
         }
         public static YoonVector2D operator /(YoonVector2D v, double a)
         {

@@ -132,8 +132,8 @@ namespace YoonFactory
             return coefficient;
         }
 
-        //  최소자승법.  (Y = AX + B)
-        public static bool LeastSquare(ref double pA, ref double pB, int number, double[] pX, double[] pY)
+        //  최소자승법.  (Y = (Slope)X + (intercept))
+        public static bool LeastSquare(ref double dSlope, ref double dIntercept, int number, double[] pX, double[] pY)
         {
             bool isResult;
             double differX, differY;
@@ -151,14 +151,14 @@ namespace YoonFactory
             }
             if (isResult == false)
             {
-                pA = 0;
-                pB = 0;
+                dSlope = 0;
+                dIntercept = 0;
                 return false;
             }
             if (number < 2 || number > 10)
             {
-                pA = 0;
-                pB = 0;
+                dSlope = 0;
+                dIntercept = 0;
                 return false;
             }
             ////  최소자승법 계산.
@@ -168,8 +168,8 @@ namespace YoonFactory
                 differY = pY[1] - pY[0];
                 if (Math.Abs(differX) < 0.0001)
                     differX = 0.0001;
-                pB = differY / differX;
-                pA = pY[0] - pB * pX[0];
+                dIntercept = differY / differX;
+                dSlope = pY[0] - dIntercept * pX[0];
             }
             ////  다차원을 가질 경우. (number가 10 이상)
             else
@@ -190,8 +190,71 @@ namespace YoonFactory
                     return false;
                 b = (sumX * sumY - sumXY * (double)number) / c;
                 a = (sumY - b * sumX) / number;
-                pA = a;
-                pB = b;
+                dSlope = a;
+                dIntercept = b;
+            }
+            return true;
+        }
+
+        public static bool LeastSquare(ref double dSlope, ref double dIntercept, int number, int[] pX, int[] pY)
+        {
+            bool isResult;
+            double differX, differY;
+            double sumX, sumX2, sumXY, sumY;
+            double a, b, c;
+            isResult = true;
+            ////  Data가 비정상적인지 조사함.
+            for (int i = 0; i < number; i++)
+            {
+                if (pX[i] > 10000 || pY[i] > 10000)
+                {
+                    isResult = false;
+                    break;
+                }
+            }
+            if (isResult == false)
+            {
+                dSlope = 0;
+                dIntercept = 0;
+                return false;
+            }
+            if (number < 2 || number > 10)
+            {
+                dSlope = 0;
+                dIntercept = 0;
+                return false;
+            }
+            ////  최소자승법 계산.
+            if (number == 2)
+            {
+                differX = pX[1] - pX[0];
+                differY = pY[1] - pY[0];
+                if (Math.Abs(differX) < 0.0001)
+                    differX = 0.0001;
+                dIntercept = differY / differX;
+                dSlope = pY[0] - dIntercept * pX[0];
+            }
+            ////  다차원을 가질 경우. (number가 10 이상)
+            else
+            {
+                sumX = 0.00;
+                sumX2 = 0.00;
+                sumXY = 0.00;
+                sumY = 0.00;
+                for (int i = 0; i < number; i++)
+                {
+                    sumX += pX[i];
+                    sumX2 += pX[i] * pX[i];
+                    sumXY += pX[i] * pY[i];
+                    sumY += pY[i];
+                }
+                c = sumX * sumX - (double)number * sumX2;
+                if (c == 0.0)
+                    return false;
+                b = (sumX * sumY - sumXY * (double)number) / c;
+                a = (sumY - b * sumX) / number;
+                dSlope = a;
+                dIntercept = b;
             }
             return true;
         }

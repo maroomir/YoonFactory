@@ -215,7 +215,7 @@ namespace YoonFactory
             return false;
         }
 
-        public int Area()
+        public double Area()
         {
             return Width * Height;
         }
