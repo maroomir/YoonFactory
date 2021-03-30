@@ -40,5 +40,34 @@ namespace YoonFactory.CV
                 return Mat.FromImageData(pBuffer, ImreadModes.Color);
             }
         }
+
+        public static class TemplateMatch
+        {
+            public static IYoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
+            {
+                return FindTemplate(pTemplateImage.ToMatImage(), pSourceImage.ToMatImage(), dScore, TemplateMatchModes.CCoeffNormed);
+            }
+
+            public static IYoonObject FindTemplate(Mat pTemplateImage, Mat pSourceImage, double dScore, TemplateMatchModes nMode = TemplateMatchModes.CCoeffNormed)
+            {
+                Mat pResultImage = new Mat();
+                double dMinVal, dMaxVal;
+                Point pMinPos, pMaxPos;
+                Cv2.MatchTemplate(pSourceImage, pTemplateImage, pResultImage, nMode);
+                Cv2.MinMaxLoc(pResultImage, out dMinVal, out dMaxVal, out pMinPos, out pMaxPos);
+                if (dMaxVal > dScore)
+                {
+                    Rect pRectResult = new Rect(pMaxPos, pTemplateImage.Size());
+                    return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), dMaxVal, (int)(dMaxVal * pRectResult.Width * pRectResult.Height));
+                }
+                else
+                    throw new InvalidOperationException("[YOONCV EXCEPTION] Process Failed : Matching score is too low");
+            }
+        }
+
+        public static class TwoImageProcess
+        {
+
+        }
     }
 }

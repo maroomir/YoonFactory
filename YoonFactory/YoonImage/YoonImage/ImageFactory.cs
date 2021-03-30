@@ -15,6 +15,48 @@ namespace YoonFactory.Image
         private const uint MAX_PICK_NUM = 100;
         private const uint MAX_FILL_NUM = 1000;
 
+        public static IYoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonImage pPatternImage) => PatternMatch.FindPatternAsBinary(pPatternImage, pSourceImage);
+        public static IYoonObject FindPatternAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea, YoonImage pPatternImage) => PatternMatch.FindPatternAsBinary(scanArea, pPatternImage, pSourceImage);
+        public static IYoonObject FindPattern(this YoonImage pSourceImage, YoonImage pPatternImage, int nDiffThreshold = 10) => PatternMatch.FindPattern(pPatternImage, pSourceImage, nDiffThreshold);
+        public static IYoonObject FindPattern(this YoonImage pSourceImage, YoonRect2N scanArea, YoonImage pPatternImage, int nDiffThreshold = 10) => PatternMatch.FindPattern(scanArea, pPatternImage, pSourceImage, nDiffThreshold);
+        public static YoonImage Combine(this YoonImage pSourceImage, YoonImage pObjectImage) => TwoImageProcess.Combine(pSourceImage, pObjectImage);
+        public static YoonImage Add(this YoonImage pSourceImage, YoonImage pObjectImage) => TwoImageProcess.Add(pSourceImage, pObjectImage);
+        public static YoonImage Subtract(this YoonImage pSourceImage, YoonImage pObjectImage) => TwoImageProcess.Subtract(pSourceImage, pObjectImage);
+        public static YoonImage Sobel(this YoonImage pSourceImage, int nIntensity, bool bCombine = true) => Filter.Sobel(pSourceImage, nIntensity, bCombine);
+        public static YoonImage Laplacian(this YoonImage pSourceImage, int nIntensity, bool bCombine = true) => Filter.Laplacian(pSourceImage, nIntensity, bCombine);
+        public static YoonImage RC1D(this YoonImage pSourceImage, double dFrequency, bool bCombine = true) => Filter.RC1D(pSourceImage, dFrequency, bCombine);
+        public static YoonImage RC2D(this YoonImage pSourceImage, double dFrequency, bool bCombine = true) => Filter.RC2D(pSourceImage, dFrequency, bCombine);
+        public static YoonImage Level2D(this YoonImage pSourceImage, ref double dSum) => Filter.Level2D(pSourceImage, ref dSum);
+        public static YoonImage DeMargin2D(this YoonImage pSourceImage) => Filter.DeMargin2D(pSourceImage);
+        public static YoonImage Smooth1D(this YoonImage pSourceImage, int nMargin = 1, int nStep = 3) => Filter.Smooth1D(pSourceImage, nMargin, nStep);
+        public static YoonImage Smooth2D(this YoonImage pSourceImage, int nStep = 5) => Filter.Smooth2D(pSourceImage, nStep);
+        public static IYoonObject FindMaxObject(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindMaxObject(pSourceImage, scanArea, nThreshold, bWhite);
+        public static IYoonObject FindMaxObject(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindMaxObject(pSourceImage, nThreshold, bWhite);
+        public static ObjectList<YoonRect2N> FindObjects(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindObjects(pSourceImage, scanArea, nThreshold, bWhite);
+        public static ObjectList<YoonRect2N> FindObjects(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindObjects(pSourceImage, nThreshold, bWhite);
+        public static YoonImage Binarize(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128) => Binary.Binarize(pSourceImage, scanArea, nThreshold);
+        public static YoonImage Binarize(this YoonImage pSourceImage, byte nThreshold = 128) => Binary.Binarize(pSourceImage, nThreshold);
+        public static YoonImage Erosion(this YoonImage pSourceImage) => Morphology.Erosion(pSourceImage);
+        public static YoonImage Erosion(this YoonImage pSourceImage, YoonRect2N scanArea) => Morphology.Erosion(pSourceImage, scanArea);
+        public static YoonImage ErosionAsBinary(this YoonImage pSourceImage, int nMophSize) => Morphology.ErosionAsBinary(pSourceImage, nMophSize);
+        public static YoonImage ErosionAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea) => Morphology.ErosionAsBinary(pSourceImage, scanArea);
+        public static YoonImage Dilation(this YoonImage pSourceImage) => Morphology.Dilation(pSourceImage);
+        public static YoonImage Dilation(this YoonImage pSourceImage, YoonRect2N scanArea) => Morphology.Dilation(pSourceImage, scanArea);
+        public static YoonImage DilationAsBinary(this YoonImage pSourceImage) => Morphology.DilationAsBinary(pSourceImage);
+        public static YoonImage DilationAsBinary(this YoonImage pSourceImage, int nMophSize) => Morphology.DilationAsBinary(pSourceImage, nMophSize);
+        public static YoonImage DilationAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea) => Morphology.DilationAsBinary(pSourceImage, scanArea);
+        public static YoonImage DilationAsBinary(this YoonImage pSourceImage, YoonRect2N scanArea, int nMophSize) => Morphology.DilationAsBinary(pSourceImage, scanArea, nMophSize);
+        public static byte GetNumerousThreshold(this YoonImage pSourceImage) => PixelInspector.GetNumerousThreshold(pSourceImage);
+        public static byte GetNumerousThreshold(this YoonImage pSourceImage, YoonRect2N scanArea) => PixelInspector.GetNumerousThreshold(pSourceImage, scanArea);
+        public static byte GetAverageThreshold(this YoonImage pSourceImage, YoonRect2N scanArea) => PixelInspector.GetAverageThreshold(pSourceImage, scanArea);
+        public static byte GetMinMaxThreshold(this YoonImage pSourceImage, YoonRect2N scanArea) => PixelInspector.GetMinMaxThreshold(pSourceImage, scanArea);
+        public static void GetLevelInfo(this YoonImage pSourceImage, YoonRect2N scanArea, out int Min, out int Max, out int Average) => PixelInspector.GetLevelInfo(pSourceImage, scanArea, out Min, out Max, out Average);
+        public static YoonImage Zoom(this YoonImage pSourceImage, double dRatio) => Transform.Zoom(pSourceImage, dRatio);
+        public static YoonImage Zoom(this YoonImage pSourceImage, double dRatioX, double dRatioY) => Transform.Zoom(pSourceImage, dRatioX, dRatioY);
+        public static YoonImage Rotate(this YoonImage pSourceImage, YoonVector2N vecCenter, double dAngle) => Transform.Rotate(pSourceImage, vecCenter, dAngle);
+        public static YoonImage Reverse(this YoonImage pSourceImage) => Transform.Reverse(pSourceImage);
+        public static YoonImage Warp(this YoonImage pSourceImage, YoonRectAffine2D pRect) => Transform.Warp(pSourceImage, pRect);
+
         // Converter
         public static class Converter
         {
@@ -995,7 +1037,7 @@ namespace YoonFactory.Image
                 return pResultBuffer;
             }
 
-            public static YoonImage DeMargin2D(YoonImage pSourceImage, ref double dSum)
+            public static YoonImage DeMargin2D(YoonImage pSourceImage)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");

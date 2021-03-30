@@ -41,9 +41,9 @@ namespace YoonFactory.Image
         }
         #endregion
 
-        private Bitmap m_pBitmap = null;
-        private const int DEFAULT_WIDTH = 640;
-        private const int DEFAULT_HEIGHT = 480;
+        protected Bitmap m_pBitmap = null;
+        protected const int DEFAULT_WIDTH = 640;
+        protected const int DEFAULT_HEIGHT = 480;
 
         public string FilePath { get; set; }
 
@@ -428,7 +428,7 @@ namespace YoonFactory.Image
             return (pArea.Left < 0 || pArea.Top < 0 || pArea.Right > m_pBitmap.Width || pArea.Bottom > m_pBitmap.Height) ? false : true;
         }
 
-        public bool LoadImage(string strPath)
+        public virtual bool LoadImage(string strPath)
         {
             if (IsFileExist()) return false;
             try
@@ -443,7 +443,7 @@ namespace YoonFactory.Image
             return false;
         }
 
-        public bool SaveImage(string strPath)
+        public virtual bool SaveImage(string strPath)
         {
             try
             {
@@ -482,7 +482,7 @@ namespace YoonFactory.Image
             return pResult.m_pBitmap;
         }
 
-        public YoonImage CropImage(YoonRect2N cropArea)
+        public virtual YoonImage CropImage(YoonRect2N cropArea)
         {
             byte[] pByte;
             YoonImage pImageResult;
@@ -561,7 +561,7 @@ namespace YoonFactory.Image
             }
         }
 
-        public void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
+        public virtual void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
         {
             float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
             float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;

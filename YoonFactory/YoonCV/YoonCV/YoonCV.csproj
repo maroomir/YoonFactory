@@ -115,11 +115,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CVFactory.cs" />
+    <Compile Include="CVImage.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">
+      <Project>{1f8e210e-2c3b-4084-af34-855673efefc0}</Project>
+      <Name>YoonCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonImage\YoonImage\YoonImage.csproj">
+      <Project>{c4e9558e-eb1d-4478-8d94-5ef8a802cae0}</Project>
+      <Name>YoonImage</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
