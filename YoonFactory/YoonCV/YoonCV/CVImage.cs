@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using YoonFactory;
-using YoonFactory.Image;
+﻿using YoonFactory.Image;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
@@ -13,12 +6,12 @@ namespace YoonFactory.CV
 {
     public class CVImage : YoonImage
     {
-        public CVImage(Mat pMat)
+        public CVImage(Mat pMatrix)
         {
-            m_pBitmap = BitmapConverter.ToBitmap(pMat);
+            m_pBitmap = BitmapConverter.ToBitmap(pMatrix);
         }
 
-        public Mat ToMatImage()
+        public Mat ToMatrix()
         {
             return BitmapConverter.ToMat(m_pBitmap);
         }
@@ -33,27 +26,47 @@ namespace YoonFactory.CV
 
         public override bool SaveImage(string strPath)
         {
-            using (Mat pMat = ToMatImage())
+            using (Mat pMat = ToMatrix())
             {
                 pMat.SaveImage(strPath);
                 return true;
             }
         }
 
-        public Mat CopyMat()
+        public Mat CopyMatrix()
         {
-            return ToMatImage().Clone();
+            return ToMatrix().Clone();
         }
 
         public override YoonImage CropImage(YoonRect2N cropArea)
         {
-            Mat pMat = ToMatImage().SubMat(cropArea.ToCVRect());
+            Mat pMat = ToMatrix().SubMat(cropArea.ToCVRect());
             return new CVImage(pMat);
         }
 
         public void ShowImage(string strTitle)
         {
-            Cv2.ImShow(strTitle, ToMatImage());
+            Cv2.ImShow(strTitle, ToMatrix());
+        }
+
+        public static CVImage operator +(CVImage i1, CVImage i2)
+        {
+            return CVFactory.TwoImageProcess.Add(i1, i2);
+        }
+
+        public static CVImage operator -(CVImage i1, CVImage i2)
+        {
+            return CVFactory.TwoImageProcess.Subtract(i1, i2);
+        }
+
+        public static CVImage operator *(CVImage i1, CVImage i2)
+        {
+            return CVFactory.TwoImageProcess.Multiply(i1, i2);
+        }
+
+        public static CVImage operator /(CVImage i1, CVImage i2)
+        {
+            return CVFactory.TwoImageProcess.Divide(i1, i2);
         }
     }
 }

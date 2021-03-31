@@ -1536,5 +1536,15 @@ namespace YoonFactory.Image
             }
             return false;
         }
+
+        public static YoonImage operator +(YoonImage i1, YoonImage i2)
+        {
+            return ImageFactory.Add(i1, i2);
+        }
+
+        public static YoonImage operator -(YoonImage i1, YoonImage i2)
+        {
+            return ImageFactory.Subtract(i1, i2);
+        }
     }
 }
