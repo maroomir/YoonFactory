@@ -11,10 +11,21 @@ namespace YoonFactory.CV
 {
     public static class CVFactory
     {
-        public static IYoonObject FindTemplate(this CVImage pSourceImage, CVImage pTemplateImage, double dScore = 0.7)
-        {
-            return TemplateMatch.FindTemplate(pTemplateImage, pSourceImage, dScore);
-        }
+        public static IYoonObject FindTemplate(this CVImage pSourceImage, CVImage pTemplateImage, double dScore = 0.7) => TemplateMatch.FindTemplate(pTemplateImage, pSourceImage, dScore);
+        public static CVImage Add(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Add(pSourceImage, pObjectImage);
+        public static CVImage Subtract(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Subtract(pSourceImage, pObjectImage);
+        public static CVImage Multiply(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Multiply(pSourceImage, pObjectImage);
+        public static CVImage Divide(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Divide(pSourceImage, pObjectImage);
+        public static CVImage Max(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Max(pSourceImage, pObjectImage);
+        public static CVImage Min(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Min(pSourceImage, pObjectImage);
+        public static CVImage AbsDiff(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.AbsDiff(pSourceImage, pObjectImage);
+        public static CVImage Sobel(this CVImage pSourceImage, int nOrderX = 1, int nOrderY = 0) => Filter.Sobel(pSourceImage, nOrderX, nOrderY);
+        public static CVImage Scharr(this CVImage pSourceImage, int nOrderX = 1, int nOrderY = 0) => Filter.Scharr(pSourceImage, nOrderX, nOrderY);
+        public static CVImage Laplacian(this CVImage pSourceImage) => Filter.Laplacian(pSourceImage);
+        public static CVImage Gaussian(this CVImage pSourceImage, int nSizeX = 3, int nSizeY = 3) => Filter.Gaussian(pSourceImage, nSizeX, nSizeY);
+        public static CVImage Canny(this CVImage pSourceImage, double dThresholdMin = 100, double dThresholdMax = 200) => Filter.Canny(pSourceImage, dThresholdMin, dThresholdMax);
+        public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, bool bWhite) => Fill.FillFlood(pSourceImage, pVector, nThreshold, bWhite);
+        public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, Color pFillColor) => Fill.FillFlood(pSourceImage, pVector, nThreshold, pFillColor);
 
         public static class Converter
         {
@@ -268,6 +279,10 @@ namespace YoonFactory.CV
                 Cv2.FloodFill(pResultMatrix, pVector.ToCVPoint(), pFillColor.ToScalar(), out pFillRect, Scalar.All(nThreshold), Scalar.All(nThreshold), FloodFillFlags.Link8);
                 return pResultMatrix;
             }
+        }
+
+        public static class ObjectDetection
+        {
         }
     }
 }
