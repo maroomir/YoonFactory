@@ -396,6 +396,21 @@ namespace YoonFactory.Image
             return pImage;
         }
 
+        public bool Equals(YoonImage pObject)
+        {
+            if (pObject.Width != Width || pObject.Height != Height || pObject.Plane != Plane)
+                return false;
+            for (int iX = 0; iX < Width; iX++)
+            {
+                for (int iY = 0; iY < Height; iY++)
+                {
+                    if (pObject.m_pBitmap.GetPixel(iX, iY) != m_pBitmap.GetPixel(iX, iY))
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public bool IsFileExist()
         {
             return FileFactory.VerifyFilePath(FilePath, false);
@@ -1545,6 +1560,16 @@ namespace YoonFactory.Image
         public static YoonImage operator -(YoonImage i1, YoonImage i2)
         {
             return ImageFactory.Subtract(i1, i2);
+        }
+
+        public static bool operator ==(YoonImage i1, YoonImage i2)
+        {
+            return i1.Equals(i2) == true;
+        }
+
+        public static bool operator !=(YoonImage i1, YoonImage i2)
+        {
+            return i1.Equals(i2) == false;
         }
     }
 }

@@ -152,6 +152,32 @@ namespace YoonFactory
             }
             return m;
         }
+
+        public static bool operator ==(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool operator !=(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 
     public class YoonMatrix2X2Double : IYoonMatrix
@@ -303,6 +329,32 @@ namespace YoonFactory
                 }
             }
             return m;
+        }
+
+        public static bool operator ==(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool operator !=(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -571,6 +623,32 @@ namespace YoonFactory
             }
             return m;
         }
+
+        public static bool operator ==(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool operator !=(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 
     public class YoonMatrix3X3Double : IYoonMatrix, IYoonMatrix<double>
@@ -837,6 +915,32 @@ namespace YoonFactory
                 }
             }
             return m;
+        }
+
+        public static bool operator ==(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool operator !=(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -1288,6 +1392,32 @@ namespace YoonFactory
                 }
             }
             return m;
+        }
+
+        public static bool operator ==(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool operator !=(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                for (int j = 0; j < a.Length; j++)
+                {
+                    if (a.Array[i, j] != b.Array[i, j])
+                        return true;
+                }
+            }
+            return false;
         }
     }
 

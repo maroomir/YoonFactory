@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using YoonFactory.Image;
 
 namespace YoonFactory
 {
@@ -39,6 +40,7 @@ namespace YoonFactory
         public int Label { get; set; }
         public double Score { get; set; }
         public T Object { get; set; }
+        public YoonImage ObjectImage { get; set; }
         public int PixelCount { get; set; }
 
         public YoonObject()
@@ -72,9 +74,10 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
+            ObjectImage = new YoonImage();
         }
 
-        public YoonObject(int nLabel, T pObject)
+        public YoonObject(int nLabel, T pObject, YoonImage pObjectImage)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
@@ -93,9 +96,10 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
+            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
-        public YoonObject(int nLabel, T pObject, int nCount)
+        public YoonObject(int nLabel, T pObject, YoonImage pObjectImage, int nCount)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
@@ -114,9 +118,10 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
+            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
-        public YoonObject(int nLabel, T pObject, double dScore, int nCount)
+        public YoonObject(int nLabel, T pObject, YoonImage pObjectImage, double dScore, int nCount)
         {
             Label = nLabel;
             Score = dScore;
@@ -135,6 +140,7 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
+            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public bool Equals(IYoonObject pObject)
@@ -147,6 +153,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pRect.Equals(Object) &&
+                            pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
                         break;
@@ -154,6 +161,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pLine.Equals(Object) &&
+                            pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
                         break;
@@ -161,6 +169,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pVector.Equals(Object) &&
+                            pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
                         break;
@@ -178,6 +187,7 @@ namespace YoonFactory
                 Label = pYoonObject.Label;
                 Score = pYoonObject.Score;
                 PixelCount = pYoonObject.PixelCount;
+                ObjectImage = pYoonObject.ObjectImage;
                 switch (pYoonObject.Object)
                 {
                     case IYoonRect pRect:
@@ -200,11 +210,11 @@ namespace YoonFactory
             switch (Object)
             {
                 case IYoonRect pRect:
-                    return new YoonObject<T>(Label, (T)pRect.Clone(), Score, PixelCount);
+                    return new YoonObject<T>(Label, (T)pRect.Clone(), (YoonImage)ObjectImage.Clone(), Score, PixelCount);
                 case IYoonLine pLine:
-                    return new YoonObject<T>(Label, (T)pLine.Clone(), Score, PixelCount);
+                    return new YoonObject<T>(Label, (T)pLine.Clone(), (YoonImage)ObjectImage.Clone(), Score, PixelCount);
                 case IYoonVector pVector:
-                    return new YoonObject<T>(Label, (T)pVector.Clone(), Score, PixelCount);
+                    return new YoonObject<T>(Label, (T)pVector.Clone(), (YoonImage)ObjectImage.Clone(), Score, PixelCount);
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }

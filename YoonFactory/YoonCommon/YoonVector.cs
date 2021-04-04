@@ -388,6 +388,14 @@ namespace YoonFactory
         {
             return v1.X * v2.X + v1.Y * v2.Y;
         }
+        public static bool operator ==(YoonVector2N v1, YoonVector2N v2)
+        {
+            return v1.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector2N v1, YoonVector2N v2)
+        {
+            return v1.Equals(v2) == false;
+        }
     }
 
     /// <summary>
@@ -782,6 +790,14 @@ namespace YoonFactory
         {
             return v1.X * v2.X + v1.Y * v2.Y;
         }
+        public static bool operator ==(YoonVector2D v1, YoonVector2D v2)
+        {
+            return v1.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector2D v1, YoonVector2D v2)
+        {
+            return v1.Equals(v2) == false;
+        }
     }
 
     /// <summary>
@@ -1106,6 +1122,14 @@ namespace YoonFactory
         public static double operator *(YoonVector3D v1, YoonVector3D v2) // dot product
         {
             return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+        }
+        public static bool operator ==(YoonVector3D v1, YoonVector3D v2)
+        {
+            return v1.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector3D v1, YoonVector3D v2)
+        {
+            return v1.Equals(v2) == false;
         }
     }
 

@@ -520,7 +520,7 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, pListTemp[i].Score, pListTemp[i].PixelCount));
+                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else
@@ -605,7 +605,7 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, pListTemp[i].Score, pListTemp[i].PixelCount));
+                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else
@@ -689,7 +689,7 @@ namespace YoonFactory.Image
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, pListTemp[i].Score, pListTemp[i].PixelCount));
+                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else

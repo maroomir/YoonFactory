@@ -130,6 +130,16 @@ namespace YoonFactory
                     throw new ArgumentException("[YOONCOMMON] Vector argument format is not correct");
             }
         }
+
+        public static bool operator == (YoonLine2N l1, YoonLine2N l2)
+        {
+            return l1.Equals(l2) == true;
+        }
+
+        public static bool operator !=(YoonLine2N l1, YoonLine2N l2)
+        {
+            return l1.Equals(l2) == false;
+        }
     }
 
     public class YoonLine2D : IYoonLine, IYoonLine2D<double>
@@ -255,6 +265,16 @@ namespace YoonFactory
                 default:
                     throw new ArgumentException("[YOONCOMMON] Vector argument format is not correct");
             }
+        }
+
+        public static bool operator ==(YoonLine2D l1, YoonLine2D l2)
+        {
+            return l1.Equals(l2) == true;
+        }
+
+        public static bool operator !=(YoonLine2D l1, YoonLine2D l2)
+        {
+            return l1.Equals(l2) == false;
         }
     }
 }

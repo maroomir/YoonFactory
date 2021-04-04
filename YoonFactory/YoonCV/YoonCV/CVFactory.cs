@@ -62,20 +62,22 @@ namespace YoonFactory.CV
         {
             public static IYoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
             {
-                return FindTemplate(pTemplateImage.ToMatrix(), pSourceImage.ToMatrix(), dScore, TemplateMatchModes.CCoeffNormed);
+                double dMatchScore;
+                Rect pRectResult = FindTemplate(pTemplateImage.ToMatrix(), pSourceImage.ToMatrix(), out dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);
+                return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
             }
 
-            public static IYoonObject FindTemplate(Mat pTemplateMatrix, Mat pSourceMatrix, double dScore, TemplateMatchModes nMode = TemplateMatchModes.CCoeffNormed)
+            public static Rect FindTemplate(Mat pTemplateMatrix, Mat pSourceMatrix, out double dMatchScore, double dThresholdScore, TemplateMatchModes nMode = TemplateMatchModes.CCoeffNormed)
             {
                 Mat pResultImage = new Mat();
                 double dMinVal, dMaxVal;
                 OpenCvSharp.Point pMinPos, pMaxPos;
                 Cv2.MatchTemplate(pSourceMatrix, pTemplateMatrix, pResultImage, nMode);
                 Cv2.MinMaxLoc(pResultImage, out dMinVal, out dMaxVal, out pMinPos, out pMaxPos);
-                if (dMaxVal > dScore)
+                if (dMaxVal > dThresholdScore)
                 {
-                    Rect pRectResult = new Rect(pMaxPos, pTemplateMatrix.Size());
-                    return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), dMaxVal, (int)(dMaxVal * pRectResult.Width * pRectResult.Height));
+                    dMatchScore = dMaxVal;
+                    return new Rect(pMaxPos, pTemplateMatrix.Size());
                 }
                 else
                     throw new InvalidOperationException("[YOONCV EXCEPTION] Process Failed : Matching score is too low");
@@ -279,10 +281,6 @@ namespace YoonFactory.CV
                 Cv2.FloodFill(pResultMatrix, pVector.ToCVPoint(), pFillColor.ToScalar(), out pFillRect, Scalar.All(nThreshold), Scalar.All(nThreshold), FloodFillFlags.Link8);
                 return pResultMatrix;
             }
-        }
-
-        public static class ObjectDetection
-        {
         }
     }
 }

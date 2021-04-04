@@ -199,10 +199,13 @@ namespace YoonFactory.Image
             {
                 if (pPatternImage.Format != PixelFormat.Format8bppIndexed || pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return FindPatternAsBinary(pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height);
+                double dScore;
+                int nPixelCount;
+                YoonRect2N pResultRect = FindPatternAsBinary(pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, out dScore, out nPixelCount, true);
+                return new YoonObject<YoonRect2N>(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
             }
 
-            public static IYoonObject FindPatternAsBinary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, bool bWhite = true)
+            public static YoonRect2N FindPatternAsBinary(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, out double score, out int pixelCount, bool bWhite = true)
             {
                 int findPosX, findPosY;
                 int startX, startY, jumpX, jumpY;
@@ -286,7 +289,9 @@ namespace YoonFactory.Image
                 findRect.CenterPos.Y = findPosY;
                 findRect.Width = patternWidth;
                 findRect.Height = patternHeight;
-                return new YoonObject<YoonRect2N>(0, findRect, dCoefficient, (bWhite) ? whiteCountMax : blackCountMax);
+                score = dCoefficient;
+                pixelCount = (bWhite) ? whiteCountMax : blackCountMax;
+                return findRect;
             }
 
             public static IYoonObject FindPatternAsBinary(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage)
@@ -295,10 +300,13 @@ namespace YoonFactory.Image
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
                 if (!pPatternImage.IsVerifiedArea(scanArea))
                     throw new ArgumentOutOfRangeException("[YOONIMAGE EXCEPTION] Scan area is not verified");
-                return FindPatternAsBinary(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height);
+                double dScore;
+                int nPixelCount;
+                YoonRect2N pResultRect = FindPatternAsBinary(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, out dScore, out nPixelCount);
+                return new YoonObject<YoonRect2N>(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
             }
 
-            public static IYoonObject FindPatternAsBinary(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight)
+            public static YoonRect2N FindPatternAsBinary(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, out double score, out int pixelCount)
             {
                 int findPosX, findPosY;
                 int startX, startY, jumpX, jumpY;
@@ -371,20 +379,32 @@ namespace YoonFactory.Image
                 findRect.CenterPos.Y = findPosY;
                 findRect.Width = patternWidth;
                 findRect.Height = patternHeight;
-                return new YoonObject<YoonRect2N>(0, findRect, dCoefficient, matchCountMax);
+                score = dCoefficient;
+                pixelCount = matchCountMax;
+                return findRect;
             }
 
             public static IYoonObject FindPattern(YoonImage pPatternImage, YoonImage pSourceImage, int nDiffThreshold = 10)
             {
                 if (pPatternImage.Plane == 1 && pSourceImage.Plane == 1)
-                    return FindPattern(pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte)nDiffThreshold);
+                {
+                    double dScore;
+                    int nPixelCount;
+                    YoonRect2N pRectResult = FindPattern(pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte)nDiffThreshold, out dScore, out nPixelCount);
+                    return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
+                }
                 else if (pPatternImage.Plane == 4 && pSourceImage.Plane == 4)
-                    return FindPattern(pPatternImage.GetARGBBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold);
+                {
+                    double dScore;
+                    int nPixelCount;
+                    YoonRect2N pRectResult = FindPattern(pPatternImage.GetARGBBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, out dScore, out nPixelCount);
+                    return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
+                }
                 else
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format arguments is not comportable");
             }
 
-            public static IYoonObject FindPattern(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, byte diffThreshold)
+            public static YoonRect2N FindPattern(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, byte diffThreshold, out double score, out int pixelCount)
             {
                 int minDiff, sumDiff;
                 int count, findPosX, findPosY;
@@ -444,10 +464,12 @@ namespace YoonFactory.Image
                         pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
                 dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
 
-                return new YoonObject<YoonRect2N>(0, findRect, dCoefficient, count);
+                score = dCoefficient;
+                pixelCount = count;
+                return findRect;
             }
 
-            public static IYoonObject FindPattern(int[] pPatternBuffer, int patternWidth, int patternHeight, int[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold)
+            public static YoonRect2N FindPattern(int[] pPatternBuffer, int patternWidth, int patternHeight, int[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score, out int pixelCount)
             {
                 int minDiff, sumDiff;
                 int count, findPosX, findPosY;
@@ -507,7 +529,9 @@ namespace YoonFactory.Image
                         pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
                 dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
 
-                return new YoonObject<YoonRect2N>(0, findRect, dCoefficient, count);
+                score = dCoefficient;
+                pixelCount = count;
+                return findRect;
             }
 
             public static IYoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage, int nDiffThreshold)
@@ -516,10 +540,13 @@ namespace YoonFactory.Image
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
                 if (!pPatternImage.IsVerifiedArea(scanArea))
                     throw new ArgumentOutOfRangeException("[YOONIMAGE EXCEPTION] Scan area is not verified");
-                return FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold);
+                double dScore;
+                int nPixelCount;
+                YoonRect2N pRectResult = FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, out dScore, out nPixelCount);
+                return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
             }
 
-            public static IYoonObject FindPattern(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold)
+            public static YoonRect2N FindPattern(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score, out int pixelCount)
             {
                 int minDiff, sumDiff;
                 int count, findPosX, findPosY;
@@ -580,7 +607,9 @@ namespace YoonFactory.Image
                         pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
                 dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
 
-                return new YoonObject<YoonRect2N>(0, findRect, dCoefficient, count);
+                pixelCount = count;
+                score = dCoefficient;
+                return findRect;
             }
         }
 
@@ -1891,6 +1920,7 @@ namespace YoonFactory.Image
             public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 YoonRect2N maxArea;
+                YoonImage maxImage = new YoonImage(1, 1, 1);
                 int maxLen = 0;
                 int maxLabel = 0;
                 int width, height, len;
@@ -1930,13 +1960,14 @@ namespace YoonFactory.Image
                         maxLen = len;
                         maxLabel = pListObjectInfo[iObject].Label;
                         maxScore = pListObjectInfo[iObject].Score;
+                        maxImage = pListObjectInfo[iObject].ObjectImage;
                         maxArea.CenterPos.X = scanArea.Left + pListObjectInfo[iObject].Object.Left + pListObjectInfo[iObject].Object.Width / 2;
                         maxArea.CenterPos.Y = scanArea.Top + pListObjectInfo[iObject].Object.Top + pListObjectInfo[iObject].Object.Height / 2;
                         maxArea.Width = pListObjectInfo[iObject].Object.Right - pListObjectInfo[iObject].Object.Left;
                         maxArea.Height = pListObjectInfo[iObject].Object.Bottom - pListObjectInfo[iObject].Object.Top;
                     }
                 }
-                return new YoonObject<YoonRect2N>(maxLabel, maxArea, maxScore, maxLen);
+                return new YoonObject<YoonRect2N>(maxLabel, maxArea, (YoonImage)maxImage.Clone(), maxScore, maxLen);
             }
 
             //  최대 크기 객체 찾기.
@@ -1950,12 +1981,13 @@ namespace YoonFactory.Image
             public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, int imageHeight, byte threshold, bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 YoonRect2N maxArea;
-                int maxLen = 0;
-                int maxLabel = 0;
                 int width, height, len;
-                double maxScore = 0.0;
+                int nOrder, maxLen;
                 ////  객체 찾기. 찾은 객체 정보는 m_objectInfo에 저장.
                 ObjectList<YoonRect2N> pListObjectInfo = FindObjects(pBuffer, imageWidth, imageHeight, threshold, isWhite);
+                if (pListObjectInfo.Count == 0)
+                    throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Find Object List is empty");
+                nOrder = 0;
                 maxLen = 0;
                 maxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
@@ -1987,12 +2019,10 @@ namespace YoonFactory.Image
                     if (len > maxLen)
                     {
                         maxLen = len;
-                        maxLabel = pListObjectInfo[iObject].Label;
-                        maxScore = pListObjectInfo[iObject].Score;
-                        maxArea = pListObjectInfo[iObject].Object.Clone() as YoonRect2N;
+                        nOrder = iObject;
                     }
                 }
-                return new YoonObject<YoonRect2N>(maxLabel, maxArea, maxScore, maxLen);
+                return pListObjectInfo[nOrder];
             }
 
             //  객체 찾기.
@@ -2226,7 +2256,24 @@ namespace YoonFactory.Image
                             break;
                     }
                 }
-                return new YoonObject<YoonRect2N>(0, resultRect, pixelCount);
+                YoonImage pResultImage;
+                if (resultRect.CenterPos.X == -1 && resultRect.CenterPos.Y == -1)
+                    pResultImage = new YoonImage(1, 1, 1);
+                else
+                {
+                    byte[] pBufferCrop = new byte[resultRect.Width * resultRect.Height];
+                    for (int iY = 0; iY < resultRect.Height; iY++)
+                    {
+                        int iYSource = iY + resultRect.Top;
+                        for (int iX = 0; iX < resultRect.Width; iX++)
+                        {
+                            int iXSource = iX + resultRect.Left;
+                            pBufferCrop[iY * resultRect.Width + iX] = pBuffer[iYSource * nWidth + iXSource];
+                        }
+                    }
+                    pResultImage = new YoonImage(pBufferCrop, resultRect.Width, resultRect.Height, PixelFormat.Format8bppIndexed);
+                }
+                return new YoonObject<YoonRect2N>(0, resultRect, pResultImage, pixelCount);
             }
         }
 

@@ -228,6 +228,16 @@ namespace YoonFactory
             int nRight = Math.Max(r1.Right, r2.Right);
             return new YoonRect2N((nLeft + nRight) / 2, (nTop + nBottom) / 2, nRight - nLeft, nBottom - nTop);
         }
+
+        public static bool operator ==(YoonRect2N r1, YoonRect2N r2)
+        {
+            return r1.Equals(r2) == true;
+        }
+
+        public static bool operator !=(YoonRect2N r1, YoonRect2N r2)
+        {
+            return r1.Equals(r2) == false;
+        }
     }
 
     /// <summary>
@@ -456,6 +466,16 @@ namespace YoonFactory
             double nLeft = Math.Min(r1.Left, r2.Left);
             double nRight = Math.Max(r1.Right, r2.Right);
             return new YoonRect2D((nLeft + nRight) / 2, (nTop + nBottom) / 2, nRight - nLeft, nBottom - nTop);
+        }
+
+        public static bool operator ==(YoonRect2D r1, YoonRect2D r2)
+        {
+            return r1.Equals(r2) == true;
+        }
+
+        public static bool operator !=(YoonRect2D r1, YoonRect2D r2)
+        {
+            return r1.Equals(r2) == false;
         }
     }
 

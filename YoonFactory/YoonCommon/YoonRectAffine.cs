@@ -209,6 +209,16 @@ namespace YoonFactory
         {
             return Width * Height;
         }
+
+        public static bool operator ==(YoonRectAffine2D r1, YoonRectAffine2D r2)
+        {
+            return r1.Equals(r2) == true;
+        }
+
+        public static bool operator !=(YoonRectAffine2D r1, YoonRectAffine2D r2)
+        {
+            return r1.Equals(r2) == false;
+        }
     }
 
 }
