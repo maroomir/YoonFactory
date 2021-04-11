@@ -53,7 +53,7 @@ pCLM.Write("Hello World!");
 자기개발 여하에 따라 일부 새로운 기반에서 Test해보고 안정화 된 기능을 YoonFactory로 들여올 수도 있습니다!
 
 - [`YoonFactory.Java`](https://github.com/maroomir/YoonFactory.Java)
-- Python 구현 예정 ('21년 상반기 내)
+- [`YoonPytory`](https://github.com/maroomir/YoonPytory)
 
 
 ## DLL Module Introduction ##
