@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -6,7 +7,7 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Image
 {
-    public class YoonImage : IYoonFile
+    public class YoonImage : IYoonFile, IEquatable<YoonImage>
     {
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
@@ -396,19 +397,9 @@ namespace YoonFactory.Image
             return pImage;
         }
 
-        public bool Equals(YoonImage pObject)
+        public override bool Equals(object obj)
         {
-            if (pObject.Width != Width || pObject.Height != Height || pObject.Plane != Plane)
-                return false;
-            for (int iX = 0; iX < Width; iX++)
-            {
-                for (int iY = 0; iY < Height; iY++)
-                {
-                    if (pObject.m_pBitmap.GetPixel(iX, iY) != m_pBitmap.GetPixel(iX, iY))
-                        return false;
-                }
-            }
-            return true;
+            return Equals(obj as YoonImage);
         }
 
         public bool IsFileExist()
@@ -1552,6 +1543,35 @@ namespace YoonFactory.Image
             return false;
         }
 
+        public bool Equals(YoonImage other)
+        {
+            return other != null &&
+                   disposedValue == other.disposedValue &&
+                   EqualityComparer<Bitmap>.Default.Equals(m_pBitmap, other.m_pBitmap) &&
+                   FilePath == other.FilePath &&
+                   Format == other.Format &&
+                   Plane == other.Plane &&
+                   Stride == other.Stride &&
+                   Width == other.Width &&
+                   Height == other.Height &&
+                   EqualityComparer<Bitmap>.Default.Equals(ToBitmap, other.ToBitmap);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1198763934;
+            hashCode = hashCode * -1521134295 + disposedValue.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<Bitmap>.Default.GetHashCode(m_pBitmap);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(FilePath);
+            hashCode = hashCode * -1521134295 + Format.GetHashCode();
+            hashCode = hashCode * -1521134295 + Plane.GetHashCode();
+            hashCode = hashCode * -1521134295 + Stride.GetHashCode();
+            hashCode = hashCode * -1521134295 + Width.GetHashCode();
+            hashCode = hashCode * -1521134295 + Height.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<Bitmap>.Default.GetHashCode(ToBitmap);
+            return hashCode;
+        }
+
         public static YoonImage operator +(YoonImage i1, YoonImage i2)
         {
             return ImageFactory.Add(i1, i2);
@@ -1564,12 +1584,12 @@ namespace YoonFactory.Image
 
         public static bool operator ==(YoonImage i1, YoonImage i2)
         {
-            return i1.Equals(i2) == true;
+            return i1?.Equals(i2) == true;
         }
 
         public static bool operator !=(YoonImage i1, YoonImage i2)
         {
-            return i1.Equals(i2) == false;
+            return i1?.Equals(i2) == false;
         }
     }
 }

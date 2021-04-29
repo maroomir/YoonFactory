@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace YoonFactory
 {
-    public class YoonMatrix2X2Int : IYoonMatrix
+    public class YoonMatrix2X2Int : IYoonMatrix, IEquatable<YoonMatrix2X2Int>
     {
         public int Length { get; } = 2;
 
@@ -112,6 +113,36 @@ namespace YoonFactory
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as YoonMatrix2X2Int);
+        }
+
+        public bool Equals(YoonMatrix2X2Int other)
+        {
+            return other != null &&
+                   Length == other.Length &&
+                   matrix_11 == other.matrix_11 &&
+                   matrix_12 == other.matrix_12 &&
+                   matrix_21 == other.matrix_21 &&
+                   matrix_22 == other.matrix_22 &&
+                   EqualityComparer<int[,]>.Default.Equals(Array, other.Array) &&
+                   Determinant == other.Determinant;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 915136901;
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_11.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_12.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_21.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_22.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<int[,]>.Default.GetHashCode(Array);
+            hashCode = hashCode * -1521134295 + Determinant.GetHashCode();
+            return hashCode;
+        }
+
         public static YoonMatrix2X2Int operator *(int a, YoonMatrix2X2Int b)
         {
             YoonMatrix2X2Int m = new YoonMatrix2X2Int();
@@ -155,11 +186,11 @@ namespace YoonFactory
 
         public static bool operator ==(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return false;
                 }
             }
@@ -168,11 +199,11 @@ namespace YoonFactory
 
         public static bool operator !=(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return true;
                 }
             }
@@ -180,7 +211,7 @@ namespace YoonFactory
         }
     }
 
-    public class YoonMatrix2X2Double : IYoonMatrix
+    public class YoonMatrix2X2Double : IYoonMatrix, IEquatable<YoonMatrix2X2Double>
     {
         public int Length { get; } = 2;
 
@@ -290,6 +321,36 @@ namespace YoonFactory
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as YoonMatrix2X2Double);
+        }
+
+        public bool Equals(YoonMatrix2X2Double other)
+        {
+            return other != null &&
+                   Length == other.Length &&
+                   matrix_11 == other.matrix_11 &&
+                   matrix_12 == other.matrix_12 &&
+                   matrix_21 == other.matrix_21 &&
+                   matrix_22 == other.matrix_22 &&
+                   EqualityComparer<double[,]>.Default.Equals(Array, other.Array) &&
+                   Determinant == other.Determinant;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 915136901;
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_11.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_12.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_21.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_22.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[,]>.Default.GetHashCode(Array);
+            hashCode = hashCode * -1521134295 + Determinant.GetHashCode();
+            return hashCode;
+        }
+
         public static YoonMatrix2X2Double operator *(double a, YoonMatrix2X2Double b)
         {
             YoonMatrix2X2Double m = new YoonMatrix2X2Double();
@@ -333,11 +394,11 @@ namespace YoonFactory
 
         public static bool operator ==(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return false;
                 }
             }
@@ -346,11 +407,11 @@ namespace YoonFactory
 
         public static bool operator !=(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return true;
                 }
             }
@@ -358,7 +419,7 @@ namespace YoonFactory
         }
     }
 
-    public class YoonMatrix3X3Int : IYoonMatrix, IYoonMatrix<int>
+    public class YoonMatrix3X3Int : IYoonMatrix, IYoonMatrix<int>, IEquatable<YoonMatrix3X3Int>
     {
         public int Length { get; } = 3;
 
@@ -583,6 +644,46 @@ namespace YoonFactory
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as YoonMatrix3X3Int);
+        }
+
+        public bool Equals(YoonMatrix3X3Int other)
+        {
+            return other != null &&
+                   Length == other.Length &&
+                   matrix_11 == other.matrix_11 &&
+                   matrix_12 == other.matrix_12 &&
+                   matrix_13 == other.matrix_13 &&
+                   matrix_21 == other.matrix_21 &&
+                   matrix_22 == other.matrix_22 &&
+                   matrix_23 == other.matrix_23 &&
+                   matrix_31 == other.matrix_31 &&
+                   matrix_32 == other.matrix_32 &&
+                   matrix_33 == other.matrix_33 &&
+                   EqualityComparer<int[,]>.Default.Equals(Array, other.Array) &&
+                   Determinant == other.Determinant;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1889127308;
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_11.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_12.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_13.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_21.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_22.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_23.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_31.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_32.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_33.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<int[,]>.Default.GetHashCode(Array);
+            hashCode = hashCode * -1521134295 + Determinant.GetHashCode();
+            return hashCode;
+        }
+
         public static YoonMatrix3X3Int operator *(int a, YoonMatrix3X3Int b)
         {
             YoonMatrix3X3Int m = new YoonMatrix3X3Int();
@@ -626,11 +727,11 @@ namespace YoonFactory
 
         public static bool operator ==(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return false;
                 }
             }
@@ -639,11 +740,11 @@ namespace YoonFactory
 
         public static bool operator !=(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return true;
                 }
             }
@@ -651,7 +752,7 @@ namespace YoonFactory
         }
     }
 
-    public class YoonMatrix3X3Double : IYoonMatrix, IYoonMatrix<double>
+    public class YoonMatrix3X3Double : IYoonMatrix, IYoonMatrix<double>, IEquatable<YoonMatrix3X3Double>
     {
         public int Length { get; } = 3;
 
@@ -876,6 +977,46 @@ namespace YoonFactory
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as YoonMatrix3X3Double);
+        }
+
+        public bool Equals(YoonMatrix3X3Double other)
+        {
+            return other != null &&
+                   Length == other.Length &&
+                   matrix_11 == other.matrix_11 &&
+                   matrix_12 == other.matrix_12 &&
+                   matrix_13 == other.matrix_13 &&
+                   matrix_21 == other.matrix_21 &&
+                   matrix_22 == other.matrix_22 &&
+                   matrix_23 == other.matrix_23 &&
+                   matrix_31 == other.matrix_31 &&
+                   matrix_32 == other.matrix_32 &&
+                   matrix_33 == other.matrix_33 &&
+                   EqualityComparer<double[,]>.Default.Equals(Array, other.Array) &&
+                   Determinant == other.Determinant;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1889127308;
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_11.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_12.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_13.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_21.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_22.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_23.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_31.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_32.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_33.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[,]>.Default.GetHashCode(Array);
+            hashCode = hashCode * -1521134295 + Determinant.GetHashCode();
+            return hashCode;
+        }
+
         public static YoonMatrix3X3Double operator *(double a, YoonMatrix3X3Double b)
         {
             YoonMatrix3X3Double m = new YoonMatrix3X3Double();
@@ -919,11 +1060,11 @@ namespace YoonFactory
 
         public static bool operator ==(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return false;
                 }
             }
@@ -932,11 +1073,11 @@ namespace YoonFactory
 
         public static bool operator !=(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return true;
                 }
             }
@@ -1030,7 +1171,7 @@ namespace YoonFactory
 
     }
 
-    public class YoonMatrix4X4Double : IYoonMatrix, IYoonMatrix<double>
+    public class YoonMatrix4X4Double : IYoonMatrix, IYoonMatrix<double>, IEquatable<YoonMatrix4X4Double>
     {
         public int Length { get; set; } = 4;
 
@@ -1353,6 +1494,60 @@ namespace YoonFactory
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as YoonMatrix4X4Double);
+        }
+
+        public bool Equals(YoonMatrix4X4Double other)
+        {
+            return other != null &&
+                   Length == other.Length &&
+                   matrix_11 == other.matrix_11 &&
+                   matrix_12 == other.matrix_12 &&
+                   matrix_13 == other.matrix_13 &&
+                   matrix_14 == other.matrix_14 &&
+                   matrix_21 == other.matrix_21 &&
+                   matrix_22 == other.matrix_22 &&
+                   matrix_23 == other.matrix_23 &&
+                   matrix_24 == other.matrix_24 &&
+                   matrix_31 == other.matrix_31 &&
+                   matrix_32 == other.matrix_32 &&
+                   matrix_33 == other.matrix_33 &&
+                   matrix_34 == other.matrix_34 &&
+                   matrix_41 == other.matrix_41 &&
+                   matrix_42 == other.matrix_42 &&
+                   matrix_43 == other.matrix_43 &&
+                   matrix_44 == other.matrix_44 &&
+                   EqualityComparer<double[,]>.Default.Equals(Array, other.Array) &&
+                   Determinant == other.Determinant;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1235618589;
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_11.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_12.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_13.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_14.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_21.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_22.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_23.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_24.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_31.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_32.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_33.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_34.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_41.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_42.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_43.GetHashCode();
+            hashCode = hashCode * -1521134295 + matrix_44.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[,]>.Default.GetHashCode(Array);
+            hashCode = hashCode * -1521134295 + Determinant.GetHashCode();
+            return hashCode;
+        }
+
         public static YoonMatrix4X4Double operator *(double a, YoonMatrix4X4Double b)
         {
             YoonMatrix4X4Double m = new YoonMatrix4X4Double();
@@ -1396,11 +1591,11 @@ namespace YoonFactory
 
         public static bool operator ==(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return false;
                 }
             }
@@ -1409,11 +1604,11 @@ namespace YoonFactory
 
         public static bool operator !=(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
         {
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < a?.Length; i++)
             {
-                for (int j = 0; j < a.Length; j++)
+                for (int j = 0; j < a?.Length; j++)
                 {
-                    if (a.Array[i, j] != b.Array[i, j])
+                    if (a?.Array[i, j] != b?.Array[i, j])
                         return true;
                 }
             }

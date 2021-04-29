@@ -64,7 +64,7 @@ namespace YoonFactory.CV
             {
                 double dMatchScore;
                 Rect pRectResult = FindTemplate(pTemplateImage.ToMatrix(), pSourceImage.ToMatrix(), out dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);
-                return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
+                return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), pTemplateImage.CropImage(pRectResult.ToYoonRect()), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
             }
 
             public static Rect FindTemplate(Mat pTemplateMatrix, Mat pSourceMatrix, out double dMatchScore, double dThresholdScore, TemplateMatchModes nMode = TemplateMatchModes.CCoeffNormed)

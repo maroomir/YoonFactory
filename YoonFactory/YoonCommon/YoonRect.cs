@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace YoonFactory
@@ -6,8 +7,13 @@ namespace YoonFactory
     /// <summary>
     /// 사각형 대응 변수 (기준좌표계 : Pixel과 동일/ 좌+상)
     /// </summary>
-    public class YoonRect2N : IYoonRect, IYoonRect2D<int>
+    public class YoonRect2N : IYoonRect, IYoonRect2D<int>, IEquatable<YoonRect2N>
     {
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonRect);
+        }
+
         public bool Equals(IYoonRect r)
         {
             if (r is YoonRect2N rect)
@@ -220,6 +226,39 @@ namespace YoonFactory
             return Width * Height;
         }
 
+        public bool Equals(YoonRect2N other)
+        {
+            return other != null &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(CenterPos, other.CenterPos) &&
+                   Width == other.Width &&
+                   Height == other.Height &&
+                   Left == other.Left &&
+                   Top == other.Top &&
+                   Right == other.Right &&
+                   Bottom == other.Bottom &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(TopLeft, other.TopLeft) &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(TopRight, other.TopRight) &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(BottomLeft, other.BottomLeft) &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(BottomRight, other.BottomRight);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 845742892;
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(CenterPos);
+            hashCode = hashCode * -1521134295 + Width.GetHashCode();
+            hashCode = hashCode * -1521134295 + Height.GetHashCode();
+            hashCode = hashCode * -1521134295 + Left.GetHashCode();
+            hashCode = hashCode * -1521134295 + Top.GetHashCode();
+            hashCode = hashCode * -1521134295 + Right.GetHashCode();
+            hashCode = hashCode * -1521134295 + Bottom.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(TopLeft);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(TopRight);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(BottomLeft);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(BottomRight);
+            return hashCode;
+        }
+
         public static YoonRect2N operator +(YoonRect2N r1, YoonRect2N r2)
         {
             int nTop = Math.Min(r1.Top, r2.Top);
@@ -231,20 +270,25 @@ namespace YoonFactory
 
         public static bool operator ==(YoonRect2N r1, YoonRect2N r2)
         {
-            return r1.Equals(r2) == true;
+            return r1?.Equals(r2) == true;
         }
 
         public static bool operator !=(YoonRect2N r1, YoonRect2N r2)
         {
-            return r1.Equals(r2) == false;
+            return r1?.Equals(r2) == false;
         }
     }
 
     /// <summary>
     /// 사각형 대응 변수
     /// </summary>
-    public class YoonRect2D : IYoonRect, IYoonRect2D<double>
+    public class YoonRect2D : IYoonRect, IYoonRect2D<double>, IEquatable<YoonRect2D>
     {
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonRect);
+        }
+
         public bool Equals(IYoonRect r)
         {
             if (r is YoonRect2D rect)
@@ -459,6 +503,39 @@ namespace YoonFactory
             return Width * Height;
         }
 
+        public bool Equals(YoonRect2D other)
+        {
+            return other != null &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(CenterPos, other.CenterPos) &&
+                   Width == other.Width &&
+                   Height == other.Height &&
+                   Left == other.Left &&
+                   Top == other.Top &&
+                   Right == other.Right &&
+                   Bottom == other.Bottom &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(TopLeft, other.TopLeft) &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(TopRight, other.TopRight) &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(BottomLeft, other.BottomLeft) &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(BottomRight, other.BottomRight);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 845742892;
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(CenterPos);
+            hashCode = hashCode * -1521134295 + Width.GetHashCode();
+            hashCode = hashCode * -1521134295 + Height.GetHashCode();
+            hashCode = hashCode * -1521134295 + Left.GetHashCode();
+            hashCode = hashCode * -1521134295 + Top.GetHashCode();
+            hashCode = hashCode * -1521134295 + Right.GetHashCode();
+            hashCode = hashCode * -1521134295 + Bottom.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopLeft);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopRight);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomLeft);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
+            return hashCode;
+        }
+
         public static YoonRect2D operator +(YoonRect2D r1, YoonRect2D r2)
         {
             double nTop = Math.Min(r1.Top, r2.Top);
@@ -470,12 +547,12 @@ namespace YoonFactory
 
         public static bool operator ==(YoonRect2D r1, YoonRect2D r2)
         {
-            return r1.Equals(r2) == true;
+            return r1?.Equals(r2) == true;
         }
 
         public static bool operator !=(YoonRect2D r1, YoonRect2D r2)
         {
-            return r1.Equals(r2) == false;
+            return r1?.Equals(r2) == false;
         }
     }
 

@@ -106,6 +106,10 @@
       <Project>{1F8E210E-2C3B-4084-AF34-855673EFEFC0}</Project>
       <Name>YoonCommon</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\YoonImage\YoonImage\YoonImage.csproj">
+      <Project>{c4e9558e-eb1d-4478-8d94-5ef8a802cae0}</Project>
+      <Name>YoonImage</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

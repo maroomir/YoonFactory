@@ -1,6 +1,4 @@
-﻿//  Copyright (c)2018 by cheoljoung.yoon@lge.com
-
-using System;
+﻿using System;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;

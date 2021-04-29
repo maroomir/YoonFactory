@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace YoonFactory
@@ -6,7 +7,7 @@ namespace YoonFactory
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector2N : IYoonVector, IYoonVector2D<int>
+    public class YoonVector2N : IYoonVector, IYoonVector2D<int>, IEquatable<YoonVector2N>
     {
         public int Count { get; } = 3;
 
@@ -97,6 +98,11 @@ namespace YoonFactory
             v.Y = this.Y;
             v.W = this.W;
             return v;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
         }
 
         public bool Equals(IYoonVector v)
@@ -343,6 +349,31 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonVector2N other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   Direction == other.Direction &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   EqualityComparer<IYoonCart<int>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<int[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1178670866;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + Direction.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<int>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<int[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
         public static YoonVector2N operator *(YoonMatrix3X3Int m, YoonVector2N v)
         {
             YoonVector2N pVector = new YoonVector2N();
@@ -390,18 +421,18 @@ namespace YoonFactory
         }
         public static bool operator ==(YoonVector2N v1, YoonVector2N v2)
         {
-            return v1.Equals(v2) == true;
+            return v1?.Equals(v2) == true;
         }
         public static bool operator !=(YoonVector2N v1, YoonVector2N v2)
         {
-            return v1.Equals(v2) == false;
+            return v1?.Equals(v2) == false;
         }
     }
 
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector2D : IYoonVector, IYoonVector2D<double>
+    public class YoonVector2D : IYoonVector, IYoonVector2D<double>, IEquatable<YoonVector2D>
     {
         public int Count { get; } = 3;
 
@@ -473,6 +504,11 @@ namespace YoonFactory
                         break;
                 }
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
         }
 
         public bool Equals(IYoonVector v)
@@ -737,6 +773,31 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonVector2D other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   Direction == other.Direction &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   EqualityComparer<IYoonCart<double>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<double[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1178670866;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + Direction.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<double>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
         public static YoonVector2D operator *(YoonMatrix3X3Double m, YoonVector2D v)
         {
             YoonVector2D pVector = new YoonVector2D();
@@ -792,20 +853,25 @@ namespace YoonFactory
         }
         public static bool operator ==(YoonVector2D v1, YoonVector2D v2)
         {
-            return v1.Equals(v2) == true;
+            return v1?.Equals(v2) == true;
         }
         public static bool operator !=(YoonVector2D v1, YoonVector2D v2)
         {
-            return v1.Equals(v2) == false;
+            return v1?.Equals(v2) == false;
         }
     }
 
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector3D : IYoonVector, IYoonVector3D<double>
+    public class YoonVector3D : IYoonVector, IYoonVector3D<double>, IEquatable<YoonVector3D>
     {
         public int Count { get; } = 4;
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
+        }
 
         public bool Equals(IYoonVector v)
         {
@@ -1080,6 +1146,31 @@ namespace YoonFactory
             this.Z = v.Z;
         }
 
+        public bool Equals(YoonVector3D other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   Z == other.Z &&
+                   EqualityComparer<IYoonCart<double>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<double[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -366330435;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + Z.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<double>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
         public static YoonVector3D operator *(YoonMatrix4X4Double m, YoonVector3D v)
         {
             YoonVector3D pVector = new YoonVector3D();
@@ -1125,11 +1216,11 @@ namespace YoonFactory
         }
         public static bool operator ==(YoonVector3D v1, YoonVector3D v2)
         {
-            return v1.Equals(v2) == true;
+            return v1?.Equals(v2) == true;
         }
         public static bool operator !=(YoonVector3D v1, YoonVector3D v2)
         {
-            return v1.Equals(v2) == false;
+            return v1?.Equals(v2) == false;
         }
     }
 

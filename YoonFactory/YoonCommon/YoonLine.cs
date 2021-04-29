@@ -1,9 +1,10 @@
 ﻿using System.Xml.Serialization;
 using System;
+using System.Collections.Generic;
 
 namespace YoonFactory
 {
-    public class YoonLine2N : IYoonLine, IYoonLine2D<int>
+    public class YoonLine2N : IYoonLine, IYoonLine2D<int>, IEquatable<YoonLine2N>
     {
         [XmlAnyAttribute]
         public IYoonVector2D<int> StartPos { get; private set; } = new YoonVector2N(0, 0);
@@ -16,6 +17,11 @@ namespace YoonFactory
 
         private double m_dSlope = 0.0;
         private double m_dIntercept = 0.0;
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonLine);
+        }
 
         public bool Equals(IYoonLine pLine)
         {
@@ -131,18 +137,41 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonLine2N other)
+        {
+            return other != null &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(StartPos, other.StartPos) &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(EndPos, other.EndPos) &&
+                   EqualityComparer<IYoonVector2D<int>>.Default.Equals(CenterPos, other.CenterPos) &&
+                   Length == other.Length &&
+                   m_dSlope == other.m_dSlope &&
+                   m_dIntercept == other.m_dIntercept;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1569030335;
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(StartPos);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(EndPos);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<int>>.Default.GetHashCode(CenterPos);
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + m_dSlope.GetHashCode();
+            hashCode = hashCode * -1521134295 + m_dIntercept.GetHashCode();
+            return hashCode;
+        }
+
         public static bool operator == (YoonLine2N l1, YoonLine2N l2)
         {
-            return l1.Equals(l2) == true;
+            return l1?.Equals(l2) == true;
         }
 
         public static bool operator !=(YoonLine2N l1, YoonLine2N l2)
         {
-            return l1.Equals(l2) == false;
+            return l1?.Equals(l2) == false;
         }
     }
 
-    public class YoonLine2D : IYoonLine, IYoonLine2D<double>
+    public class YoonLine2D : IYoonLine, IYoonLine2D<double>, IEquatable<YoonLine2D>
     {
         [XmlAnyAttribute]
         public IYoonVector2D<double> StartPos { get; private set; } = new YoonVector2D(0, 0);
@@ -155,6 +184,11 @@ namespace YoonFactory
 
         private double m_dSlope = 0.0;
         private double m_dIntercept = 0.0;
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonLine);
+        }
 
         public bool Equals(IYoonLine pLine)
         {
@@ -267,14 +301,37 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonLine2D other)
+        {
+            return other != null &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(StartPos, other.StartPos) &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(EndPos, other.EndPos) &&
+                   EqualityComparer<IYoonVector2D<double>>.Default.Equals(CenterPos, other.CenterPos) &&
+                   Length == other.Length &&
+                   m_dSlope == other.m_dSlope &&
+                   m_dIntercept == other.m_dIntercept;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1569030335;
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(StartPos);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(EndPos);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(CenterPos);
+            hashCode = hashCode * -1521134295 + Length.GetHashCode();
+            hashCode = hashCode * -1521134295 + m_dSlope.GetHashCode();
+            hashCode = hashCode * -1521134295 + m_dIntercept.GetHashCode();
+            return hashCode;
+        }
+
         public static bool operator ==(YoonLine2D l1, YoonLine2D l2)
         {
-            return l1.Equals(l2) == true;
+            return l1?.Equals(l2) == true;
         }
 
         public static bool operator !=(YoonLine2D l1, YoonLine2D l2)
         {
-            return l1.Equals(l2) == false;
+            return l1?.Equals(l2) == false;
         }
     }
 }

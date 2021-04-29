@@ -17,8 +17,6 @@ namespace YoonSample.Xamarin
         public MainPage()
         {
             InitializeComponent();
-
-            int nStepInit = 0;
             CommonClass.pConnectManager.RootDirectory = CommonClass.strYoonFactoryDirectory;
             {
                 CommonClass.pConnectManager.LoadParameter(true);
