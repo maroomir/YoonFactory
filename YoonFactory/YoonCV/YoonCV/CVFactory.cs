@@ -282,5 +282,33 @@ namespace YoonFactory.CV
                 return pResultMatrix;
             }
         }
+
+        public static class ColorDetection
+        {
+            public static CVImage DetectHSV(CVImage pSourceImage, byte nHue, byte nSaturation, byte nValue)
+            {
+                if(pSourceImage.Plane != 3)
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
+                return new CVImage(DetectHSV(pSourceImage.ToMatrix(), nHue, nSaturation, nValue));
+            }
+
+            public static Mat DetectHSV(Mat pSourceMatrix, byte nHue, byte nSaturation, byte nValue, byte nThreshold = 10)
+            {
+                Mat pHsvMatrix = new Mat(pSourceMatrix.Size(), MatType.CV_8UC3);
+                Mat pMaskMatrix = new Mat(pSourceMatrix.Size(), MatType.CV_8UC3);
+                Mat pResultMatrix = new Mat(pSourceMatrix.Size(), MatType.CV_8UC3);
+                Cv2.CvtColor(pSourceMatrix, pHsvMatrix, ColorConversionCodes.BGR2HSV);
+                byte nHueLow = (byte)Math.Max(nHue - nThreshold / 2, 0);
+                byte nHueHigh = (byte)Math.Min(nHue + nThreshold / 2, 255);
+                byte nSaturationLow = (byte)Math.Max(nSaturation - nThreshold / 2, 0);
+                byte nSaturationHigh = (byte)Math.Min(nSaturation + nThreshold / 2, 255);
+                byte nValueLow = (byte)Math.Max(nValue - nThreshold / 2, 0);
+                byte nValueHigh = (byte)Math.Min(nValue + nThreshold / 2, 255);
+                Cv2.InRange(pHsvMatrix, new Scalar(nHueLow, nSaturationLow, nValueLow), new Scalar(nHueHigh, nSaturationHigh, nValueHigh), pMaskMatrix);
+                Cv2.BitwiseAnd(pHsvMatrix, pHsvMatrix, pResultMatrix, pMaskMatrix);
+                Cv2.CvtColor(pResultMatrix, pResultMatrix, ColorConversionCodes.HSV2BGR);
+                return pResultMatrix;
+            }
+        }
     }
 }

@@ -44,6 +44,26 @@ namespace YoonFactory.CV
             }
         }
 
+        public static Point3d ToCVPoint3D(this YoonVector3D pVector)
+        {
+            return new Point3d(pVector.X, pVector.Y, pVector.Z);
+        }
+
+        public static Vec2i ToCVVector(this YoonVector2N pVector)
+        {
+            return new Vec2i(pVector.X, pVector.Y);
+        }
+
+        public static Vec2d ToCVVector(this YoonVector2D pVector)
+        {
+            return new Vec2d(pVector.X, pVector.Y);
+        }
+
+        public static Vec3d ToCVVector(this YoonVector3D pVector)
+        {
+            return new Vec3d(pVector.X, pVector.Y, pVector.Z);
+        }
+
         public static YoonVector2N ToYoonVector(this OpenCvSharp.Point pPos)
         {
             return new YoonVector2N(pPos.X, pPos.Y);
@@ -52,6 +72,26 @@ namespace YoonFactory.CV
         public static YoonVector2D ToYoonVector(this Point2d pPos)
         {
             return new YoonVector2D(pPos.X, pPos.Y);
+        }
+
+        public static YoonVector3D ToYoonVector(this Point3d pPos)
+        {
+            return new YoonVector3D(pPos.X, pPos.Y, pPos.Z);
+        }
+
+        public static YoonVector2N ToYoonVector(this Vec2i pVec)
+        {
+            return new YoonVector2N(pVec.Item0, pVec.Item1);
+        }
+
+        public static YoonVector2D ToYoonVector(this Vec2d pVec)
+        {
+            return new YoonVector2D(pVec.Item0, pVec.Item1);
+        }
+
+        public static YoonVector3D ToYoonVector(this Vec3d pVec)
+        {
+            return new YoonVector3D(pVec.Item0, pVec.Item1, pVec.Item2);
         }
 
         public static Rect ToCVRect(this IYoonRect pRect)
