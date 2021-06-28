@@ -96,16 +96,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CogImage.cs" />
     <Compile Include="CognexFactory.cs" />
-    <Compile Include="CognexMapping.cs" />
-    <Compile Include="CognexResult.cs" />
+    <Compile Include="Mapping\CognexMapping.cs" />
+    <Compile Include="Result\CognexResult.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="ResultContainer.cs" />
+    <Compile Include="Result\ResultContainer.cs" />
     <Compile Include="Tool\ToolContainer.cs" />
     <Compile Include="Tool\ToolFactory.cs" />
-    <Compile Include="ResultTemplate.cs" />
+    <Compile Include="Result\ResultTemplate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ResultSection.cs" />
+    <Compile Include="Result\ResultSection.cs" />
     <Compile Include="Tool\ToolSection.cs" />
     <Compile Include="Tool\ToolTemplate.cs" />
   </ItemGroup>
