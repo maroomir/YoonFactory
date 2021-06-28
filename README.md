@@ -56,6 +56,34 @@ pCLM.Write("Hello World!");
 - [`YoonPytory`](https://github.com/maroomir/YoonPytory)
 
 
+## Sample Introduction ##
+
+YoonFactory를 활용한 Module들을 소개합니다.
+
+YoonFactory를 통해 로봇 또는 장비와 통신 연결, 산업용 Camera 및 3D Camera를 통한 Image Grab을 간편하게 할 수 있습니다.
+
+또, 자체 알고리즘 및 OpenCV를 활용한 Machine Vision 뿐만 아니라 상용 라이브러리(Cognex) 또한 사용할 수 있습니다.
+
+이 모든 것들이 YoonImage를 통해 간편하게 static method로 접근 가능합니다.
+
+
+### CognexInspection ###
+
+![CogInspection_screenshot](./Image/CognexInspection.PNG)
+
+
+### ImageViewer ###
+
+![ImgViewer_screenshot](./Image/ImageViewer.PNG)
+
+### YoonMono ###
+
+![Mono_screenshot](./Image/Mono.png)
+
+### YoonXamarin ###
+
+![Xam_screenshot](./Image/Xamarin.PNG)
+
 ## DLL Module Introduction ##
 
 ### YoonCommon ###
