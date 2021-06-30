@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Cognex.VisionPro;
 using Cognex.VisionPro.Blob;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Result
 {
     public class CognexResult : IYoonResult
     {
-        public ICogImage ResultImage { get; private set; } = null;
+        public CognexImage ResultImage { get; private set; } = null;
         public eYoonCognexType ToolType { get; private set; } = eYoonCognexType.None;
         public Dictionary<int, ICogShape> CogShapeDictionary { get; private set; } = new Dictionary<int, ICogShape>();
         public Dictionary<int, IYoonObject> ObjectDictionary { get; private set; } = new Dictionary<int, IYoonObject>();
@@ -16,29 +16,29 @@ namespace YoonFactory.Cognex
         public CognexResult(eYoonCognexType nType)
         {
             ToolType = nType;
-            ResultImage = new CogImage8Grey();
+            ResultImage = new CognexImage(new CogImage8Grey());
         }
 
-        public CognexResult(eYoonCognexType nType, ICogImage pImageResult)
+        public CognexResult(eYoonCognexType nType, CognexImage pImageResult)
         {
             ToolType = nType;
             if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ResultImage = pImageResult.Clone() as CognexImage;
         }
 
-        public CognexResult(eYoonCognexType nType, ICogImage pImageResult, double dScore)
+        public CognexResult(eYoonCognexType nType, CognexImage pImageResult, double dScore)
         {
             ToolType = nType;
             if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ResultImage = pImageResult.Clone() as CognexImage;
             TotalScore = dScore;
         }
 
-        public CognexResult(ICogImage pImageResult, CogBlobResultCollection pListResult)
+        public CognexResult(CognexImage pImageResult, CogBlobResultCollection pListResult)
         {
             ToolType = eYoonCognexType.Blob;
             if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ResultImage = pImageResult.Clone() as CognexImage;
 
             foreach (CogBlobResult pResult in pListResult)
             {
@@ -54,11 +54,11 @@ namespace YoonFactory.Cognex
             }
         }
 
-        public CognexResult(ICogImage pImageResult, CogLineSegment pLine)
+        public CognexResult(CognexImage pImageResult, CogLineSegment pLine)
         {
             ToolType = eYoonCognexType.LineFitting;
             if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ResultImage = pImageResult.Clone() as CognexImage;
 
             YoonObject<YoonLine2D> pObject = new YoonObject<YoonLine2D>();
             {
@@ -68,11 +68,11 @@ namespace YoonFactory.Cognex
             ObjectDictionary.Add(0, pObject);
         }
 
-        public CognexResult(ICogImage pImageResult, CogTransform2DLinear pResult, ICogRegion pPattern, double dScore)
+        public CognexResult(CognexImage pImageResult, CogTransform2DLinear pResult, ICogRegion pPattern, double dScore)
         {
             ToolType = eYoonCognexType.PMAlign;
             if (pImageResult != null)
-                ResultImage = pImageResult.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ResultImage = pImageResult.Clone() as CognexImage;
 
             YoonObject<YoonRectAffine2D> pObject = new YoonObject<YoonRectAffine2D>();
             {
@@ -137,7 +137,7 @@ namespace YoonFactory.Cognex
             if (pResult is CognexResult pResultCognex)
             {
                 if (pResultCognex.ResultImage != null)
-                    ResultImage = pResultCognex.ResultImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    ResultImage = pResultCognex.ResultImage.Clone() as CognexImage;
                 ToolType = pResultCognex.ToolType;
                 CogShapeDictionary = new Dictionary<int, ICogShape>(pResultCognex.CogShapeDictionary);
                 ObjectDictionary = new Dictionary<int, IYoonObject>(pResultCognex.ObjectDictionary);
@@ -150,7 +150,7 @@ namespace YoonFactory.Cognex
             CognexResult pTargetResult = new CognexResult(ToolType);
 
             if (ResultImage != null)
-                pTargetResult.ResultImage = ResultImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                pTargetResult.ResultImage = ResultImage.Clone() as CognexImage;
             pTargetResult.CogShapeDictionary = new Dictionary<int, ICogShape>(CogShapeDictionary);
             pTargetResult.ObjectDictionary = new Dictionary<int, IYoonObject>(ObjectDictionary);
             pTargetResult.TotalScore = TotalScore;

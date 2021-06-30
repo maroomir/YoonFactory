@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Cognex.VisionPro;
 using Cognex.VisionPro.CalibFix;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Mapping
 {
     public class CognexMapping : IYoonMapping
     {

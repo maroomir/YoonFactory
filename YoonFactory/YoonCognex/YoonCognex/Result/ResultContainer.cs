@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cognex.VisionPro;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Result
 {
     public class ResultContainer : IYoonContainer, IYoonContainer<eYoonCognexType, ResultSection>
     {

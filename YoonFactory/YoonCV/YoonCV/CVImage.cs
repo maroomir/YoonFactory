@@ -19,17 +19,19 @@ namespace YoonFactory.CV
 
         public override bool LoadImage(string strPath)
         {
-            if (IsFileExist()) return false;
-            Mat pMat = new Mat(strPath);
+            FilePath = strPath;
+            if (!IsFileExist()) return false;
+            Mat pMat = new Mat(FilePath);
             m_pBitmap = BitmapConverter.ToBitmap(pMat);
             return true;
         }
 
         public override bool SaveImage(string strPath)
         {
+            FilePath = strPath;
             using (Mat pMat = ToMatrix())
             {
-                pMat.SaveImage(strPath);
+                pMat.SaveImage(FilePath);
                 return true;
             }
         }

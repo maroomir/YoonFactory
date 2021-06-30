@@ -4,7 +4,7 @@ using System.Linq;
 using System.IO;
 using Cognex.VisionPro;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Result
 {
     public class ResultSection : IYoonSection<string, CognexResult>
     {

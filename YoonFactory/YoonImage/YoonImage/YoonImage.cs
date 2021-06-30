@@ -511,7 +511,7 @@ namespace YoonFactory.Image
             return pImageResult;
         }
 
-        public YoonImage ToGrayImage()
+        public virtual YoonImage ToGrayImage()
         {
             if (Plane == 1)
                 return this;
@@ -526,6 +526,30 @@ namespace YoonFactory.Image
                 }
             }
             return new YoonImage(pByte, Width, Height, PixelFormat.Format8bppIndexed);
+        }
+
+        public virtual YoonImage ToRGBImage()
+        {
+            if (Plane != 1)
+                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+            byte[] pBuffer = GetGrayBuffer();
+            YoonImage pImageResult = new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
+            if (pImageResult.SetRGBImageWithPlane(pBuffer, pBuffer, pBuffer))
+                return pImageResult;
+            else
+                return new YoonImage(Width, Height, PixelFormat.Format24bppRgb);
+        }
+
+        public virtual YoonImage ToARGBImage()
+        {
+            if (Plane != 1)
+                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
+            byte[] pBuffer = GetGrayBuffer();
+            YoonImage pImageResult = new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
+            if (pImageResult.SetARGBImageWithPlane(pBuffer, pBuffer, pBuffer))
+                return pImageResult;
+            else
+                return new YoonImage(Width, Height, PixelFormat.Format32bppArgb);
         }
 
         public void FillTriangle(int x, int y, int size, eYoonDir2D direction, Color fillColor, double zoom)
@@ -567,7 +591,7 @@ namespace YoonFactory.Image
             }
         }
 
-        public virtual void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
+        public void FillRect(YoonRect2N pRect, Color fillColor, double dRatio = 1.0)
         {
             float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
             float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;
