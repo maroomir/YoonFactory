@@ -111,6 +111,16 @@ namespace YoonFactory.Image
             get => m_pBitmap.Height;
         }
 
+        public YoonVector2N CenterPos
+        {
+            get => new YoonVector2N(Width / 2, Height / 2);
+        }
+
+        public YoonRect2N Area
+        {
+            get => new YoonRect2N(CenterPos, Width, Height);
+        }
+
         public Bitmap ToBitmap
         {
             get => m_pBitmap;

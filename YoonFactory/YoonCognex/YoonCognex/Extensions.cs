@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Cognex.VisionPro;
 using YoonFactory.Cognex.Result;
 using YoonFactory.Image;
-using YoonFactory.Image.Result;
 using System.Drawing;
 
 namespace YoonFactory.Cognex
@@ -15,57 +14,10 @@ namespace YoonFactory.Cognex
     {
         public static CogColorConstants ToCogColor(this Color pColor)
         {
-            //
-        }
-    }
-
-    public static class YoonResultExtension
-    {
-        public static ImageResult ToImageResult(this CognexResult pResult)
-        {
-            ObjectList pList = new ObjectList();
-            foreach (IYoonObject pObject in pResult.ObjectDictionary.Values)
-            {
-                YoonObject<YoonRect2N> pTargetObject = new YoonObject<YoonRect2N>();
-                int nCenterX = 0;
-                int nCenterY = 0;
-                int nWidth = 0;
-                int nHeight = 0;
-                switch (pObject)
-                {
-                    case YoonObject<YoonRect2N> pObjectRect2N:
-                        pTargetObject = pObjectRect2N.Clone() as YoonObject<YoonRect2N>;
-                        pList.Add(pTargetObject);
-                        break;
-                    case YoonObject<YoonRect2D> pObjectRect2D:
-                        pTargetObject.Label = pObjectRect2D.Label;
-                        nCenterX = (int)pObjectRect2D.Object.CenterPos.X;
-                        nCenterY = (int)pObjectRect2D.Object.CenterPos.Y;
-                        nWidth = (int)pObjectRect2D.Object.Width;
-                        nHeight = (int)pObjectRect2D.Object.Height;
-                        pTargetObject.Object = new YoonRect2N(nCenterX, nCenterY, nWidth, nHeight);
-                        pTargetObject.ObjectImage = pObjectRect2D.ObjectImage?.Clone() as YoonImage;
-                        pTargetObject.PixelCount = pObjectRect2D.PixelCount;
-                        pTargetObject.Score = pObjectRect2D.Score;
-                        pList.Add(pTargetObject);
-                        break;
-                    case YoonObject<YoonRectAffine2D> pObjectRectAffine:
-                        pTargetObject.Label = pObjectRectAffine.Label;
-                        nCenterX = (int)pObjectRectAffine.Object.CenterPos.X;
-                        nCenterY = (int)pObjectRectAffine.Object.CenterPos.Y;
-                        nWidth = (int)pObjectRectAffine.Object.Width;
-                        nHeight = (int)pObjectRectAffine.Object.Height;
-                        pTargetObject.Object = new YoonRect2N(nCenterX, nCenterY, nWidth, nHeight);
-                        pTargetObject.ObjectImage = pObjectRectAffine.ObjectImage?.Clone() as YoonImage;
-                        pTargetObject.PixelCount = pObjectRectAffine.PixelCount;
-                        pTargetObject.Score = pObjectRectAffine.Score;
-                        pList.Add(pTargetObject);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return new ImageResult(pResult.ResultImage, pList);
+            foreach (string strColor in Enum.GetNames(typeof(CogColorConstants)))
+                if (pColor.Name == strColor)
+                    return (CogColorConstants)Enum.Parse(typeof(CogColorConstants), strColor);
+            return CogColorConstants.None;
         }
     }
 
@@ -131,6 +83,27 @@ namespace YoonFactory.Cognex
             return pCogRect;
         }
 
+        public static CogLineSegment ToCogLineSegment(this IYoonLine pLine)
+        {
+            CogLineSegment pCogLine = new CogLineSegment();
+            switch (pLine)
+            {
+                case YoonLine2N pLine2N:
+                    pCogLine.StartX = pLine2N.StartPos.X;
+                    pCogLine.StartY = pLine2N.StartPos.Y;
+                    pCogLine.EndX = pLine2N.EndPos.X;
+                    pCogLine.EndY = pLine2N.EndPos.Y;
+                    break;
+                case YoonLine2D pLine2D:
+                    pCogLine.StartX = pLine2D.StartPos.X;
+                    pCogLine.StartY = pLine2D.StartPos.Y;
+                    pCogLine.EndX = pLine2D.EndPos.X;
+                    pCogLine.EndY = pLine2D.EndPos.Y;
+                    break;
+            }
+            return pCogLine;
+        }
+
         public static YoonRect2D ToYoonRect(this CogRectangle pRect)
         {
             YoonVector2D pPosCenter = new YoonVector2D(pRect.CenterX, pRect.CenterY);
@@ -147,6 +120,11 @@ namespace YoonFactory.Cognex
         {
             YoonVector2D pPosCenter = new YoonVector2D(pRect.CenterX, pRect.CenterY);
             return new YoonRectAffine2D(pPosCenter, pRect.SideXLength, pRect.SideYLength, pRect.Rotation);
+        }
+
+        public static YoonLine2D ToYoonLine(this CogLineSegment pLine)
+        {
+            return new YoonLine2D(pLine.StartX, pLine.StartY, pLine.EndX, pLine.EndY);
         }
     }
 }

@@ -78,7 +78,6 @@
     <Compile Include="ObjectList.cs" />
     <Compile Include="ImageFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Result\ImageResult.cs" />
     <Compile Include="YoonImage.cs" />
     <Compile Include="YoonObject.cs" />
   </ItemGroup>

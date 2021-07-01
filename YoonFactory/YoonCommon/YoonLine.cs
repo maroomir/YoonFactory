@@ -15,6 +15,8 @@ namespace YoonFactory
 
         public double Length => Math.Sqrt(Math.Pow(StartPos.X - EndPos.X, 2.0) + Math.Pow(StartPos.Y - EndPos.Y, 2.0));
 
+        IYoonRect2D<int> IYoonLine2D<int>.Area => new YoonRect2N((YoonVector2N)StartPos, (YoonVector2N)EndPos);
+
         private double m_dSlope = 0.0;
         private double m_dIntercept = 0.0;
 
@@ -181,6 +183,8 @@ namespace YoonFactory
         public IYoonVector2D<double> CenterPos => new YoonVector2D((StartPos.X + EndPos.X) / 2, (StartPos.Y + EndPos.Y) / 2);
 
         public double Length => Math.Sqrt(Math.Pow(StartPos.X - EndPos.X, 2.0) + Math.Pow(StartPos.Y - EndPos.Y, 2.0));
+
+        public IYoonRect2D<double> Area => new YoonRect2D((YoonVector2D)StartPos, (YoonVector2D)EndPos);
 
         private double m_dSlope = 0.0;
         private double m_dIntercept = 0.0;

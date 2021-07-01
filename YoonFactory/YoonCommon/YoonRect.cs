@@ -259,6 +259,38 @@ namespace YoonFactory
             return hashCode;
         }
 
+        public IYoonVector2D<int> GetPosition(eYoonDir2D nDir)
+        {
+            switch (nDir)
+            {
+                case eYoonDir2D.TopLeft:
+                    return TopLeft;
+                case eYoonDir2D.Top:
+                    return new YoonVector2N(CenterPos.X, Top);
+                case eYoonDir2D.TopRight:
+                    return TopRight;
+                case eYoonDir2D.Left:
+                    return new YoonVector2N(Left, CenterPos.Y);
+                case eYoonDir2D.Center:
+                    return CenterPos;
+                case eYoonDir2D.Right:
+                    return new YoonVector2N(Right, CenterPos.Y);
+                case eYoonDir2D.BottomLeft:
+                    return BottomLeft;
+                case eYoonDir2D.Bottom:
+                    return new YoonVector2N(CenterPos.X, Bottom);
+                case eYoonDir2D.BottomRight:
+                    return BottomRight;
+                default:
+                    return new YoonVector2N();
+            }
+        }
+
+        public YoonRect2D ToRect2D()
+        {
+            return new YoonRect2D(CenterPos.X, CenterPos.Y, Width, Height);
+        }
+
         public static YoonRect2N operator +(YoonRect2N r1, YoonRect2N r2)
         {
             int nTop = Math.Min(r1.Top, r2.Top);
@@ -534,6 +566,38 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomLeft);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
             return hashCode;
+        }
+
+        public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)
+        {
+            switch (nDir)
+            {
+                case eYoonDir2D.TopLeft:
+                    return TopLeft;
+                case eYoonDir2D.Top:
+                    return new YoonVector2D(CenterPos.X, Top);
+                case eYoonDir2D.TopRight:
+                    return TopRight;
+                case eYoonDir2D.Left:
+                    return new YoonVector2D(Left, CenterPos.Y);
+                case eYoonDir2D.Center:
+                    return CenterPos;
+                case eYoonDir2D.Right:
+                    return new YoonVector2D(Right, CenterPos.Y);
+                case eYoonDir2D.BottomLeft:
+                    return BottomLeft;
+                case eYoonDir2D.Bottom:
+                    return new YoonVector2D(CenterPos.X, Bottom);
+                case eYoonDir2D.BottomRight:
+                    return BottomRight;
+                default:
+                    return new YoonVector2D();
+            }
+        }
+
+        public YoonRect2N ToRect2N()
+        {
+            return new YoonRect2N((int)CenterPos.X, (int)CenterPos.Y, (int)Width, (int)Height);
         }
 
         public static YoonRect2D operator +(YoonRect2D r1, YoonRect2D r2)

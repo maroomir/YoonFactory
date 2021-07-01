@@ -12,6 +12,22 @@ namespace YoonFactory.Cognex
         public static void GetMousePosition(this CogDisplay pDisplay, YoonVector2N pPosMouse, out YoonVector2D pPosImage) => Inform.GetMousePosition(pDisplay, pPosMouse, out pPosImage);
         public static void GetMousePosition(this CogDisplay pDisplay, int nX, int nY, out YoonVector2D pPosImage) => Inform.GetMousePosition(pDisplay, nX, nY, out pPosImage);
         public static void GetMousePosition(this CogDisplay pDisplay, int nX, int nY, out double dX, out double dY) => Inform.GetMousePosition(pDisplay, nX, nY, out dX, out dY);
+        public static bool DrawGrid(this CogDisplay pDisplay, int nPartX, int nPartY, string strGroup = "") => Draw.DrawGrid(pDisplay, nPartX, nPartY, strGroup);
+        public static bool DrawROI(this CogDisplay pDisplay, YoonVector2D pPosCenter, double dWidth, double dHeight, string strGroup = "") => Draw.DrawROI(pDisplay, pPosCenter, dWidth, dHeight, strGroup);
+        public static bool DrawROI(this CogDisplay pDisplay, YoonRect2D pRect, string strGroup = "") => Draw.DrawROI(pDisplay, pRect, strGroup);
+        public static bool DrawBlobRect(this CogDisplay pDisplay, CognexResult pResult, int nMinimumPixelCount, string strGroup = "", bool bInteractive = false, bool bDisplayText = false) => Draw.DrawBlobRect(pDisplay, pResult, nMinimumPixelCount, strGroup, bInteractive, bDisplayText);
+        public static bool DrawPatternTrainROI(this CogDisplay pDisplay, YoonVector2D pPosStart, double dWidth, double dHeight, string strGroup = "") => Draw.DrawPatternTrainROI(pDisplay, pPosStart, dWidth, dHeight, strGroup);
+        public static bool DrawPatternTrainROI(this CogDisplay pDisplay, double dStartX, double dStartY, double dWidth, double dHeight, string strGroup = "") => Draw.DrawPatternTrainROI(pDisplay, dStartX, dStartY, dWidth, dHeight, strGroup);
+        public static bool DrawPatternMatchCross(this CogDisplay pDisplay, CognexResult pResult, string strGroup = "", bool bInteractive = false, bool bDisplayText = false) => Draw.DrawPatternMatchCross(pDisplay, pResult, strGroup, bInteractive, bDisplayText);
+        public static bool DrawPatternMatchRect(this CogDisplay pDisplay, CognexResult pResult, string strGroup = "", bool bInteractive = false, bool bDisplayText = false) => Draw.DrawPatternMatchRect(pDisplay, pResult, strGroup, bInteractive, bDisplayText);
+        public static bool DrawCalibrationMap(this CogDisplay pDisplay, CognexMapping pMapping, string strGroup = "", bool bInteractive = false, bool bDisplayText = false) => Draw.DrawCalibrationMap(pDisplay, pMapping, strGroup, bInteractive, bDisplayText);
+        public static bool DrawRuler(this CogDisplay pDisplay, YoonVector2D pPosStart, YoonVector2D pPosEnd, double dResolution, string strGroup = "", bool bDisplayText = false) => Draw.DrawRuler(pDisplay, pPosStart, pPosEnd, dResolution, strGroup, bDisplayText);
+        public static bool DrawRect(this CogDisplay pDisplay, Color nColor, YoonVector2D pPosCenter, double dWidth, double dHeight, bool bInteractive = false, string strGroup = "") => Draw.DrawRect(pDisplay, nColor, pPosCenter, dWidth, dHeight, bInteractive, strGroup);
+        public static bool DrawRect(this CogDisplay pDisplay, Color nColor, YoonRect2D pRect, bool bInteractive = false, string strGroup = "") => Draw.DrawRect(pDisplay, nColor, pRect, bInteractive, strGroup);
+        public static bool DrawLine(this CogDisplay pDisplay, Color nColor, YoonVector2D pPosStart, YoonVector2D pPosEnd, bool bInteractive = false, string strGroup = "") => Draw.DrawLine(pDisplay, nColor, pPosStart, pPosEnd, bInteractive, strGroup);
+        public static bool DrawLine(this CogDisplay pDisplay, Color nColor, YoonLine2D pLine, bool bInteractive = false, string strGroup = "") => Draw.DrawLine(pDisplay, nColor, pLine, bInteractive, strGroup);
+        public static void DrawCross(this CogDisplay pDisplay, Color nColor, YoonVector2D pPos, double dLineLength, bool bInteractive = false, string strGroup = "") => Draw.DrawCross(pDisplay, nColor, pPos, dLineLength, bInteractive, strGroup);
+        public static void DrawText(this CogDisplay pDisplay, Color nColor, YoonVector2D pPos, string strText, float dSizeFont = 14.0f, bool bInteractive = false, string strGroup = "") => Draw.DrawText(pDisplay, nColor, pPos, strText, dSizeFont, bInteractive, strGroup);
 
         public static class Inform
         {
@@ -98,9 +114,9 @@ namespace YoonFactory.Cognex
                 return DrawROI(pDisplay, pPosCenter.X, pPosCenter.Y, dWidth, dHeight, strGroup)?.ToYoonRect() == new YoonRect2D(pPosCenter, dWidth, dHeight);
             }
 
-            public static bool DrawROI(CogDisplay pDisplay, YoonRect2D pRect)
+            public static bool DrawROI(CogDisplay pDisplay, YoonRect2D pRect, string strGroup = "")
             {
-                return DrawROI(pDisplay, pRect.CenterPos.X, pRect.CenterPos.Y, pRect.Width, pRect.Height)?.ToYoonRect() == pRect;
+                return DrawROI(pDisplay, pRect.CenterPos.X, pRect.CenterPos.Y, pRect.Width, pRect.Height, strGroup)?.ToYoonRect() == pRect;
             }
 
             public static CogRectangle DrawROI(CogDisplay pDisplay, double dCenterX, double dCenterY, double dWidth, double dHeight, string strGroup = "")
@@ -422,10 +438,15 @@ namespace YoonFactory.Cognex
 
             public static bool DrawRect(CogDisplay pDisplay, Color nColor, YoonVector2D pPosCenter, double dWidth, double dHeight, bool bInteractive = false, string strGroup = "")
             {
-                //
+                return DrawRect(pDisplay, nColor.ToCogColor(), pPosCenter.X, pPosCenter.Y, dWidth, dHeight, bInteractive, strGroup).ToYoonRect() == new YoonRect2D(pPosCenter, dWidth, dHeight);
             }
 
-            public static CogRectangle DrawRect(CogDisplay fDisplay, CogColorConstants nColor, double dCenterX, double dCenterY, double dWidth, double dHeight, bool bInteractive = false, string strGroup = "")
+            public static bool DrawRect(CogDisplay pDisplay, Color nColor, YoonRect2D pRect, bool bInteractive = false, string strGroup = "")
+            {
+                return DrawRect(pDisplay, nColor.ToCogColor(), pRect.CenterPos.X, pRect.CenterPos.Y, pRect.Width, pRect.Height, bInteractive, strGroup).ToYoonRect() == pRect;
+            }
+
+            public static CogRectangle DrawRect(CogDisplay pDisplay, CogColorConstants nColor, double dCenterX, double dCenterY, double dWidth, double dHeight, bool bInteractive = false, string strGroup = "")
             {
                 ////  ROI 사각형 그리기
                 CogRectangle fCogRectROI = new CogRectangle();
@@ -438,11 +459,21 @@ namespace YoonFactory.Cognex
                     fCogRectROI.GraphicDOFEnable = CogRectangleDOFConstants.All;
                     fCogRectROI.Interactive = bInteractive;
                 }
-                fDisplay.InteractiveGraphics.Add(fCogRectROI, strGroup, false);
+                pDisplay.InteractiveGraphics.Add(fCogRectROI, strGroup, false);
                 return fCogRectROI;
             }
 
-            public static CogLineSegment DrawLine(CogDisplay fDisplay, CogColorConstants nColor, double dStartX, double dStartY, double dEndX, double dEndY, bool bInteractive = false, string strGroup = "")
+            public static bool DrawLine(CogDisplay pDisplay, Color nColor, YoonVector2D pPosStart, YoonVector2D pPosEnd, bool bInteractive = false, string strGroup = "")
+            {
+                return DrawLine(pDisplay, nColor.ToCogColor(), pPosStart.X, pPosStart.Y, pPosEnd.X, pPosEnd.Y, bInteractive, strGroup).ToYoonLine() == new YoonLine2D(pPosStart, pPosEnd);
+            }
+
+            public static bool DrawLine(CogDisplay pDisplay, Color nColor, YoonLine2D pLine, bool bInteractive = false, string strGroup = "")
+            {
+                return DrawLine(pDisplay, nColor.ToCogColor(), pLine.StartPos.X, pLine.StartPos.Y, pLine.EndPos.X, pLine.EndPos.Y, bInteractive, strGroup).ToYoonLine() == pLine;
+            }
+
+            public static CogLineSegment DrawLine(CogDisplay pDisplay, CogColorConstants nColor, double dStartX, double dStartY, double dEndX, double dEndY, bool bInteractive = false, string strGroup = "")
             {
                 CogLineSegment fCogLine = new CogLineSegment();
                 {
@@ -452,8 +483,13 @@ namespace YoonFactory.Cognex
                     fCogLine.Color = nColor;
                     fCogLine.Interactive = bInteractive;
                 }
-                fDisplay.InteractiveGraphics.Add(fCogLine, strGroup, false);
+                pDisplay.InteractiveGraphics.Add(fCogLine, strGroup, false);
                 return fCogLine;
+            }
+
+            public static void DrawCross(CogDisplay pDisplay, Color nColor, YoonVector2D pPos, double dLineLength, bool bInteractive = false, string strGroup = "")
+            {
+                DrawCross(pDisplay, nColor.ToCogColor(), pPos.X, pPos.Y, dLineLength, bInteractive, strGroup);
             }
 
             public static void DrawCross(CogDisplay fDisplay, CogColorConstants nColor, double dPointX, double dPointY, double dLineLength, bool bInteractive = false, string strGroup = "")
@@ -476,6 +512,11 @@ namespace YoonFactory.Cognex
                 }
                 fDisplay.InteractiveGraphics.Add(cogLine_Horz, strGroup, false);
                 fDisplay.InteractiveGraphics.Add(cogLine_Vert, strGroup, false);
+            }
+
+            public static void DrawText(CogDisplay pDisplay, Color nColor, YoonVector2D pPos, string strText, float dSizeFont = 14.0f, bool bInteractive = false, string strGroup = "")
+            {
+                DrawText(pDisplay, nColor.ToCogColor(), pPos.X, pPos.Y, strText, dSizeFont, bInteractive, strGroup);
             }
 
             public static CogGraphicLabel DrawText(CogDisplay fDisplay, CogColorConstants nColor, double dPosX, double dPosY, string strText, float dSizeFont = 14.0f, bool bInteractive = false, string strGroup = "")

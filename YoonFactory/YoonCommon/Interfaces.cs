@@ -163,6 +163,7 @@ namespace YoonFactory
         IYoonVector2D<T> StartPos { get; }
         IYoonVector2D<T> EndPos { get; }
         IYoonVector2D<T> CenterPos { get; }
+        IYoonRect2D<T> Area { get; }
 
         T X(T valueY);
         T Y(T valueX);
@@ -192,6 +193,8 @@ namespace YoonFactory
         IYoonVector2D<T> TopRight { get; }
         IYoonVector2D<T> BottomLeft { get; }
         IYoonVector2D<T> BottomRight { get; }
+
+        IYoonVector2D<T> GetPosition(eYoonDir2D nDir);
     }
 
     public interface IYoonTriangle : IYoonFigure

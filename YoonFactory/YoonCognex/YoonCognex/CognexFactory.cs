@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using YoonFactory.Image;
+using YoonFactory.Cognex.Result;
 
 namespace YoonFactory.Cognex
 {
@@ -167,16 +168,51 @@ namespace YoonFactory.Cognex
 
         public static class PatternMatch
         {
+            public static YoonObject<YoonRect2D> CropPattern(CognexImage pSourceImage, YoonRect2D pRect)
+            {
+                YoonObject<YoonRect2D> pObject = new YoonObject<YoonRect2D>();
+                {
+                    pObject.Label = 0;
+                    pObject.Object = pRect.Clone() as YoonRect2D;
+                    pObject.ObjectImage = pSourceImage.CropImage(pRect);
+                    pObject.ReferencePosition = pRect.CenterPos.Clone();
+                }
+                return pObject;
+            }
 
-            #region Pattern Matching 하기 (PMAlign)
-            public static CogPMAlignPattern TrainPattern(CogImage8Grey cogImage, double dOriginX, double dOriginY, bool bAutoLimited, bool bAutoThreshold,
-                                                                  double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
+            public static YoonObject<YoonRect2D> CropPattern(CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos)
+            {
+                YoonObject<YoonRect2D> pObject = new YoonObject<YoonRect2D>();
+                {
+                    pObject.Label = 0;
+                    pObject.Object = pRect.Clone() as YoonRect2D;
+                    pObject.ObjectImage = pSourceImage.CropImage(pRect);
+                    pObject.ReferencePosition = pOriginPos.Clone();
+                }
+                return pObject;
+            }
+
+            public static CogPMAlignPattern GetPatternParam(CognexImage pPatternImage, YoonVector2D pOriginPos,
+                bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
+            {
+                return GetPatternParam(pPatternImage.ToCogImage(), pOriginPos.X, pOriginPos.Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
+            }
+
+            public static CogPMAlignPattern GetPatternParam(CognexImage pPatternImage, eYoonDir2D nDir,
+                bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
+            {
+                YoonRect2D pRectArea = pPatternImage.Area.ToRect2D();
+                return GetPatternParam(pPatternImage.ToCogImage(), pRectArea.GetPosition(nDir).X, pRectArea.GetPosition(nDir).Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
+            }
+
+            public static CogPMAlignPattern GetPatternParam(ICogImage cogPatternImage, double dOriginX, double dOriginY,
+                bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
             {
                 ////  Pattern 영역 및 원점 설정
                 CogPMAlignPattern cogPattern = new CogPMAlignPattern();
                 {
                     //////  Pattern 설정
-                    cogPattern.TrainImage = cogImage;
+                    cogPattern.TrainImage = cogPatternImage;
                     cogPattern.TrainRegion = null;  // 전체 영역
                     cogPattern.TrainRegionMode = CogRegionModeConstants.PixelAlignedBoundingBoxAdjustMask;
                     //////  Origin 설정
@@ -208,20 +244,20 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CogPMAlignPattern TrainPatternWithTopLeftOrigin(CogImage8Grey cogImage, bool bAutoLimited, bool bAutoThreshold,
-                                                                  double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
+            public static CogPMAlignPattern GetPatternParam(ICogImage cogPatternImage, ICogRegion cogRegion, double dOriginX, double dOriginY,
+                bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
             {
                 ////  Pattern 영역 및 원점 설정
                 CogPMAlignPattern cogPattern = new CogPMAlignPattern();
                 {
                     //////  Pattern 설정
-                    cogPattern.TrainImage = cogImage;
-                    cogPattern.TrainRegion = null;  // 전체 영역
+                    cogPattern.TrainImage = cogPatternImage;
+                    cogPattern.TrainRegion = cogRegion;
                     cogPattern.TrainRegionMode = CogRegionModeConstants.PixelAlignedBoundingBoxAdjustMask;
                     //////  Origin 설정
-                    cogPattern.Origin.TranslationX = 0.0;
-                    cogPattern.Origin.TranslationY = 0.0;   //  Pattern Train 원점은 무조건 Top-Left로 가져감.
-                                                            //////  TrainParam 설정
+                    cogPattern.Origin.TranslationX = dOriginX;
+                    cogPattern.Origin.TranslationY = dOriginY;
+                    //////  TrainParam 설정
                     cogPattern.TrainAlgorithm = CogPMAlignTrainAlgorithmConstants.PatMaxAndPatQuick;
                     cogPattern.TrainMode = CogPMAlignTrainModeConstants.Image;
                     cogPattern.GrainLimitAutoSelect = bAutoLimited;
@@ -247,52 +283,71 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CognexResult FindPattern(CogImage8Grey cogImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
-                                                           double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
+            public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold,
+                bool bUseZoneAngle = true, bool bUseZoneScale = true, double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
             {
-                if (cogPattern == null) return null;    // Train 된 Pattern 없을시 NULL 처리.
+                if (pSourceImage == null || pPatternObject == null) return null;
 
                 int nTrainedWidth = 0;
                 int nTrainedHeight = 0;
                 CognexResult pResult = null;
-                ////  PMAlign Parameter 설정
-                CogPMAlignRunParams cogPMParam = new CogPMAlignRunParams();
+                ////  Pattern 영역 및 원점 설정
+                CogPMAlignPattern cogPatternParam = new CogPMAlignPattern();
                 {
-                    cogPMParam.ApproximateNumberToFind = 1;
-                    cogPMParam.AcceptThreshold = dMatchingThreshold;
+                    //////  Parameter 가져오기
+                    CognexImage pPatternImage = pPatternObject.ObjectImage as CognexImage;
+                    YoonVector2D pOriginPos = pPatternObject.ReferencePosition as YoonVector2D;
+                    //////  Pattern 설정
+                    cogPatternParam.TrainImage = pPatternImage.ToCogImage();
+                    cogPatternParam.TrainRegion = null;  // 전체 영역
+                    cogPatternParam.TrainRegionMode = CogRegionModeConstants.PixelAlignedBoundingBoxAdjustMask;
+                    //////  Origin 설정
+                    cogPatternParam.Origin.TranslationX = pOriginPos.X;
+                    cogPatternParam.Origin.TranslationY = pOriginPos.Y;
+                    //////  TrainParam 설정
+                    cogPatternParam.TrainAlgorithm = CogPMAlignTrainAlgorithmConstants.PatMaxAndPatQuick;
+                    cogPatternParam.TrainMode = CogPMAlignTrainModeConstants.Image;
+                    cogPatternParam.GrainLimitAutoSelect = true;
+                    cogPatternParam.AutoEdgeThresholdEnabled = true;
+                }
+                ////  PMAlign Parameter 설정
+                CogPMAlignRunParams cogMatchParam = new CogPMAlignRunParams();
+                {
+                    cogMatchParam.ApproximateNumberToFind = 1;
+                    cogMatchParam.AcceptThreshold = dMatchThreshold;
                     //////  Zone Angle 틀어짐 범위 설정
                     if (bUseZoneAngle == true)
                     {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneAngle.Low = dZoneAngleLow;
-                        cogPMParam.ZoneAngle.High = dZoneAngleHigh;
+                        cogMatchParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.LowHigh;
+                        cogMatchParam.ZoneAngle.Low = dZoneAngleLow;
+                        cogMatchParam.ZoneAngle.High = dZoneAngleHigh;
                     }
                     else
                     {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneAngle.Nominal = 0.0;
+                        cogMatchParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.Nominal;
+                        cogMatchParam.ZoneAngle.Nominal = 0.0;
                     }
                     //////  Zone Scale 크기변환 범위 설정
                     if (bUseZoneScale == true)
                     {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneScale.Low = dZoneScaleLow;
-                        cogPMParam.ZoneScale.High = dZoneScaleHigh;
+                        cogMatchParam.ZoneScale.Configuration = CogPMAlignZoneConstants.LowHigh;
+                        cogMatchParam.ZoneScale.Low = dZoneScaleLow;
+                        cogMatchParam.ZoneScale.High = dZoneScaleHigh;
                     }
                     else
                     {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneScale.Nominal = 0.0;
+                        cogMatchParam.ZoneScale.Configuration = CogPMAlignZoneConstants.Nominal;
+                        cogMatchParam.ZoneScale.Nominal = 0.0;
                     }
                 }
                 CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
                 {
-                    cogPMAlignTool.InputImage = cogImage;
-                    cogPMAlignTool.Pattern = cogPattern;
-                    cogPMAlignTool.RunParams = cogPMParam;
+                    cogPMAlignTool.InputImage = pSourceImage.ToCogImage();
+                    cogPMAlignTool.Pattern = cogPatternParam;
+                    cogPMAlignTool.RunParams = cogMatchParam;
                     //////  중심점 출력을 위한 Train 영역 확인
-                    nTrainedWidth = cogPattern.TrainImage.Width;
-                    nTrainedHeight = cogPattern.TrainImage.Height;
+                    nTrainedWidth = cogPatternParam.TrainImage.Width;
+                    nTrainedHeight = cogPatternParam.TrainImage.Height;
                 }
                 ////  Run
                 try
@@ -306,13 +361,77 @@ namespace YoonFactory.Cognex
 
                 if (cogPMAlignTool.Results.Count > 0)   // ApproximateNumberToFind = 1이므로 Results[0]만 존재함.
                 {
-                    pResult = new CognexResult(cogImage, cogPMAlignTool.Results[0].GetPose(), cogPMAlignTool.Pattern.TrainRegion, cogPMAlignTool.Results[0].Score);
+                    pResult = new CognexResult(pSourceImage, cogPMAlignTool.Results[0].GetPose(), cogPMAlignTool.Pattern.TrainRegion, cogPMAlignTool.Results[0].Score);
                 }
                 return pResult;
             }
 
-            public static YoonVector2D FindPatternToPoint(CogImage8Grey cogImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
-                                                                      double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
+            public static CognexResult FindPattern(CogImage8Grey cogSourceImage, ref CogPMAlignPattern cogPatternParam, double dMatchThreshold,
+                bool bUseZoneAngle = true, bool bUseZoneScale = true, double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
+            {
+                if (cogSourceImage == null || cogPatternParam == null) return null;
+
+                int nTrainedWidth = 0;
+                int nTrainedHeight = 0;
+                CognexResult pResult = null;
+                ////  PMAlign Parameter 설정
+                CogPMAlignRunParams cogMatchParam = new CogPMAlignRunParams();
+                {
+                    cogMatchParam.ApproximateNumberToFind = 1;
+                    cogMatchParam.AcceptThreshold = dMatchThreshold;
+                    //////  Zone Angle 틀어짐 범위 설정
+                    if (bUseZoneAngle == true)
+                    {
+                        cogMatchParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.LowHigh;
+                        cogMatchParam.ZoneAngle.Low = dZoneAngleLow;
+                        cogMatchParam.ZoneAngle.High = dZoneAngleHigh;
+                    }
+                    else
+                    {
+                        cogMatchParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.Nominal;
+                        cogMatchParam.ZoneAngle.Nominal = 0.0;
+                    }
+                    //////  Zone Scale 크기변환 범위 설정
+                    if (bUseZoneScale == true)
+                    {
+                        cogMatchParam.ZoneScale.Configuration = CogPMAlignZoneConstants.LowHigh;
+                        cogMatchParam.ZoneScale.Low = dZoneScaleLow;
+                        cogMatchParam.ZoneScale.High = dZoneScaleHigh;
+                    }
+                    else
+                    {
+                        cogMatchParam.ZoneScale.Configuration = CogPMAlignZoneConstants.Nominal;
+                        cogMatchParam.ZoneScale.Nominal = 0.0;
+                    }
+                }
+                CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
+                {
+                    cogPMAlignTool.InputImage = cogSourceImage;
+                    cogPMAlignTool.Pattern = cogPatternParam;
+                    cogPMAlignTool.RunParams = cogMatchParam;
+                    //////  중심점 출력을 위한 Train 영역 확인
+                    nTrainedWidth = cogPatternParam.TrainImage.Width;
+                    nTrainedHeight = cogPatternParam.TrainImage.Height;
+                }
+                ////  Run
+                try
+                {
+                    cogPMAlignTool.Run();
+                }
+                catch (System.Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                }
+
+                if (cogPMAlignTool.Results.Count > 0)   // ApproximateNumberToFind = 1이므로 Results[0]만 존재함.
+                {
+                    pResult = new CognexResult(new CognexImage(cogSourceImage), cogPMAlignTool.Results[0].GetPose(), cogPMAlignTool.Pattern.TrainRegion, cogPMAlignTool.Results[0].Score);
+                }
+                return pResult;
+            }
+
+            public static YoonVector2D FindPatternPoint(CogImage8Grey cogSourceImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
+                double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
             {
                 if (cogPattern == null) return new YoonVector2D(-10000.0f, -10000.0f);    // Train 된 Pattern 없을시 NULL 처리.
 
@@ -351,7 +470,7 @@ namespace YoonFactory.Cognex
                 }
                 CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
                 {
-                    cogPMAlignTool.InputImage = cogImage;
+                    cogPMAlignTool.InputImage = cogSourceImage;
                     cogPMAlignTool.Pattern = cogPattern;
                     cogPMAlignTool.RunParams = cogPMParam;
                     //////  중심점 출력을 위한 Train 영역 확인
@@ -376,8 +495,8 @@ namespace YoonFactory.Cognex
                 return fPointResult;
             }
 
-            public static CogRectangleAffine FindPatternToCogRect(CogImage8Grey cogImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
-                                                                      double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
+            public static CogRectangleAffine FindPatternRect(CogImage8Grey cogSourceImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
+                double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
             {
                 if (cogPattern == null) return null;    // Train 된 Pattern 없을시 NULL 처리.
                 if (cogPattern.Origin.TranslationX != 0.0 || cogPattern.Origin.TranslationY != 0.0) // Train Position이 Top_Left가 아닌 경우 예외처리.
@@ -421,7 +540,7 @@ namespace YoonFactory.Cognex
                 }
                 CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
                 {
-                    cogPMAlignTool.InputImage = cogImage;
+                    cogPMAlignTool.InputImage = cogSourceImage;
                     cogPMAlignTool.Pattern = cogPattern;
                     cogPMAlignTool.RunParams = cogPMParam;
                     //////  중심점 출력을 위한 Train 영역 확인
@@ -455,12 +574,10 @@ namespace YoonFactory.Cognex
                 }
                 return cogRectResult;
             }
-            #endregion
         }
 
         public static class Editor
         {
-            #region Image 수정하거나 지우기
             public static CogImage8Grey ErasePatternMatchRegion(CogImage8Grey cogImage, CogPMAlignPattern pPattern, double dAlignX, double dAlignY)
             {
                 if (cogImage == null) return null;
@@ -517,7 +634,6 @@ namespace YoonFactory.Cognex
                 CogImage8Grey cogFilterImage = new CogImage8Grey(pBitmap);
                 return TwoImageProcess.OverlapMin(cogImage, cogFilterImage) as CogImage8Grey;
             }
-            #endregion
         }
 
         public static class Transform
