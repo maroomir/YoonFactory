@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-using System.IO;
 using Cognex.VisionPro;
-using Cognex.VisionPro.ImageFile;
 using Cognex.VisionPro.ImageProcessing;
 using Cognex.VisionPro.PMAlign;
 using Cognex.VisionPro.CalibFix;
-using Cognex.VisionPro.Display;
-using System.Runtime.InteropServices;
 using Cognex.VisionPro.Caliper;
-using Cognex.VisionPro.LineMax;
 using Cognex.VisionPro.Blob;
 using Cognex.VisionPro.ColorExtractor;
 using Cognex.VisionPro.ColorSegmenter;
+using YoonFactory.Cognex.Result;
 
 namespace YoonFactory.Cognex.Tool
 {
@@ -151,51 +142,51 @@ namespace YoonFactory.Cognex.Tool
             return null;
         }
 
-        public static bool RunCognexTool(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult, ref ICogImage pImageResult)
+        public static bool RunCognexTool(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult, ref CognexImage pResultImage)
         {
             bool bResult = false;
-            switch(pCogTool)
+            switch (pCogTool)
             {
                 case CogImageConvertTool pCogToolConvert:
-                    bResult = ImageConvert(pCogToolConvert, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = ImageConvert(pCogToolConvert, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogIPOneImageTool pCogToolIP:
-                    bResult = ImageFiltering(pCogToolIP, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = ImageFiltering(pCogToolIP, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogSobelEdgeTool pCogToolSobel:
-                    bResult = SobelEdge(pCogToolSobel, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = SobelEdge(pCogToolSobel, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogImageSharpnessTool pCogToolSharpness:
-                    bResult = ImageSharpness(pCogToolSharpness, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = ImageSharpness(pCogToolSharpness, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogCalibCheckerboardTool pCogToolCheckerboard:
-                    bResult = Undistort(pCogToolCheckerboard, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = Undistort(pCogToolCheckerboard, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogBlobTool pCogToolBlob:
-                    bResult = Blob(pCogToolBlob, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = Blob(pCogToolBlob, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogColorSegmenterTool pCogToolSegment:
-                    bResult = ColorSegment(pCogToolSegment, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = ColorSegment(pCogToolSegment, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogColorExtractorTool pCogToolExtract:
-                    bResult = ColorExtract(pCogToolExtract, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = ColorExtract(pCogToolExtract, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogFindLineTool pCogToolFindLine:
-                    bResult = FindLine(pCogToolFindLine, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = FindLine(pCogToolFindLine, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 case CogPMAlignTool pCogToolPM:
-                    bResult = PMAlign(pCogToolPM, pImageSource, ref strErrorMessage, ref pResult);
+                    bResult = PMAlign(pCogToolPM, pSourceImage, ref strErrorMessage, ref pResult);
                     break;
                 default:
                     break;
             }
             if (pResult.ResultImage != null)
-                pImageResult = pResult.ResultImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                pResultImage = pResult.ResultImage.Clone() as CognexImage;
 
             return bResult;
         }
 
-        public static bool ImageConvert(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool ImageConvert(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogImageConvertTool))
             {
@@ -207,7 +198,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogImageConvertTool pCogToolConvert = pCogTool as CogImageConvertTool;
-                pCogToolConvert.InputImage = pImageSource;
+                pCogToolConvert.InputImage = pSourceImage.ToCogImage();
                 //// 동작
                 pCogToolConvert.Run();
                 //// 결과 확인
@@ -217,7 +208,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 //// 결과 출력
-                pResult = new CognexResult(eYoonCognexType.Convert, pCogToolConvert.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.Convert, new CognexImage(pCogToolConvert.OutputImage));
                 return true;
             }
             catch (Exception ex)
@@ -228,9 +219,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool SobelEdge(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool SobelEdge(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogSobelEdgeTool) || !(pImageSource is CogImage8Grey))
+            if (!(pCogTool is CogSobelEdgeTool) || !(pSourceImage.Plane == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -240,7 +231,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogSobelEdgeTool pCogToolSobel = pCogTool as CogSobelEdgeTool;
-                pCogToolSobel.InputImage = pImageSource as CogImage8Grey;
+                pCogToolSobel.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
                 ////  동작
                 pCogToolSobel.Run();
                 ////  결과 확인
@@ -250,7 +241,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.Sobel, pCogToolSobel.Result.FinalMagnitudeImage);
+                pResult = new CognexResult(eYoonCognexType.Sobel, new CognexImage(pCogToolSobel.Result.FinalMagnitudeImage));
                 return true;
             }
             catch (Exception ex)
@@ -261,9 +252,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool ImageSharpness(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool ImageSharpness(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogImageSharpnessTool) || !(pImageSource is CogImage8Grey))
+            if (!(pCogTool is CogImageSharpnessTool) || !(pSourceImage.Plane == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -273,7 +264,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogImageSharpnessTool pCogToolSharpness = pCogTool as CogImageSharpnessTool;
-                pCogToolSharpness.InputImage = pImageSource as CogImage8Grey;
+                pCogToolSharpness.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
                 ////  동작
                 pCogToolSharpness.Run();
                 ////  결과 확인
@@ -283,7 +274,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.Sharpness, pImageSource, pCogToolSharpness.Score);
+                pResult = new CognexResult(eYoonCognexType.Sharpness, pSourceImage, pCogToolSharpness.Score);
                 return true;
             }
             catch (Exception ex)
@@ -294,7 +285,7 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool ImageFiltering(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool ImageFiltering(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogIPOneImageTool))  // Image Source, Result에 제약 없음
             {
@@ -306,7 +297,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPOneImageTool pCogToolIP = pCogTool as CogIPOneImageTool;
-                pCogToolIP.InputImage = pImageSource;
+                pCogToolIP.InputImage = pSourceImage.ToCogImage();
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -316,7 +307,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력 (Result Param 없음)
-                pResult = new CognexResult(eYoonCognexType.Filtering, pCogToolIP.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.Filtering, new CognexImage(pCogToolIP.OutputImage));
                 return true;
             }
             catch (Exception ex)
@@ -327,9 +318,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool Blob(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool Blob(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogBlobTool) || !(pImageSource is CogImage8Grey))
+            if (!(pCogTool is CogBlobTool) || !(pSourceImage.Plane == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -339,7 +330,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogBlobTool pCogToolBlob = pCogTool as CogBlobTool;
-                pCogToolBlob.InputImage = pImageSource;
+                pCogToolBlob.InputImage = pSourceImage.ToCogImage();
                 ////  동작
                 pCogToolBlob.Run();
                 ////  결과 확인
@@ -351,7 +342,7 @@ namespace YoonFactory.Cognex.Tool
                 ////  결과 출력
                 if (pCogToolBlob.Results.GetBlobs().Count > 0)
                 {
-                    pResult = new CognexResult(pCogToolBlob.Results.CreateBlobImage(), pCogToolBlob.Results.GetBlobs());
+                    pResult = new CognexResult(new CognexImage(pCogToolBlob.Results.CreateBlobImage()), pCogToolBlob.Results.GetBlobs());
                     return true;
                 }
                 else
@@ -368,9 +359,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool ColorSegment(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool ColorSegment(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogColorSegmenterTool) || !(pImageSource is CogImage24PlanarColor))
+            if (!(pCogTool is CogColorSegmenterTool) || !(pSourceImage.Plane == 3))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -380,7 +371,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogColorSegmenterTool pCogToolSegment = pCogTool as CogColorSegmenterTool;
-                pCogToolSegment.InputImage = pImageSource as CogImage24PlanarColor;
+                pCogToolSegment.InputImage = pSourceImage.ToCogImage() as CogImage24PlanarColor;
                 ////  동작
                 pCogToolSegment.Run();
                 ////  결과 확인
@@ -390,7 +381,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력 (Result Image 출력만 존재함)
-                pResult = new CognexResult(eYoonCognexType.ColorSegment, pCogToolSegment.Result);
+                pResult = new CognexResult(eYoonCognexType.ColorSegment, new CognexImage(pCogToolSegment.Result));
                 return true;
             }
             catch (Exception ex)
@@ -401,9 +392,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool ColorExtract(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool ColorExtract(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogColorExtractorTool) || !(pImageSource is CogImage24PlanarColor))
+            if (!(pCogTool is CogColorExtractorTool) || !(pSourceImage.Plane == 3))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -413,7 +404,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogColorExtractorTool pCogToolExtract = pCogTool as CogColorExtractorTool;
-                pCogToolExtract.InputImage = pImageSource as CogImage24PlanarColor;
+                pCogToolExtract.InputImage = pSourceImage.ToCogImage() as CogImage24PlanarColor;
                 ////  동작
                 pCogToolExtract.Run();
                 ////  결과 확인
@@ -423,7 +414,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력 (Result Image 출력만 존재함)
-                pResult = new CognexResult(eYoonCognexType.ColorExtract, pCogToolExtract.Results.OverallResult.GreyscaleImage);
+                pResult = new CognexResult(eYoonCognexType.ColorExtract, new CognexImage(pCogToolExtract.Results.OverallResult.GreyscaleImage));
                 return true;
             }
             catch (Exception ex)
@@ -434,9 +425,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool FindLine(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool FindLine(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogFindLineTool) || !(pImageSource is CogImage8Grey))
+            if (!(pCogTool is CogFindLineTool) || !(pSourceImage.Plane == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -446,7 +437,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogFindLineTool pCogToolFindLine = pCogTool as CogFindLineTool;
-                pCogToolFindLine.InputImage = pImageSource as CogImage8Grey;
+                pCogToolFindLine.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
                 ////  동작
                 pCogToolFindLine.Run();
                 ////  결과 확인
@@ -458,7 +449,7 @@ namespace YoonFactory.Cognex.Tool
                 ////  결과 출력 (Result Image 출력 없음, Pattern 찾기 결과가 1개 이상임)
                 if (pCogToolFindLine.Results.Count > 0)
                 {
-                    pResult = new CognexResult(pImageSource, pCogToolFindLine.Results.GetLineSegment());
+                    pResult = new CognexResult(pSourceImage.Clone() as CognexImage, pCogToolFindLine.Results.GetLineSegment());
                     return true;
                 }
                 else
@@ -475,9 +466,9 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool PMAlign(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool PMAlign(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogPMAlignTool) || !(pImageSource is CogImage8Grey))
+            if (!(pCogTool is CogPMAlignTool) || !(pSourceImage.Plane == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -487,7 +478,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogPMAlignTool pCogToolPM = pCogTool as CogPMAlignTool;
-                pCogToolPM.InputImage = pImageSource;
+                pCogToolPM.InputImage = pSourceImage.ToCogImage();
                 ////  동작
                 pCogToolPM.Run();
                 ////  결과 확인
@@ -499,7 +490,7 @@ namespace YoonFactory.Cognex.Tool
                 ////  결과 출력 (Result Image 출력 없음, Pattern 찾기 결과가 1개 이상임)
                 if (pCogToolPM.Results.Count > 0)
                 {
-                    pResult = new CognexResult(pImageSource, pCogToolPM.Results[0].GetPose(), pCogToolPM.Pattern.TrainRegion, pCogToolPM.Results[0].Score);    // 대표적인 Pattern 1개만 송출
+                    pResult = new CognexResult(pSourceImage.Clone() as CognexImage, pCogToolPM.Results[0].GetPose(), pCogToolPM.Pattern.TrainRegion, pCogToolPM.Results[0].Score);    // 대표적인 Pattern 1개만 송출
                     return true;
                 }
                 else
@@ -516,7 +507,7 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool TwoImageAdd(ICogTool pCogTool, ICogImage pImageSourceA, ICogImage pImageSourceB, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool TwoImageAdd(ICogTool pCogTool, CognexImage pSourceImageA, CognexImage pSourceImageB, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogIPTwoImageAddTool))
             {
@@ -528,8 +519,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageAddTool pCogToolIP = pCogTool as CogIPTwoImageAddTool;
-                pCogToolIP.InputImageA = pImageSourceA;
-                pCogToolIP.InputImageB = pImageSourceB;
+                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
+                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -539,7 +530,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.ImageAdd, pCogToolIP.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.ImageAdd, new CognexImage(pCogToolIP.OutputImage));
                 return true;
             }
             catch (Exception ex)
@@ -550,7 +541,7 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool TwoImageSubtract(ICogTool pCogTool, ICogImage pImageSourceA, ICogImage pImageSourceB, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool TwoImageSubtract(ICogTool pCogTool, CognexImage pSourceImageA, CognexImage pSourceImageB, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogIPTwoImageSubtractTool))
             {
@@ -562,8 +553,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageSubtractTool pCogToolIP = pCogTool as CogIPTwoImageSubtractTool;
-                pCogToolIP.InputImageA = pImageSourceA;
-                pCogToolIP.InputImageB = pImageSourceB;
+                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
+                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -573,7 +564,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.ImageSubtract, pCogToolIP.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.ImageSubtract, new CognexImage(pCogToolIP.OutputImage));
                 return true;
             }
             catch (Exception ex)
@@ -584,7 +575,7 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool TwoImageMinMax(ICogTool pCogTool, ICogImage pImageSourceA, ICogImage pImageSourceB, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool TwoImageMinMax(ICogTool pCogTool, CognexImage pSourceImageA, CognexImage pSourceImageB, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogIPTwoImageMinMaxTool))
             {
@@ -596,8 +587,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageMinMaxTool pCogToolIP = pCogTool as CogIPTwoImageMinMaxTool;
-                pCogToolIP.InputImageA = pImageSourceA;
-                pCogToolIP.InputImageB = pImageSourceB;
+                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
+                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -607,7 +598,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.ImageMinMax, pCogToolIP.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.ImageMinMax, new CognexImage(pCogToolIP.OutputImage));
                 return true;
             }
             catch (Exception ex)
@@ -618,7 +609,7 @@ namespace YoonFactory.Cognex.Tool
             }
         }
 
-        public static bool Undistort(ICogTool pCogTool, ICogImage pImageSource, ref string strErrorMessage, ref CognexResult pResult)
+        public static bool Undistort(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
             if (!(pCogTool is CogCalibCheckerboardTool))
             {
@@ -629,7 +620,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogCalibCheckerboardTool pCogToolCalib = pCogTool as CogCalibCheckerboardTool;
-                pCogToolCalib.InputImage = pImageSource;
+                pCogToolCalib.InputImage = pSourceImage.ToCogImage();
                 ////  동작
                 pCogToolCalib.Run();
                 ////  결과 확인
@@ -639,7 +630,7 @@ namespace YoonFactory.Cognex.Tool
                     return false;
                 }
                 ////  결과 출력
-                pResult = new CognexResult(eYoonCognexType.Calibration, pCogToolCalib.OutputImage);
+                pResult = new CognexResult(eYoonCognexType.Calibration, new CognexImage(pCogToolCalib.OutputImage));
                 return true;
             }
             catch (Exception ex)

@@ -185,29 +185,17 @@ namespace YoonFactory.Cognex.Result
             if (RootDirectory == string.Empty) return false;
 
             string strFilePath = GetCognexResultImagePath(ParantsType, strKey);
-            ICogImage pImage = m_pDicCogResult[strKey].ResultImage;
-            switch (pImage)
-            {
-                case CogImage24PlanarColor pImageColor:
-                    CognexFactory.SaveColorImageToBitmap(pImageColor, strFilePath);
-                    break;
-                case CogImage8Grey pImageMono:
-                    CognexFactory.SaveMonoImageToBitmap(pImageMono, strFilePath);
-                    break;
-                default:
-                    return false;
-            }
-            return true;
+            return m_pDicCogResult[strKey].ResultImage.SaveImage(strFilePath);
         }
 
-        public ICogImage GetResultImage(string strKey)
+        public CognexImage GetResultImage(string strKey)
         {
             if (m_pDicCogResult.ContainsKey(strKey))
-                return new CogImage8Grey();
+                return new CognexImage(new CogImage8Grey());
             return m_pDicCogResult[strKey].ResultImage;
         }
 
-        public ICogImage GetLastResultImage()
+        public CognexImage GetLastResultImage()
         {
             if (m_pListKeyOrdered == null || m_pListKeyOrdered.Count == 0)
             {

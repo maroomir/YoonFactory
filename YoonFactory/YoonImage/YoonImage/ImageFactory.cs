@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using YoonFactory.Image.Result;
 
 namespace YoonFactory.Image
 {

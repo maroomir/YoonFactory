@@ -276,6 +276,33 @@ namespace YoonFactory
             return hashCode;
         }
 
+        public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)
+        {
+            switch (nDir)
+            {
+                case eYoonDir2D.TopLeft:
+                    return TopLeft;
+                case eYoonDir2D.Top:
+                    return new YoonVector2D(CenterPos.X, Top);
+                case eYoonDir2D.TopRight:
+                    return TopRight;
+                case eYoonDir2D.Left:
+                    return new YoonVector2D(Left, CenterPos.Y);
+                case eYoonDir2D.Center:
+                    return CenterPos;
+                case eYoonDir2D.Right:
+                    return new YoonVector2D(Right, CenterPos.Y);
+                case eYoonDir2D.BottomLeft:
+                    return BottomLeft;
+                case eYoonDir2D.Bottom:
+                    return new YoonVector2D(CenterPos.X, Bottom);
+                case eYoonDir2D.BottomRight:
+                    return BottomRight;
+                default:
+                    return new YoonVector2D();
+            }
+        }
+
         public static bool operator ==(YoonRectAffine2D r1, YoonRectAffine2D r2)
         {
             return r1?.Equals(r2) == true;

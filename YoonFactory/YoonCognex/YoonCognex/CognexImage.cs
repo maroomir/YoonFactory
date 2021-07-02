@@ -141,5 +141,15 @@ namespace YoonFactory.Cognex
         {
             return CognexFactory.CropImage(this, cropArea);
         }
+
+        public static CognexImage operator +(CognexImage i1, CognexImage i2)
+        {
+            return CognexFactory.TwoImageProcess.Add(i1, i2);
+        }
+
+        public static CognexImage operator -(CognexImage i1, CognexImage i2)
+        {
+            return CognexFactory.TwoImageProcess.Subtract(i1, i2);
+        }
     }
 }

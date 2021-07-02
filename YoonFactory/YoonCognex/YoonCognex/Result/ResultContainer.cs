@@ -213,14 +213,14 @@ namespace YoonFactory.Cognex.Result
             return bResult;
         }
 
-        public ICogImage GetResultImage(eYoonCognexType nKey)
+        public CognexImage GetResultImage(eYoonCognexType nKey)
         {
             if (m_pDicSection.ContainsKey(nKey))
-                return new CogImage8Grey();
+                return new CognexImage(new CogImage8Grey());
             return m_pDicSection[nKey].GetLastResultImage();
         }
 
-        public ICogImage GetLastResultImage()
+        public CognexImage GetLastResultImage()
         {
             if (m_pListKeyOrdered == null || m_pListKeyOrdered.Count == 0)
             {

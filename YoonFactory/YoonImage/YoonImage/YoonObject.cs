@@ -384,6 +384,11 @@ namespace YoonFactory
                    PixelCount == @object.PixelCount;
         }
 
+        public bool Equals(YoonObject<T> other)
+        {
+            return Equals(other);
+        }
+
         public static bool operator ==(YoonObject<T> o1, YoonObject<T> o2)
         {
             return o1?.Equals(o2) == true;

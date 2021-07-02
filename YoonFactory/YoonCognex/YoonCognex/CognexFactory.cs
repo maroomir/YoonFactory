@@ -16,7 +16,18 @@ namespace YoonFactory.Cognex
         public static CognexImage CropImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.CropImage(pSourceImage, pRect);
         public static CognexImage ResizeImage(this CognexImage pSourceImage, double dSourceWidth, double dSourceHeight) => Transform.ResizeImage(pSourceImage, dSourceWidth, dSourceHeight);
         public static CognexImage ResizeImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.ResizeImage(pSourceImage, pRect);
-
+        public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect) => PatternMatch.CropPattern(pSourceImage, pRect);
+        public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos) => PatternMatch.CropPattern(pSourceImage, pRect);
+        public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold) => PatternMatch.FindPattern(pSourceImage, pPatternObject, dMatchThreshold);
+        public static CognexImage Subtract(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.Subtract(pSourceImage, pObjectImage);
+        public static CognexImage Add(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.Add(pSourceImage, pObjectImage);
+        public static CognexImage OverlapMax(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.OverlapMax(pSourceImage, pObjectImage);
+        public static CognexImage OverlapMin(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.OverlapMin(pSourceImage, pObjectImage);
+        public static CognexImage EraseRect(this CognexImage pSourceImage, IYoonRect2D<double> pRect) => Editor.EraseRect(pSourceImage, pRect);
+        public static CognexImage EraseRect(this CognexImage pSourceImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight) => Editor.EraseRect(pSourceImage, dCenterX, dCenterY, dRectWidth, dRectHeight);
+        public static CognexImage EraseWithoutRect(this CognexImage pSourceImage, IYoonRect2D<double> pRect) => Editor.EraseWithoutRect(pSourceImage, pRect);
+        public static CognexImage EraseWithoutRect(this CognexImage pSourceImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight) => Editor.EraseWithoutRect(pSourceImage, dCenterX, dCenterY, dRectWidth, dRectHeight);
+        public static CognexImage EraseWithoutPatternMatchRegion(this CognexImage pSourceImage, CognexResult pResult) => Editor.EraseWithoutPatternMatchRegion(pSourceImage, pResult);
 
         public static class Converter
         {
@@ -284,6 +295,7 @@ namespace YoonFactory.Cognex
             }
 
             public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold,
+                bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0,
                 bool bUseZoneAngle = true, bool bUseZoneScale = true, double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
             {
                 if (pSourceImage == null || pPatternObject == null) return null;
@@ -307,8 +319,14 @@ namespace YoonFactory.Cognex
                     //////  TrainParam 설정
                     cogPatternParam.TrainAlgorithm = CogPMAlignTrainAlgorithmConstants.PatMaxAndPatQuick;
                     cogPatternParam.TrainMode = CogPMAlignTrainModeConstants.Image;
-                    cogPatternParam.GrainLimitAutoSelect = true;
-                    cogPatternParam.AutoEdgeThresholdEnabled = true;
+                    cogPatternParam.GrainLimitAutoSelect = bAutoLimited;
+                    if (bAutoLimited == false)
+                    {
+                        cogPatternParam.GrainLimitCoarse = dCoarseLimit;
+                        cogPatternParam.GrainLimitFine = dFineLimit;
+                    }
+                    cogPatternParam.AutoEdgeThresholdEnabled = bAutoThreshold;
+                    if (bAutoThreshold == false) cogPatternParam.EdgeThreshold = dThreshold;
                 }
                 ////  PMAlign Parameter 설정
                 CogPMAlignRunParams cogMatchParam = new CogPMAlignRunParams();
@@ -429,210 +447,50 @@ namespace YoonFactory.Cognex
                 }
                 return pResult;
             }
-
-            public static YoonVector2D FindPatternPoint(CogImage8Grey cogSourceImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
-                double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
-            {
-                if (cogPattern == null) return new YoonVector2D(-10000.0f, -10000.0f);    // Train 된 Pattern 없을시 NULL 처리.
-
-                int nTrainedWidth = 0;
-                int nTrainedHeight = 0;
-                YoonVector2D fPointResult = new YoonVector2D();
-                ////  PMAlign Parameter 설정
-                CogPMAlignRunParams cogPMParam = new CogPMAlignRunParams();
-                {
-                    cogPMParam.ApproximateNumberToFind = 1;
-                    cogPMParam.AcceptThreshold = dMatchingThreshold;
-                    //////  Zone Angle 틀어짐 범위 설정
-                    if (bUseZoneAngle == true)
-                    {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneAngle.Low = dZoneAngleLow;
-                        cogPMParam.ZoneAngle.High = dZoneAngleHigh;
-                    }
-                    else
-                    {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneAngle.Nominal = 0.0;
-                    }
-                    //////  Zone Scale 크기변환 범위 설정
-                    if (bUseZoneScale == true)
-                    {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneScale.Low = dZoneScaleLow;
-                        cogPMParam.ZoneScale.High = dZoneScaleHigh;
-                    }
-                    else
-                    {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneScale.Nominal = 0.0;
-                    }
-                }
-                CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
-                {
-                    cogPMAlignTool.InputImage = cogSourceImage;
-                    cogPMAlignTool.Pattern = cogPattern;
-                    cogPMAlignTool.RunParams = cogPMParam;
-                    //////  중심점 출력을 위한 Train 영역 확인
-                    nTrainedWidth = cogPattern.TrainImage.Width;
-                    nTrainedHeight = cogPattern.TrainImage.Height;
-                }
-                ////  Run
-                try
-                {
-                    cogPMAlignTool.Run();
-                }
-                catch (System.Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                }
-
-                if (cogPMAlignTool.Results.Count > 0)   // ApproximateNumberToFind = 1이므로 Results[0]만 존재함.
-                {
-                    fPointResult.X = (float)cogPMAlignTool.Results[0].GetPose().TranslationX;
-                    fPointResult.Y = (float)cogPMAlignTool.Results[0].GetPose().TranslationY;
-                }
-                return fPointResult;
-            }
-
-            public static CogRectangleAffine FindPatternRect(CogImage8Grey cogSourceImage, ref CogPMAlignPattern cogPattern, double dMatchingThreshold, bool bUseZoneAngle, bool bUseZoneScale,
-                double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
-            {
-                if (cogPattern == null) return null;    // Train 된 Pattern 없을시 NULL 처리.
-                if (cogPattern.Origin.TranslationX != 0.0 || cogPattern.Origin.TranslationY != 0.0) // Train Position이 Top_Left가 아닌 경우 예외처리.
-                {
-                    MessageBox.Show(string.Format("Cannot use trained position : X={0:E2}, Y={1:E2}", cogPattern.Origin.TranslationX, cogPattern.Origin.TranslationY));
-                    return null;
-                }
-
-                int nTrainedWidth = 0;
-                int nTrainedHeight = 0;
-                CogRectangleAffine cogRectResult = new CogRectangleAffine();
-                ////  PMAlign Parameter 설정
-                CogPMAlignRunParams cogPMParam = new CogPMAlignRunParams();
-                {
-                    cogPMParam.ApproximateNumberToFind = 1;
-                    cogPMParam.AcceptThreshold = dMatchingThreshold;
-                    //////  Zone Angle 틀어짐 범위 설정
-                    if (bUseZoneAngle == true)
-                    {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneAngle.Low = dZoneAngleLow;
-                        cogPMParam.ZoneAngle.High = dZoneAngleHigh;
-                    }
-                    else
-                    {
-                        cogPMParam.ZoneAngle.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneAngle.Nominal = 0.0;
-                    }
-                    //////  Zone Scale 크기변환 범위 설정
-                    if (bUseZoneScale == true)
-                    {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.LowHigh;
-                        cogPMParam.ZoneScale.Low = dZoneScaleLow;
-                        cogPMParam.ZoneScale.High = dZoneScaleHigh;
-                    }
-                    else
-                    {
-                        cogPMParam.ZoneScale.Configuration = CogPMAlignZoneConstants.Nominal;
-                        cogPMParam.ZoneScale.Nominal = 0.0;
-                    }
-                }
-                CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
-                {
-                    cogPMAlignTool.InputImage = cogSourceImage;
-                    cogPMAlignTool.Pattern = cogPattern;
-                    cogPMAlignTool.RunParams = cogPMParam;
-                    //////  중심점 출력을 위한 Train 영역 확인
-                    nTrainedWidth = cogPattern.TrainImage.Width;
-                    nTrainedHeight = cogPattern.TrainImage.Height;
-                }
-                ////  Run
-                try
-                {
-                    cogPMAlignTool.Run();
-                }
-                catch (System.Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                }
-
-                if (cogPMAlignTool.Results.Count > 0)   // ApproximateNumberToFind = 1이므로 Results[0]만 존재함.
-                {
-                    double dOriginX = cogPMAlignTool.Results[0].GetPose().TranslationX;
-                    double dOriginY = cogPMAlignTool.Results[0].GetPose().TranslationY;
-                    double dRectWidth = (double)nTrainedWidth * cogPMAlignTool.Results[0].GetPose().ScalingX;    // Rect 너비/높이는 Train 값에 Scaling 값을 곱함.
-                    double dRectHeight = (double)nTrainedHeight * cogPMAlignTool.Results[0].GetPose().ScalingY;
-                    double dRectRotation = cogPMAlignTool.Results[0].GetPose().Rotation;
-                    //////  Rect Area 설정
-                    cogRectResult.CenterX = dOriginX + dRectWidth / 2;
-                    cogRectResult.CenterY = dOriginY + dRectHeight / 2; // Top-Left를 Center 위치로 변환.
-                    cogRectResult.SideXLength = dRectWidth;
-                    cogRectResult.SideYLength = dRectHeight;
-                    cogRectResult.Rotation = dRectRotation;
-                    cogRectResult.Skew = 0.0;
-                }
-                return cogRectResult;
-            }
         }
 
         public static class Editor
         {
-            public static CogImage8Grey ErasePatternMatchRegion(CogImage8Grey cogImage, CogPMAlignPattern pPattern, double dAlignX, double dAlignY)
+            public static CognexImage EraseRect(CognexImage pSourceImage, IYoonRect2D<double> pRect)
             {
-                if (cogImage == null) return null;
-
-                ICogRegion pRegion = pPattern.TrainRegion;
-                switch (pRegion)
-                {
-                    case CogRectangle pRegionRect:
-                        return EraseRect(cogImage, dAlignX, dAlignY, pRegionRect.Width, pRegionRect.Height);
-                    case CogRectangleAffine pRegionRectAffine:
-                        return EraseRect(cogImage, dAlignX, dAlignY, pRegionRectAffine.SideXLength, pRegionRectAffine.SideYLength);
-                    default:
-                        break;
-                }
-                return null;
+                return EraseRect(pSourceImage, pRect.CenterPos.X, pRect.CenterPos.Y, pRect.Width, pRect.Height);
             }
 
-            public static CogImage8Grey EraseRect(CogImage8Grey cogImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight)
+            public static CognexImage EraseRect(CognexImage pSourceImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight)
             {
-                if (cogImage == null) return null;
+                if (pSourceImage == null) return null;
 
                 ////  새로운 BItmap 위에 Rect 영역만큼 검은색(0)으로 색칠
-                Bitmap pBitmap = new Bitmap(cogImage.Width, cogImage.Height);
-                {
-                    ImageFactory.Draw.FillCanvas(ref pBitmap, Color.White);
-                    ImageFactory.Draw.FillRect(ref pBitmap, (int)dCenterX, (int)dCenterY, (int)dRectWidth, (int)dRectHeight, Color.Black, 1.0);
-                }
-                ////  새로운 Bitmap으로 Filter 제작 후 Overlap 함
-                CogImage8Grey cogFilterImage = new CogImage8Grey(pBitmap);
-                return TwoImageProcess.OverlapMin(cogImage, cogFilterImage) as CogImage8Grey;
+                CognexImage pFilterImage = pSourceImage.Clone() as CognexImage;
+                pFilterImage.FillCanvas(Color.White);
+                pFilterImage.FillRect((int)dCenterX, (int)dCenterY, (int)dRectWidth, (int)dRectHeight, Color.Black, 1.0);
+                return TwoImageProcess.OverlapMin(pSourceImage, pFilterImage);
             }
 
-            public static CogImage8Grey EraseWithoutPatternMatchRegion(CogImage8Grey cogImage, CognexResult pResult)
+            public static CognexImage EraseWithoutRect(CognexImage pSourceImage, IYoonRect2D<double> pRect)
             {
-                if (cogImage == null || pResult.ToolType != eYoonCognexType.PMAlign) return null;
+                return EraseWithoutRect(pSourceImage, pRect.CenterPos.X, pRect.CenterPos.Y, pRect.Width, pRect.Height);
+            }
+
+            public static CognexImage EraseWithoutRect(CognexImage pSourceImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight)
+            {
+                if (pSourceImage == null) return null;
+
+                ////  새로운 BItmap 위에 Rect 영역만큼 흰색(255)으로 색칠
+                CognexImage pFilterImage = pSourceImage.Clone() as CognexImage;
+                pFilterImage.FillCanvas(Color.White);
+                pFilterImage.FillRect((int)dCenterX, (int)dCenterY, (int)dRectWidth, (int)dRectHeight, Color.White, 1.0);
+                return TwoImageProcess.OverlapMin(pSourceImage, pFilterImage);
+            }
+
+            public static CognexImage EraseWithoutPatternMatchRegion(CognexImage pSourceImage, CognexResult pResult)
+            {
+                if (pSourceImage == null || pResult.ToolType != eYoonCognexType.PMAlign) return null;
                 double dCenterX = pResult.GetPatternMatchArea().CenterPos.X;
                 double dCenterY = pResult.GetPatternMatchArea().CenterPos.Y;
                 double dWidth = pResult.GetPatternMatchArea().Width;
                 double dHeight = pResult.GetPatternMatchArea().Height;
-                return EraseWithoutRect(cogImage, dCenterX, dCenterY, dWidth, dHeight);
-            }
-
-            public static CogImage8Grey EraseWithoutRect(CogImage8Grey cogImage, double dCenterX, double dCenterY, double dRectWidth, double dRectHeight)
-            {
-                if (cogImage == null) return null;
-
-                ////  새로운 BItmap 위에 Rect 영역만큼 흰색(0)으로 색칠
-                Bitmap pBitmap = new Bitmap(cogImage.Width, cogImage.Height);
-                {
-                    ImageFactory.Draw.FillCanvas(ref pBitmap, Color.Black);
-                    ImageFactory.Draw.FillRect(ref pBitmap, (int)dCenterX, (int)dCenterY, (int)dRectWidth, (int)dRectHeight, Color.White, 1.0);
-                }
-                ////  새로운 Bitmap으로 Filter 제작 후 Overlap 함
-                CogImage8Grey cogFilterImage = new CogImage8Grey(pBitmap);
-                return TwoImageProcess.OverlapMin(cogImage, cogFilterImage) as CogImage8Grey;
+                return EraseWithoutRect(pSourceImage, dCenterX, dCenterY, dWidth, dHeight);
             }
         }
 
@@ -839,8 +697,12 @@ namespace YoonFactory.Cognex
 
         public static class TwoImageProcess
         {
-            #region 차영상, 곱영상 구하기 (Substract, Add ...)
-            public static ICogImage Substract(ICogImage cogInputImageA, ICogImage cogInputImageB)
+            public static CognexImage Subtract(CognexImage pSourceImage, CognexImage pObjectImage)
+            {
+                return new CognexImage(Subtract(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+            }
+
+            public static ICogImage Subtract(ICogImage cogSourceImage, ICogImage cogObjectImage)
             {
                 ////  Param 설정
                 CogIPTwoImageSubtract cogIPSubstractParam = new CogIPTwoImageSubtract();
@@ -849,8 +711,8 @@ namespace YoonFactory.Cognex
                 }
                 CogIPTwoImageSubtractTool cogIPSubstractTool = new CogIPTwoImageSubtractTool();
                 {
-                    cogIPSubstractTool.InputImageA = cogInputImageA;
-                    cogIPSubstractTool.InputImageB = cogInputImageB;
+                    cogIPSubstractTool.InputImageA = cogSourceImage;
+                    cogIPSubstractTool.InputImageB = cogObjectImage;
                     cogIPSubstractTool.RegionA = null;  // 전체 영역
                     cogIPSubstractTool.RegionB = null;
                     cogIPSubstractTool.RunParams = cogIPSubstractParam;
@@ -868,7 +730,12 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static ICogImage Add(ICogImage cogInputImageA, ICogImage cogInputImageB)
+            public static CognexImage Add(CognexImage pSourceImage, CognexImage pObjectImage)
+            {
+                return new CognexImage(Add(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+            }
+
+            public static ICogImage Add(ICogImage cogSourceImage, ICogImage cogObjectImage)
             {
                 ////  Param 설정
                 CogIPTwoImageAdd cogIPAddParam = new CogIPTwoImageAdd();
@@ -877,8 +744,8 @@ namespace YoonFactory.Cognex
                 }
                 CogIPTwoImageAddTool cogIPAddTool = new CogIPTwoImageAddTool();
                 {
-                    cogIPAddTool.InputImageA = cogInputImageA;
-                    cogIPAddTool.InputImageB = cogInputImageB;
+                    cogIPAddTool.InputImageA = cogSourceImage;
+                    cogIPAddTool.InputImageB = cogObjectImage;
                     cogIPAddTool.RegionA = null;    // 전체 영역
                     cogIPAddTool.RegionB = null;
                     cogIPAddTool.RunParams = cogIPAddParam;
@@ -897,7 +764,12 @@ namespace YoonFactory.Cognex
 
             }
 
-            public static ICogImage OverlapMax(ICogImage cogInputImageA, ICogImage cogInputImageB)
+            public static CognexImage OverlapMax(CognexImage pSourceImage, CognexImage pObjectImage)
+            {
+                return new CognexImage(OverlapMax(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+            }
+
+            public static ICogImage OverlapMax(ICogImage cogSourceImage, ICogImage cogObjectImage)
             {
                 ////  Param 설정
                 CogIPTwoImageMinMax cogIPMinMaxParam = new CogIPTwoImageMinMax();
@@ -906,8 +778,8 @@ namespace YoonFactory.Cognex
                 }
                 CogIPTwoImageMinMaxTool cogIPMinMaxTool = new CogIPTwoImageMinMaxTool();
                 {
-                    cogIPMinMaxTool.InputImageA = cogInputImageA;
-                    cogIPMinMaxTool.InputImageB = cogInputImageB;
+                    cogIPMinMaxTool.InputImageA = cogSourceImage;
+                    cogIPMinMaxTool.InputImageB = cogObjectImage;
                     cogIPMinMaxTool.RegionA = null; // 전체 영역
                     cogIPMinMaxTool.RegionB = null;
                     cogIPMinMaxTool.RunParams = cogIPMinMaxParam;
@@ -925,7 +797,12 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static ICogImage OverlapMin(ICogImage cogInputImageA, ICogImage cogInputImageB)
+            public static CognexImage OverlapMin(CognexImage pSourceImage, CognexImage pObjectImage)
+            {
+                return new CognexImage(OverlapMin(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+            }
+
+            public static ICogImage OverlapMin(ICogImage cogSourceImage, ICogImage cogObjectImage)
             {
                 ////  Param 설정
                 CogIPTwoImageMinMax cogIPMinMaxParam = new CogIPTwoImageMinMax();
@@ -934,8 +811,8 @@ namespace YoonFactory.Cognex
                 }
                 CogIPTwoImageMinMaxTool cogIPMinMaxTool = new CogIPTwoImageMinMaxTool();
                 {
-                    cogIPMinMaxTool.InputImageA = cogInputImageA;
-                    cogIPMinMaxTool.InputImageB = cogInputImageB;
+                    cogIPMinMaxTool.InputImageA = cogSourceImage;
+                    cogIPMinMaxTool.InputImageB = cogObjectImage;
                     cogIPMinMaxTool.RegionA = null; // 전체 영역
                     cogIPMinMaxTool.RegionB = null;
                     cogIPMinMaxTool.RunParams = cogIPMinMaxParam;
@@ -952,7 +829,6 @@ namespace YoonFactory.Cognex
                 if (cogIPMinMaxTool.RunStatus.Result == CogToolResultConstants.Accept) return cogIPMinMaxTool.OutputImage;
                 else return null;
             }
-            #endregion
         }
     }
 }
