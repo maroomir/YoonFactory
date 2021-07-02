@@ -191,7 +191,7 @@ namespace YoonFactory.Cognex.Result
         public CognexImage GetResultImage(string strKey)
         {
             if (m_pDicCogResult.ContainsKey(strKey))
-                return new CognexImage(new CogImage8Grey());
+                return new CognexImage();
             return m_pDicCogResult[strKey].ResultImage;
         }
 

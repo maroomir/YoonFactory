@@ -13,9 +13,20 @@ namespace YoonFactory.Cognex
 {
     public class CognexImage : YoonImage
     {
-        public CognexImage(ICogImage pImage)
+        public CognexImage() : base()
         {
-            m_pBitmap = pImage.ToBitmap();
+            //
+        }
+
+        public CognexImage(Bitmap pBitmap) : base(pBitmap)
+        {
+            //
+        }
+
+        public CognexImage(ICogImage pImage) : this()
+        {
+            if (pImage.Width != 0 && pImage.Height != 0)
+                m_pBitmap = pImage.ToBitmap().Clone() as Bitmap;
         }
 
         public ICogImage ToCogImage()
@@ -64,7 +75,7 @@ namespace YoonFactory.Cognex
                 if (pCogFile[0] != null)
                 {
                     pCogImage = pCogFile[0];
-                    m_pBitmap = pCogImage.ToBitmap();
+                    m_pBitmap = pCogImage.ToBitmap().Clone() as Bitmap;
                     return true;
                 }
                 pCogFile.Close();
@@ -111,6 +122,13 @@ namespace YoonFactory.Cognex
         public ICogImage CopyCogImage()
         {
             return ToCogImage().CopyBase(CogImageCopyModeConstants.CopyPixels);
+        }
+
+        public override IYoonFile Clone()
+        {
+            CognexImage pImage = new CognexImage(m_pBitmap);
+            pImage.FilePath = FilePath;
+            return pImage;
         }
 
         public override YoonImage ToGrayImage()

@@ -216,7 +216,7 @@ namespace YoonFactory.Cognex.Result
         public CognexImage GetResultImage(eYoonCognexType nKey)
         {
             if (m_pDicSection.ContainsKey(nKey))
-                return new CognexImage(new CogImage8Grey());
+                return new CognexImage();
             return m_pDicSection[nKey].GetLastResultImage();
         }
 

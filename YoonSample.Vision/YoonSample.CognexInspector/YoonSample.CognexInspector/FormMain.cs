@@ -15,6 +15,7 @@ using YoonFactory.Cognex;
 using YoonFactory.Align;
 using YoonFactory.Windows;
 using YoonFactory.Param;
+using YoonFactory.Cognex.Result;
 using YoonFactory.Cognex.Tool;
 using YoonFactory;
 
@@ -22,7 +23,7 @@ namespace YoonSample.CognexInspector
 {
     public partial class FormMain : Form
     {
-        private CogImage24PlanarColor m_pCogRGBImageOrigin = null;
+        private CognexImage m_pCogRGBImageOrigin = new CognexImage();
         private DataTable m_pTableResult = null;
 
         public event PassImageCallback OnUpdatePreviewImageEvent;
@@ -167,7 +168,7 @@ namespace YoonSample.CognexInspector
             int nOrderNext = CommonClass.pParamTemplate.IndexOf(e.InspectType) + 1;
             if (nOrderNext >= CommonClass.pParamTemplate.Count) return;
             eTypeInspect nOrderNextKey = CommonClass.pParamTemplate.KeyOf(nOrderNext);
-            OnUpdatePreviewImageEvent(sender, new CogImageArgs(CommonClass.pCogToolTemplate[nOrderNextKey].No, nOrderNextKey, e.CogImage));
+            OnUpdatePreviewImageEvent(sender, new CogImageArgs(CommonClass.pCogToolTemplate[nOrderNextKey].No, nOrderNextKey, e.Image));
         }
 
         private void Init_View()
@@ -450,7 +451,7 @@ namespace YoonSample.CognexInspector
                     if (pDlg.ShowDialog() == DialogResult.OK)
                     {
                         string strFilePath = pDlg.FileName;
-                        m_pCogRGBImageOrigin = CognexFactory.LoadCogImage24PlanarColorFromBitmap(strFilePath);
+                        m_pCogRGBImageOrigin.LoadImage(strFilePath);
                         //// 각 Tab에 이미지 분배하기
                         foreach (eTypeInspect nType in CommonClass.pParamTemplate.Keys)
                         {
@@ -472,7 +473,7 @@ namespace YoonSample.CognexInspector
                     if (pDlg.ShowDialog() == DialogResult.OK)
                     {
                         string strFilePath = pDlg.FileName;
-                        CognexFactory.SaveColorImageToBitmap(m_pCogRGBImageOrigin, strFilePath);
+                        m_pCogRGBImageOrigin.SaveImage(strFilePath);
                     }
                 }
             }
@@ -503,14 +504,14 @@ namespace YoonSample.CognexInspector
             int nStepInit = 0, nRowResult = 0;
             string strMessage = string.Empty;
             bool bResultInsp = true;
-            ICogImage pImageProcessing = m_pCogRGBImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+            CognexImage pImageProcessing = m_pCogRGBImageOrigin.Clone() as CognexImage;
 
             PrintInspectionSettingMessage(eYoonStatus.Info, string.Format("Inspection {0} : Process Start", nStepInit++));
             for (int iInsp = 0; iInsp < CommonClass.pCogToolTemplate.Count; iInsp++)
             {
                 //// 초기화
                 eTypeInspect pKey = CommonClass.pCogToolTemplate.KeyOf(iInsp);
-                ICogImage pImageTemp = null;
+                CognexImage pImageTemp = null;
                 AlignResult pResultAlign = null;
                 YoonVector2D pResultPos = null;
                 double dResultTheta = 0.0;
@@ -537,15 +538,15 @@ namespace YoonSample.CognexInspector
                         ParameterInspectionPatternMatching pParamPM = CommonClass.pParamTemplate[pKey].Parameter as ParameterInspectionPatternMatching;
                         {
                             ////  Source Image 정의하기
-                            CogImage8Grey pImageResult = new CogImage8Grey();
-                            CogImage8Grey pImagePMSource = null;
+                            CognexImage pImageResult = new CognexImage();
+                            CognexImage pImagePMSource = null;
                             switch (pParamPM.SelectedSourceLevel)
                             {
                                 case eLevelImageSelection.CurrentProcessing:
-                                    pImagePMSource = pImageProcessing as CogImage8Grey;
+                                    pImagePMSource = pImageProcessing;
                                     break;
                                 case eLevelImageSelection.Custom:
-                                    pImagePMSource = CommonClass.GetResultImage(pParamPM.SelectedSourceNo, pParamPM.SelectedSourceType) as CogImage8Grey;
+                                    pImagePMSource = CommonClass.GetResultImage(pParamPM.SelectedSourceNo, pParamPM.SelectedSourceType);
                                     break;
                                 default:
                                     ////  Grid에 표시
@@ -655,15 +656,15 @@ namespace YoonSample.CognexInspector
                         ParameterInspectionObjectExtract pParamObjectExtract = CommonClass.pParamTemplate[pKey].Parameter as ParameterInspectionObjectExtract;
                         {
                             //// Source Image 정의하기
-                            CogImage8Grey pImageBlobSource = null;
-                            CogImage24PlanarColor pImageColorSource = null;
+                            CognexImage pImageBlobSource = null;
+                            CognexImage pImageColorSource = null;
                             switch (pParamObjectExtract.SelectedBlobImageLevel)
                             {
                                 case eLevelImageSelection.CurrentProcessing:
-                                    pImageBlobSource = pImageProcessing as CogImage8Grey;
+                                    pImageBlobSource = pImageProcessing;
                                     break;
                                 case eLevelImageSelection.Custom:
-                                    pImageBlobSource = CommonClass.GetResultImage(pParamObjectExtract.SelectedBlobImageNo, pParamObjectExtract.SelectedBlobImageType) as CogImage8Grey;
+                                    pImageBlobSource = CommonClass.GetResultImage(pParamObjectExtract.SelectedBlobImageNo, pParamObjectExtract.SelectedBlobImageType);
                                     break;
                                 default:
                                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "NG");
@@ -676,10 +677,10 @@ namespace YoonSample.CognexInspector
                                     pImageColorSource = m_pCogRGBImageOrigin;
                                     break;
                                 case eLevelImageSelection.CurrentProcessing:
-                                    pImageColorSource = pImageProcessing as CogImage24PlanarColor;
+                                    pImageColorSource = pImageProcessing;
                                     break;
                                 case eLevelImageSelection.Custom:
-                                    pImageColorSource = CommonClass.GetResultImage(pParamObjectExtract.SelectedColorSegmentImageNo, pParamObjectExtract.SelectedColorSegmentImageType) as CogImage24PlanarColor;
+                                    pImageColorSource = CommonClass.GetResultImage(pParamObjectExtract.SelectedColorSegmentImageNo, pParamObjectExtract.SelectedColorSegmentImageType);
                                     break;
                                 default:
                                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "NG");
@@ -702,7 +703,7 @@ namespace YoonSample.CognexInspector
                             {
                                 DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "OK");
                                 if (pParamObjectExtract.IsUseBlob)
-                                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, string.Format("{0} ea", (CommonClass.pCogResultTemplate[pKey][eYoonCognexType.Blob][string.Empty].ObjectDictionary.Count)));
+                                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, string.Format("{0} ea", (CommonClass.pCogResultTemplate[pKey][eYoonCognexType.Blob][string.Empty].ObjectList.Count)));
                                 else
                                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "- ea");
                             }
@@ -717,8 +718,8 @@ namespace YoonSample.CognexInspector
                         ParameterInspectionCombine pParamCombine = CommonClass.pParamTemplate[pKey].Parameter as ParameterInspectionCombine;
                         {
                             //// Source Image 정의하기
-                            ICogImage pImageSourceCombine = null;
-                            ICogImage pImageObjectCombine = null;
+                            CognexImage pImageSourceCombine = null;
+                            CognexImage pImageObjectCombine = null;
                             switch (pParamCombine.SelectedSourceLevel)
                             {
                                 case eLevelImageSelection.Origin:
@@ -767,7 +768,7 @@ namespace YoonSample.CognexInspector
                         continue;
                 }
                 if (pImageTemp != null)
-                    pImageProcessing = pImageTemp.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    pImageProcessing = pImageTemp.Clone() as CognexImage;
             }
 
             return bResultInsp;

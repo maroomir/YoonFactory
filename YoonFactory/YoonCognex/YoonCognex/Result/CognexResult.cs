@@ -17,7 +17,7 @@ namespace YoonFactory.Cognex.Result
         public CognexResult(eYoonCognexType nType)
         {
             ToolType = nType;
-            ResultImage = new CognexImage(new CogImage8Grey());
+            ResultImage = new CognexImage();
         }
 
         public CognexResult(eYoonCognexType nType, CognexImage pImageResult)

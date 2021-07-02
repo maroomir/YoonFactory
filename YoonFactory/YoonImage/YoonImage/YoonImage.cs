@@ -400,7 +400,7 @@ namespace YoonFactory.Image
             }
         }
 
-        public IYoonFile Clone()
+        public virtual IYoonFile Clone()
         {
             YoonImage pImage = new YoonImage(m_pBitmap);
             pImage.FilePath = FilePath;
