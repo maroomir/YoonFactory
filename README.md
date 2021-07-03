@@ -60,11 +60,23 @@ pCLM.Write("Hello World!");
 
 YoonFactory를 활용한 Module들을 소개합니다.
 
-YoonFactory를 통해 로봇 또는 장비와 통신 연결, 산업용 Camera 및 3D Camera를 통한 Image Grab을 간편하게 할 수 있습니다.
+YoonFactory에는 Machine Vision 뿐만 아니라 설비와의 통신, Robot 제어 등을 위한 Module 들이 삽입되어있습니다.
 
-또, 자체 알고리즘 및 OpenCV를 활용한 Machine Vision 뿐만 아니라 상용 라이브러리(Cognex) 또한 사용할 수 있습니다.
+예를 들자면 아래와 같은 기능들이 YoonFactory의 Module만을 간단하게 사용한 Sample로서 기본 탑재되었습니다.
 
-이 모든 것들이 YoonImage를 통해 간편하게 static method로 접근 가능합니다.
+
+```
+- YoonComm을 통해 로봇 또는 장비와 통신 연결, 산업용 Camera 및 3D Camera를 통한 Image Grab을 간편하게 할 수 있습니다.
+
+- YoonImage와 이를 상속하는 Class를 통해 자체 알고리즘 및 OpenCV를 활용한 Machine Vision 뿐만 아니라 상용 라이브러리(Cognex) 또한 사용할 수 있습니다.
+
+- YoonMono을 통해 Linux, Mac, Android, iOS 환경에서 구동 가능한 외부 설비간의 통신용 Module Program을 만들 수 있습니다.
+
+```
+
+이 Project에 포함되어있는 YoonSample들은 YoonFactory의 Module의 기능 개선을 위한 Debugging 뿐만 아니라 활용성을 소개하기 위한 목적으로 만들었습니다.
+
+아래 4개 Sample들은 간단한 Toy Program 이며, YoonFactory를 사용해 대형 Program을 만드는 작업은 현재 기획 중입니다.
 
 
 ### CognexInspection ###
