@@ -378,17 +378,9 @@ namespace YoonFactory.Image
             }
         }
 
-        public YoonImage(Bitmap pBitmap) : this(pBitmap, pBitmap.PixelFormat)
+        public YoonImage(Bitmap pBitmap)
         {
-        }
-
-        public YoonImage(Bitmap pBitmap, PixelFormat nFormat)
-        {
-            m_pBitmap = new Bitmap(pBitmap.Width, pBitmap.Height, nFormat);
-            using (Graphics pGraph = Graphics.FromImage(m_pBitmap))
-            {
-                pGraph.DrawImage(m_pBitmap, new Rectangle(0, 0, pBitmap.Width, pBitmap.Height), new Rectangle(0, 0, m_pBitmap.Width, m_pBitmap.Height), GraphicsUnit.Pixel);
-            }
+            m_pBitmap = (Bitmap)pBitmap.Clone();
         }
 
         public void CopyFrom(IYoonFile pFile)
@@ -525,7 +517,7 @@ namespace YoonFactory.Image
         {
             if (Plane == 1)
                 return this;
-            if (Plane != 3 || Plane != 4)
+            if (Plane != 3 && Plane != 4)
                 throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
             byte[] pByte = new byte[Width * Height];
             for (int j = 0; j < Height; j++)
@@ -979,9 +971,9 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 0); // 0 : Red
+                    return GetPlanePixel(0, nPixelX, nPixelY); // 0 : Red
                 case PixelFormat.Format32bppArgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 1); // 1 : Red
+                    return GetPlanePixel(1, nPixelX, nPixelY); // 1 : Red
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -1005,9 +997,9 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 1); // 1 : Green
+                    return GetPlanePixel(1, nPixelX, nPixelY); // 1 : Green
                 case PixelFormat.Format32bppArgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 2); // 2 : Green
+                    return GetPlanePixel(2, nPixelX, nPixelY); // 2 : Green
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -1031,9 +1023,9 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 2); // 2 : Blue
+                    return GetPlanePixel(2, nPixelX, nPixelY); // 2 : Blue
                 case PixelFormat.Format32bppArgb:
-                    return GetPlanePixel(nPixelX, nPixelY, 3); // 3 : Blue
+                    return GetPlanePixel(3, nPixelX, nPixelY); // 3 : Blue
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
