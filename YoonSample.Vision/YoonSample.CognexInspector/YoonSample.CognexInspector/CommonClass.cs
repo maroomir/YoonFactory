@@ -120,7 +120,7 @@ namespace YoonSample.CognexInspector
                 return new KeyValuePair<int, eTypeInspect>(nInspNo, nInspType);
 
             //// String Split 및 Paramter 추출
-            string[] pArrayContens = strContentSelected.Split('.');  // 예시 : "0.Preprocessing"
+            string[] pArrayContens = strContentSelected.Split('_');  // Example : "0_Preprocessing"
             if (pArrayContens.Length != 2)
                 return new KeyValuePair<int, eTypeInspect>(nInspNo, nInspType);
 
