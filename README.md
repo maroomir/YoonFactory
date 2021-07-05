@@ -1,6 +1,8 @@
-# YoonFactory #
+# YoonFactory.Net #
 
-Module에 대한 소개 Page는 [다음](https://github.com/maroomir/YoonFactory/blob/main/README.md)으로 이동했습니다.
+### Module에 대한 소개 Page는 [다음](https://github.com/maroomir/YoonFactory/blob/main/README.md)으로 이동했습니다. ###
+
+### 따라서 해당 README.md 에는 오직 .Net에 대한 Sample 및 사용 방법에 대해 적어두었습니다. ###
 
 
 YoonFactory는 제조 장비용 Machine Vision Software의 기능들을 Module화 시킨 C# 기반 DLL Library 입니다.
