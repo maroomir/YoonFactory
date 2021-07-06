@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using YoonFactory.Files;
 
 namespace YoonFactory.Image
@@ -148,8 +149,7 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format8bppIndexed:
-                    for (int i = 0; i < 256; i++)
-                        pPallete.Entries[i] = Color.FromArgb(i, i, i);
+                    Parallel.For(0, 256, i => { pPallete.Entries[i] = Color.FromArgb(i, i, i); });
                     m_pBitmap.Palette = pPallete;
                     break;
                 default:
@@ -169,8 +169,7 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format8bppIndexed:
-                    for (int i = 0; i < 256; i++)
-                        pPallete.Entries[i] = Color.FromArgb(i, i, i);
+                    Parallel.For(0, 256, i => { pPallete.Entries[i] = Color.FromArgb(i, i, i); });
                     m_pBitmap.Palette = pPallete;
                     break;
                 default:
@@ -501,7 +500,7 @@ namespace YoonFactory.Image
                     int nY = cropArea.Top + iY;
                     if (nY >= m_pBitmap.Height) continue;
                     pByte = new byte[cropArea.Width];
-                    for (int iX = 0; iX < cropArea.Height; iX++)
+                    for (int iX = 0; iX < cropArea.Width; iX++)
                     {
                         int nX = cropArea.Left + iX;
                         if (nX >= m_pBitmap.Width) continue;
@@ -517,15 +516,31 @@ namespace YoonFactory.Image
         {
             if (Plane == 1)
                 return this;
-            if (Plane != 3 && Plane != 4)
-                throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
             byte[] pByte = new byte[Width * Height];
-            for (int j = 0; j < Height; j++)
+            switch (Plane)
             {
-                for (int i = 0; i < Width; i++)
-                {
-                    pByte[j * Width + i] = (byte)(0.299f * GetRedPixel(i, j) + 0.587f * GetGreenPixel(i, j) + 0.114f * GetBluePixel(i, j)); // ITU-RBT.709, YPrPb
-                }
+                case 3:
+                    byte[,] pBufferRGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
+                    for (int j = 0; j < m_pBitmap.Height; j++)
+                    {
+                        for (int i = 0; i < m_pBitmap.Width; i++)
+                        {
+                            pByte[j * m_pBitmap.Width + i] = (byte)(0.299f * pBufferRGB[j * m_pBitmap.Width + i, 0] + 0.587f * pBufferRGB[j * m_pBitmap.Width + i, 1] + 0.114f * pBufferRGB[j * m_pBitmap.Width + i, 2]); // ITU-RBT.709, YPrPb
+                        }
+                    }
+                    break;
+                case 4:
+                    byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
+                    for (int j = 0; j < m_pBitmap.Height; j++)
+                    {
+                        for (int i = 0; i < m_pBitmap.Width; i++)
+                        {
+                            pByte[j * m_pBitmap.Width + i] = (byte)(0.299f * pBufferARGB[j * m_pBitmap.Width + i, 1] + 0.587f * pBufferARGB[j * m_pBitmap.Width + i, 2] + 0.114f * pBufferARGB[j * m_pBitmap.Width + i, 3]); // ITU-RBT.709, YPrPb
+                        }
+                    }
+                    break;
+                default:
+                    throw new FormatException("[YOONIMAGE ERROR] Bitmap format is not comportable");
             }
             return new YoonImage(pByte, Width, Height, PixelFormat.Format8bppIndexed);
         }
@@ -932,9 +947,9 @@ namespace YoonFactory.Image
             switch(m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return Scan24bitBufferPerPlane(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
+                    return Scan24bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
                 case PixelFormat.Format32bppArgb:
-                    return Scan32bitBufferPerPlane(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
+                    return Scan32bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -945,9 +960,9 @@ namespace YoonFactory.Image
             switch (m_pBitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return Scan24bitBufferPerPlane(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
+                    return Scan24bitPlaneBuffer(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
                 case PixelFormat.Format32bppArgb:
-                    return Scan32bitBufferPerPlane(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
+                    return Scan32bitPlaneBuffer(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -1435,7 +1450,38 @@ namespace YoonFactory.Image
             return pBuffer;
         }
 
-        private byte[] Scan24bitBufferPerPlane(Rectangle pRect, int nPlane)
+        private byte[,] Scan24bitPlaneBuffer(Rectangle pRect)
+        {
+            if (Plane != 3)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
+            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+                throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
+            byte[,] pPixelPlanes = new byte[pRect.Width * pRect.Height, Plane];
+            try
+            {
+                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                Parallel.For(0, pRect.Height, j =>
+                {
+                    for (int i = 0; i < pRect.Width; i++)
+                    {
+                        byte[] pBytePixel = new byte[3]; // {R, G, B}
+                        Marshal.Copy(pImageData.Scan0 + (j * pRect.Width * 3 + i * 3), pBytePixel, 0, pBytePixel.Length);
+                        pPixelPlanes[j * pRect.Width + i, 0] = pBytePixel[0];  // R
+                        pPixelPlanes[j * pRect.Width + i, 1] = pBytePixel[1];  // G
+                        pPixelPlanes[j * pRect.Width + i, 2] = pBytePixel[2];  // B
+                    }
+                });
+                m_pBitmap.UnlockBits(pImageData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+            return pPixelPlanes;
+        }
+
+        private byte[] Scan24bitPlaneBuffer(Rectangle pRect, int nPlane)
         {
             if (Plane != 3)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
@@ -1447,7 +1493,7 @@ namespace YoonFactory.Image
             try
             {
                 BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
-                for (int j = 0; j < pRect.Height; j++)
+                Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
                     {
@@ -1455,7 +1501,7 @@ namespace YoonFactory.Image
                         Marshal.Copy(pImageData.Scan0 + (j * pRect.Width * 3 + i * 3), pBytePixel, 0, pBytePixel.Length);
                         pPixelPlanes[j * pRect.Width + i] = pBytePixel[nPlane];
                     }
-                }
+                });
                 m_pBitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
@@ -1466,7 +1512,39 @@ namespace YoonFactory.Image
             return pPixelPlanes;
         }
 
-        private byte[] Scan32bitBufferPerPlane(Rectangle pRect, int nPlane)
+        private byte[,] Scan32bitPlaneBuffer(Rectangle pRect)
+        {
+            if (Plane != 4)
+                throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
+            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+                throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
+            byte[,] pPixelPlanes = new byte[pRect.Width * pRect.Height, Plane];
+            try
+            {
+                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                Parallel.For(0, pRect.Height, j =>
+                {
+                    for (int i = 0; i < pRect.Width; i++)
+                    {
+                        byte[] pBytePixel = new byte[4]; // {A, R, G, B}
+                        Marshal.Copy(pImageData.Scan0 + (j * pRect.Width * 4 + i * 4), pBytePixel, 0, pBytePixel.Length);
+                        pPixelPlanes[j * pRect.Width + i, 0] = pBytePixel[0];  // A
+                        pPixelPlanes[j * pRect.Width + i, 1] = pBytePixel[1];  // R
+                        pPixelPlanes[j * pRect.Width + i, 2] = pBytePixel[2];  // G
+                        pPixelPlanes[j * pRect.Width + i, 3] = pBytePixel[3];  // B
+                    }
+                });
+                m_pBitmap.UnlockBits(pImageData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+            return pPixelPlanes;
+        }
+
+        private byte[] Scan32bitPlaneBuffer(Rectangle pRect, int nPlane)
         {
             if (Plane != 4)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
@@ -1478,7 +1556,7 @@ namespace YoonFactory.Image
             try
             {
                 BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
-                for (int j = 0; j < pRect.Height; j++)
+                Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
                     {
@@ -1486,7 +1564,7 @@ namespace YoonFactory.Image
                         Marshal.Copy(pImageData.Scan0 + (j * pRect.Width * 4 + i * 4), pBytePixel, 0, pBytePixel.Length);
                         pPixelPlanes[j * pRect.Width + i] = pBytePixel[nPlane];
                     }
-                }
+                });
                 m_pBitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
