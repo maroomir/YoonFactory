@@ -12,10 +12,10 @@ namespace YoonFactory.Cognex
 {
     public static class CognexFactory
     {
-        public static CognexImage CropImage(this CognexImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight) => Transform.CropImage(pSourceImage, dCenterX, dCenterY, dCropWidth, dCropHeight);
-        public static CognexImage CropImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.CropImage(pSourceImage, pRect);
-        public static CognexImage ResizeImage(this CognexImage pSourceImage, double dSourceWidth, double dSourceHeight) => Transform.ResizeImage(pSourceImage, dSourceWidth, dSourceHeight);
-        public static CognexImage ResizeImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.ResizeImage(pSourceImage, pRect);
+        public static CognexImage CropImage(this CognexImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight) => Transform.Crop(pSourceImage, dCenterX, dCenterY, dCropWidth, dCropHeight);
+        public static CognexImage CropImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.Crop(pSourceImage, pRect);
+        public static CognexImage ResizeImage(this CognexImage pSourceImage, double dSourceWidth, double dSourceHeight) => Transform.Resize(pSourceImage, dSourceWidth, dSourceHeight);
+        public static CognexImage ResizeImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.Resize(pSourceImage, pRect);
         public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect) => PatternMatch.CropPattern(pSourceImage, pRect);
         public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos) => PatternMatch.CropPattern(pSourceImage, pRect);
         public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold) => PatternMatch.FindPattern(pSourceImage, pPatternObject, dMatchThreshold);
@@ -206,14 +206,14 @@ namespace YoonFactory.Cognex
             public static CogPMAlignPattern GetPatternParam(CognexImage pPatternImage, YoonVector2D pOriginPos,
                 bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
             {
-                return GetPatternParam(pPatternImage.ToCogImage(), pOriginPos.X, pOriginPos.Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
+                return GetPatternParam(pPatternImage.CogImage, pOriginPos.X, pOriginPos.Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
             }
 
             public static CogPMAlignPattern GetPatternParam(CognexImage pPatternImage, eYoonDir2D nDir,
                 bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0)
             {
                 YoonRect2D pRectArea = pPatternImage.Area.ToRect2D();
-                return GetPatternParam(pPatternImage.ToCogImage(), pRectArea.GetPosition(nDir).X, pRectArea.GetPosition(nDir).Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
+                return GetPatternParam(pPatternImage.CogImage, pRectArea.GetPosition(nDir).X, pRectArea.GetPosition(nDir).Y, bAutoLimited, bAutoThreshold, dCoarseLimit, dFineLimit, dThreshold);
             }
 
             public static CogPMAlignPattern GetPatternParam(ICogImage cogPatternImage, double dOriginX, double dOriginY,
@@ -310,7 +310,7 @@ namespace YoonFactory.Cognex
                     CognexImage pPatternImage = pPatternObject.ObjectImage as CognexImage;
                     YoonVector2D pOriginPos = pPatternObject.ReferencePosition as YoonVector2D;
                     //////  Pattern 설정
-                    cogPatternParam.TrainImage = pPatternImage.ToCogImage();
+                    cogPatternParam.TrainImage = pPatternImage.CogImage;
                     cogPatternParam.TrainRegion = null;  // 전체 영역
                     cogPatternParam.TrainRegionMode = CogRegionModeConstants.PixelAlignedBoundingBoxAdjustMask;
                     //////  Origin 설정
@@ -360,7 +360,7 @@ namespace YoonFactory.Cognex
                 }
                 CogPMAlignTool cogPMAlignTool = new CogPMAlignTool();
                 {
-                    cogPMAlignTool.InputImage = pSourceImage.ToCogImage();
+                    cogPMAlignTool.InputImage = pSourceImage.CogImage;
                     cogPMAlignTool.Pattern = cogPatternParam;
                     cogPMAlignTool.RunParams = cogMatchParam;
                     //////  중심점 출력을 위한 Train 영역 확인
@@ -496,12 +496,12 @@ namespace YoonFactory.Cognex
 
         public static class Transform
         {
-            public static CognexImage CropImage(CognexImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight)
+            public static CognexImage Crop(CognexImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight)
             {
-                return new CognexImage(CropImage(pSourceImage.ToCogImage(), dCenterX, dCenterY, dCropWidth, dCropHeight));
+                return new CognexImage(Crop(pSourceImage.CogImage, dCenterX, dCenterY, dCropWidth, dCropHeight));
             }
 
-            public static ICogImage CropImage(ICogImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight)
+            public static ICogImage Crop(ICogImage pSourceImage, double dCenterX, double dCenterY, double dCropWidth, double dCropHeight)
             {
                 ////  CogAffineTransform 설정
                 CogAffineTransform cogAffine = new CogAffineTransform();
@@ -539,27 +539,27 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CognexImage CropImage(CognexImage pSourceImage, IYoonRect pRect)
+            public static CognexImage Crop(CognexImage pSourceImage, IYoonRect pRect)
             {
-                return new CognexImage(CropImage(pSourceImage.ToCogImage(), pRect.ToCogRectAffine()));
+                return new CognexImage(Crop(pSourceImage.CogImage, pRect.ToCogRectAffine()));
             }
 
-            public static ICogImage CropImage(ICogImage pSourceImage, ICogRegion pRegion)
+            public static ICogImage Crop(ICogImage pSourceImage, ICogRegion pRegion)
             {
                 if (pSourceImage == null) return null;
                 switch (pRegion)
                 {
                     case CogRectangle cogRect:
-                        return CropImage(pSourceImage, cogRect);
+                        return Crop(pSourceImage, cogRect);
                     case CogRectangleAffine cogRectAffine:
-                        return CropImage(pSourceImage, cogRectAffine);
+                        return Crop(pSourceImage, cogRectAffine);
                     default:
                         break;
                 }
                 return null;
             }
 
-            public static ICogImage CropImage(ICogImage pSourceImage, CogRectangle pRect)
+            public static ICogImage Crop(ICogImage pSourceImage, CogRectangle pRect)
             {
                 ////  CogAffineTransform 설정
                 CogAffineTransform cogAffine = new CogAffineTransform();
@@ -597,7 +597,7 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static ICogImage CropImage(ICogImage pSourceImage, CogRectangleAffine pRectAffine)
+            public static ICogImage Crop(ICogImage pSourceImage, CogRectangleAffine pRectAffine)
             {
                 ////  CogAffineTransform 설정
                 CogAffineTransform cogAffine = new CogAffineTransform();
@@ -626,12 +626,12 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CognexImage ResizeImage(CognexImage pSourceImage, double dSourceWidth, double dSourceHeight)
+            public static CognexImage Resize(CognexImage pSourceImage, double dSourceWidth, double dSourceHeight)
             {
-                return new CognexImage(ResizeImage(pSourceImage.ToCogImage(), dSourceWidth, dSourceHeight));
+                return new CognexImage(Resize(pSourceImage.CogImage, dSourceWidth, dSourceHeight));
             }
 
-            public static ICogImage ResizeImage(ICogImage pSourceImage, double dSourceWidth, double dSourceHeight)
+            public static ICogImage Resize(ICogImage pSourceImage, double dSourceWidth, double dSourceHeight)
             {
                 ////  CogAffineTransform 설정
                 CogAffineTransform cogAffine = new CogAffineTransform();
@@ -660,12 +660,12 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CognexImage ResizeImage(CognexImage pSourceImage, IYoonRect pRect)
+            public static CognexImage Resize(CognexImage pSourceImage, IYoonRect pRect)
             {
-                return new CognexImage(ResizeImage(pSourceImage.ToCogImage(), pRect.ToCogRect()));
+                return new CognexImage(Resize(pSourceImage.CogImage, pRect.ToCogRect()));
             }
 
-            public static ICogImage ResizeImage(ICogImage pSourceImage, CogRectangle pRect)
+            public static ICogImage Resize(ICogImage pSourceImage, CogRectangle pRect)
             {
                 ////  CogAffineTransform 설정
                 CogAffineTransform cogAffine = new CogAffineTransform();
@@ -699,7 +699,7 @@ namespace YoonFactory.Cognex
         {
             public static CognexImage Subtract(CognexImage pSourceImage, CognexImage pObjectImage)
             {
-                return new CognexImage(Subtract(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+                return new CognexImage(Subtract(pSourceImage.CogImage, pObjectImage.CogImage));
             }
 
             public static ICogImage Subtract(ICogImage cogSourceImage, ICogImage cogObjectImage)
@@ -732,7 +732,7 @@ namespace YoonFactory.Cognex
 
             public static CognexImage Add(CognexImage pSourceImage, CognexImage pObjectImage)
             {
-                return new CognexImage(Add(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+                return new CognexImage(Add(pSourceImage.CogImage, pObjectImage.CogImage));
             }
 
             public static ICogImage Add(ICogImage cogSourceImage, ICogImage cogObjectImage)
@@ -766,7 +766,7 @@ namespace YoonFactory.Cognex
 
             public static CognexImage OverlapMax(CognexImage pSourceImage, CognexImage pObjectImage)
             {
-                return new CognexImage(OverlapMax(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+                return new CognexImage(OverlapMax(pSourceImage.CogImage, pObjectImage.CogImage));
             }
 
             public static ICogImage OverlapMax(ICogImage cogSourceImage, ICogImage cogObjectImage)
@@ -799,7 +799,7 @@ namespace YoonFactory.Cognex
 
             public static CognexImage OverlapMin(CognexImage pSourceImage, CognexImage pObjectImage)
             {
-                return new CognexImage(OverlapMin(pSourceImage.ToCogImage(), pObjectImage.ToCogImage()));
+                return new CognexImage(OverlapMin(pSourceImage.CogImage, pObjectImage.CogImage));
             }
 
             public static ICogImage OverlapMin(ICogImage cogSourceImage, ICogImage cogObjectImage)

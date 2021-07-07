@@ -198,7 +198,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogImageConvertTool pCogToolConvert = pCogTool as CogImageConvertTool;
-                pCogToolConvert.InputImage = pSourceImage.ToCogImage();
+                pCogToolConvert.InputImage = pSourceImage.CogImage;
                 //// 동작
                 pCogToolConvert.Run();
                 //// 결과 확인
@@ -231,7 +231,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogSobelEdgeTool pCogToolSobel = pCogTool as CogSobelEdgeTool;
-                pCogToolSobel.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
+                pCogToolSobel.InputImage = pSourceImage.CogImage as CogImage8Grey;
                 ////  동작
                 pCogToolSobel.Run();
                 ////  결과 확인
@@ -264,7 +264,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogImageSharpnessTool pCogToolSharpness = pCogTool as CogImageSharpnessTool;
-                pCogToolSharpness.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
+                pCogToolSharpness.InputImage = pSourceImage.CogImage as CogImage8Grey;
                 ////  동작
                 pCogToolSharpness.Run();
                 ////  결과 확인
@@ -297,7 +297,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPOneImageTool pCogToolIP = pCogTool as CogIPOneImageTool;
-                pCogToolIP.InputImage = pSourceImage.ToCogImage();
+                pCogToolIP.InputImage = pSourceImage.CogImage;
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -330,7 +330,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogBlobTool pCogToolBlob = pCogTool as CogBlobTool;
-                pCogToolBlob.InputImage = pSourceImage.ToCogImage();
+                pCogToolBlob.InputImage = pSourceImage.CogImage;
                 ////  동작
                 pCogToolBlob.Run();
                 ////  결과 확인
@@ -371,7 +371,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogColorSegmenterTool pCogToolSegment = pCogTool as CogColorSegmenterTool;
-                pCogToolSegment.InputImage = pSourceImage.ToCogImage() as CogImage24PlanarColor;
+                pCogToolSegment.InputImage = pSourceImage.CogImage as CogImage24PlanarColor;
                 ////  동작
                 pCogToolSegment.Run();
                 ////  결과 확인
@@ -404,7 +404,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogColorExtractorTool pCogToolExtract = pCogTool as CogColorExtractorTool;
-                pCogToolExtract.InputImage = pSourceImage.ToCogImage() as CogImage24PlanarColor;
+                pCogToolExtract.InputImage = pSourceImage.CogImage as CogImage24PlanarColor;
                 ////  동작
                 pCogToolExtract.Run();
                 ////  결과 확인
@@ -437,7 +437,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogFindLineTool pCogToolFindLine = pCogTool as CogFindLineTool;
-                pCogToolFindLine.InputImage = pSourceImage.ToCogImage() as CogImage8Grey;
+                pCogToolFindLine.InputImage = pSourceImage.CogImage as CogImage8Grey;
                 ////  동작
                 pCogToolFindLine.Run();
                 ////  결과 확인
@@ -478,7 +478,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogPMAlignTool pCogToolPM = pCogTool as CogPMAlignTool;
-                pCogToolPM.InputImage = pSourceImage.ToCogImage();
+                pCogToolPM.InputImage = pSourceImage.CogImage;
                 ////  동작
                 pCogToolPM.Run();
                 ////  결과 확인
@@ -519,8 +519,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageAddTool pCogToolIP = pCogTool as CogIPTwoImageAddTool;
-                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
-                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
+                pCogToolIP.InputImageA = pSourceImageA.CogImage;
+                pCogToolIP.InputImageB = pSourceImageB.CogImage;
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -553,8 +553,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageSubtractTool pCogToolIP = pCogTool as CogIPTwoImageSubtractTool;
-                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
-                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
+                pCogToolIP.InputImageA = pSourceImageA.CogImage;
+                pCogToolIP.InputImageB = pSourceImageB.CogImage;
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -587,8 +587,8 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogIPTwoImageMinMaxTool pCogToolIP = pCogTool as CogIPTwoImageMinMaxTool;
-                pCogToolIP.InputImageA = pSourceImageA.ToCogImage();
-                pCogToolIP.InputImageB = pSourceImageB.ToCogImage();
+                pCogToolIP.InputImageA = pSourceImageA.CogImage;
+                pCogToolIP.InputImageB = pSourceImageB.CogImage;
                 ////  동작
                 pCogToolIP.Run();
                 ////  결과 확인
@@ -620,7 +620,7 @@ namespace YoonFactory.Cognex.Tool
             {
                 ////  초기화
                 CogCalibCheckerboardTool pCogToolCalib = pCogTool as CogCalibCheckerboardTool;
-                pCogToolCalib.InputImage = pSourceImage.ToCogImage();
+                pCogToolCalib.InputImage = pSourceImage.CogImage;
                 ////  동작
                 pCogToolCalib.Run();
                 ////  결과 확인

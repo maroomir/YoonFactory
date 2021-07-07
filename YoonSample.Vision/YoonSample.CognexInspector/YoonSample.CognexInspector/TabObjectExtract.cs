@@ -282,7 +282,7 @@ namespace YoonSample.CognexInspector
                 //// Display Update
                 cogDisplay_ProcessView.StaticGraphics.Clear();
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
-                cogDisplay_ProcessView.Image = m_pCogImageResult.ToCogImage();
+                cogDisplay_ProcessView.Image = m_pCogImageResult.CogImage;
                 //// Result에 맞게 Display 위에 결과 그리기
                 CommonClass.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                 //// Result Image를 다른 Tab으로 넘기기
@@ -312,7 +312,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_PrevView.StaticGraphics.Clear();
             cogDisplay_PrevView.InteractiveGraphics.Clear();
-            cogDisplay_PrevView.Image = m_pCogImageSourceSelected.ToCogImage();
+            cogDisplay_PrevView.Image = m_pCogImageSourceSelected.CogImage;
         }
 
         private void button_UpdateSetting_Click(object sender, EventArgs e)
@@ -342,7 +342,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogBlob pCogForm = new Form_CogBlob();
-            pCogForm.CogImageSource = pImageBlob.ToCogImage();
+            pCogForm.CogImageSource = pImageBlob.CogImage;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Blob][string.Empty] as CogBlobTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -372,7 +372,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogColorSegment pCogForm = new Form_CogColorSegment();
-            pCogForm.CogImageSource = pImageColorSegment.ToCogImage() as CogImage24PlanarColor;
+            pCogForm.CogImageSource = pImageColorSegment.CogImage as CogImage24PlanarColor;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.ColorSegment][string.Empty] as CogColorSegmenterTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;

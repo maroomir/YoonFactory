@@ -63,7 +63,7 @@ namespace YoonFactory.CV
             public static IYoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
             {
                 double dMatchScore;
-                Rect pRectResult = FindTemplate(pTemplateImage.ToMatrix(), pSourceImage.ToMatrix(), out dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);
+                Rect pRectResult = FindTemplate(pTemplateImage.Matrix, pSourceImage.Matrix, out dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);
                 return new YoonObject<YoonRect2N>(0, pRectResult.ToYoonRect(), pTemplateImage.CropImage(pRectResult.ToYoonRect()), dMatchScore, (int)(dMatchScore * pRectResult.Width * pRectResult.Height));
             }
 
@@ -90,7 +90,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Add(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Add(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Add(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -104,7 +104,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Subtract(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Subtract(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Subtract(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -118,7 +118,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Multiply(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Multiply(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Multiply(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -132,7 +132,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Divide(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Divide(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Divide(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -146,7 +146,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Max(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Max(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Max(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -160,7 +160,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(Min(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(Min(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat Min(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -174,7 +174,7 @@ namespace YoonFactory.CV
             {
                 if (pSourceImage.Width != pObjectImage.Width || pSourceImage.Height != pObjectImage.Height)
                     throw new ArgumentOutOfRangeException("[YOONCV EXCEPTION] Image size is not same");
-                return new CVImage(AbsDiff(pSourceImage.ToMatrix(), pObjectImage.ToMatrix()));
+                return new CVImage(AbsDiff(pSourceImage.Matrix, pObjectImage.Matrix));
             }
 
             public static Mat AbsDiff(Mat pSourceMatrix, Mat pObjectMatrix)
@@ -183,13 +183,78 @@ namespace YoonFactory.CV
                 Cv2.Absdiff(pSourceMatrix, pObjectMatrix, pResultMatrix);
                 return pResultMatrix;
             }
+
+            public static CVImage Blending(CVImage pSourceImage, CVImage pObjectImage)
+            {
+                return new CVImage(Blending(pSourceImage.Matrix, pObjectImage.Matrix));
+            }
+
+            public static Mat Blending(Mat pSourceMatrix, Mat pObjectMatrix, int nDepth = 5)
+            {
+                Mat pPipelineMatrix = pSourceMatrix.Clone();
+                ////  Construct the Gaussian Pyramid
+                List<Mat> pPyrGaussianSource = new List<Mat>();
+                List<Mat> pPyrGaussianObject = new List<Mat>();
+                pPyrGaussianSource.Add(pSourceMatrix);
+                pPyrGaussianObject.Add(pObjectMatrix);
+                for (int i = 0; i < nDepth; i++)
+                {
+                    Cv2.PyrDown(pPyrGaussianSource[i], pPipelineMatrix);
+                    pPyrGaussianSource.Add(pPipelineMatrix.Clone());
+                    Cv2.PyrDown(pPyrGaussianObject[i], pPipelineMatrix);
+                    pPyrGaussianObject.Add(pPipelineMatrix.Clone());
+                }
+                ////  Construct the Laplacian Pyramid
+                List<Mat> pPyrLaplacianSource = new List<Mat>();
+                List<Mat> pPyrLaplacianObject = new List<Mat>();
+                pPyrLaplacianSource.Add(pPyrGaussianSource.Last());
+                pPyrLaplacianObject.Add(pPyrLaplacianObject.Last());
+                for (int i = nDepth - 1; i >= 0; i--)
+                {
+                    int nDestWidth = pPyrGaussianSource[i - 1].Width;
+                    int nDestHeight = pPyrGaussianSource[i - 1].Height;
+                    Cv2.PyrUp(pPyrLaplacianSource[i], pPipelineMatrix, new OpenCvSharp.Size(nDestWidth, nDestHeight));
+                    Cv2.Subtract(pPyrGaussianSource[i - 1], pPipelineMatrix.Clone(), pPipelineMatrix);
+                    pPyrLaplacianSource.Add(pPipelineMatrix.Clone());
+
+                    nDestWidth = pPyrGaussianObject[i - 1].Width;
+                    nDestHeight = pPyrGaussianObject[i - 1].Height;
+                    Cv2.PyrUp(pPyrLaplacianObject[i], pPipelineMatrix, new OpenCvSharp.Size(nDestWidth, nDestHeight));
+                    Cv2.Subtract(pPyrGaussianObject[i - 1], pPipelineMatrix.Clone(), pPipelineMatrix);
+                    pPyrLaplacianObject.Add(pPipelineMatrix.Clone());
+                }
+                ////  Blend the image
+                List<Mat> pListBlending = new List<Mat>();
+                for (int i = 0; i < nDepth; i++)
+                {
+                    List<Mat> pListSumImage = new List<Mat>();
+                    int nSourceWidth = pPyrLaplacianSource[i].Width;
+                    int nSourceHeight = pPyrLaplacianSource[i].Height;
+                    int nObjectWidth = pPyrLaplacianObject[i].Width;
+                    int nObjectHeight = pPyrLaplacianObject[i].Height;
+                    pListSumImage.Add(pPyrLaplacianSource[i].SubMat(0, nSourceHeight, 0, nSourceWidth / 2));
+                    pListSumImage.Add(pPyrLaplacianObject[i].SubMat(0, nObjectHeight, nObjectWidth / 2 + 1, nObjectWidth));
+                    Cv2.HConcat(pListSumImage, pPipelineMatrix);
+                    pListSumImage.Clear();
+
+                    pListBlending.Add(pPipelineMatrix.Clone());
+                }
+                ///  Upscale Image
+                for (int i = nDepth - 1; i >= 0; i--)
+                {
+                    int nDestWidth = pListBlending[i - 1].Width;
+                    int nDestHeight = pListBlending[i - 1].Height;
+                    Cv2.PyrUp(pListBlending[i], pPipelineMatrix, new OpenCvSharp.Size(nDestWidth, nDestHeight));
+                }
+                return pPipelineMatrix.Clone();
+            }
         }
 
         public static class Filter
         {
             public static CVImage Sobel(CVImage pSourceImage, int nOrderX = 1, int nOrderY = 0)
             {
-                return new CVImage(Sobel(pSourceImage.ToMatrix(), nOrderX, nOrderY));
+                return new CVImage(Sobel(pSourceImage.Matrix, nOrderX, nOrderY));
             }
 
             public static Mat Sobel(Mat pSourceMatrix, int nOrderX, int nOrderY)
@@ -202,7 +267,7 @@ namespace YoonFactory.CV
 
             public static CVImage Scharr(CVImage pSourceImage, int nOrderX = 1, int nOrderY = 0)
             {
-                return new CVImage(Scharr(pSourceImage.ToMatrix(), nOrderX, nOrderY));
+                return new CVImage(Scharr(pSourceImage.Matrix, nOrderX, nOrderY));
             }
 
             public static Mat Scharr(Mat pSourceMatrix, int nOrderX, int nOrderY)
@@ -215,7 +280,7 @@ namespace YoonFactory.CV
 
             public static CVImage Laplacian(CVImage pSourceImage)
             {
-                return new CVImage(Laplacian(pSourceImage.ToMatrix()));
+                return new CVImage(Laplacian(pSourceImage.Matrix));
             }
 
             public static Mat Laplacian(Mat pSourceMatrix)
@@ -228,7 +293,7 @@ namespace YoonFactory.CV
 
             public static CVImage Gaussian(CVImage pSourceImage, int nSizeX = 3, int nSizeY = 3)
             {
-                return new CVImage(Gaussian(pSourceImage.ToMatrix(), nSizeX, nSizeY));
+                return new CVImage(Gaussian(pSourceImage.Matrix, nSizeX, nSizeY));
             }
 
             public static Mat Gaussian(Mat pSourceMatrix, int nSizeX, int nSizeY)
@@ -240,7 +305,7 @@ namespace YoonFactory.CV
 
             public static CVImage Canny(CVImage pSourceImage, double dThresholdMin = 100, double dThresholdMax = 200)
             {
-                return new CVImage(Canny(pSourceImage.ToMatrix(), dThresholdMin, dThresholdMax));
+                return new CVImage(Canny(pSourceImage.Matrix, dThresholdMin, dThresholdMax));
             }
 
             public static Mat Canny(Mat pSourceMatrix, double dThresholdMin, double dThresholdMax)
@@ -255,12 +320,12 @@ namespace YoonFactory.CV
         {
             public static CVImage FillFlood(CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, bool bWhite)
             {
-                return new CVImage(FillFlood(pSourceImage.ToMatrix(), pVector, nThreshold, bWhite));
+                return new CVImage(FillFlood(pSourceImage.Matrix, pVector, nThreshold, bWhite));
             }
 
             public static CVImage FillFlood(CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, Color pFillColor)
             {
-                return new CVImage(FillFlood(pSourceImage.ToMatrix(), pVector, nThreshold, pFillColor));
+                return new CVImage(FillFlood(pSourceImage.Matrix, pVector, nThreshold, pFillColor));
             }
 
             public static Mat FillFlood(Mat pSourceMatrix, YoonVector2N pVector, byte nThreshold, bool isWhite)
@@ -289,7 +354,7 @@ namespace YoonFactory.CV
             {
                 if(pSourceImage.Plane != 3)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new CVImage(DetectHSV(pSourceImage.ToMatrix(), nHue, nSaturation, nValue));
+                return new CVImage(DetectHSV(pSourceImage.Matrix, nHue, nSaturation, nValue));
             }
 
             public static Mat DetectHSV(Mat pSourceMatrix, byte nHue, byte nSaturation, byte nValue, byte nThreshold = 10)
@@ -308,6 +373,45 @@ namespace YoonFactory.CV
                 Cv2.BitwiseAnd(pHsvMatrix, pHsvMatrix, pResultMatrix, pMaskMatrix);
                 Cv2.CvtColor(pResultMatrix, pResultMatrix, ColorConversionCodes.HSV2BGR);
                 return pResultMatrix;
+            }
+        }
+
+        public static class Transform
+        {
+            public static CVImage FlipX(CVImage pSourceImage) => new CVImage(FlipX(pSourceImage.Matrix));
+            public static CVImage FlipY(CVImage pSourceImage) => new CVImage(FlipY(pSourceImage.Matrix));
+            public static CVImage FlipXY(CVImage pSourceImage) => new CVImage(FlipXY(pSourceImage.Matrix));
+            public static Mat FlipX(Mat pSourceMatrix) => pSourceMatrix.Flip(FlipMode.X);
+            public static Mat FlipY(Mat pSourceMatrix) => pSourceMatrix.Flip(FlipMode.Y);
+            public static Mat FlipXY(Mat pSourceMatrix) => pSourceMatrix.Flip(FlipMode.XY);
+            public static CVImage Flip(CVImage pSourceImage, eYoonDir2DMode nMode)
+            {
+                switch (nMode)
+                {
+                    case eYoonDir2DMode.AxisX:
+                        return FlipX(pSourceImage);
+                    case eYoonDir2DMode.AxisY:
+                        return FlipY(pSourceImage);
+                    case eYoonDir2DMode.Fixed:
+                        return pSourceImage.Clone() as CVImage;
+                    default:
+                        return FlipXY(pSourceImage);
+                }
+            }
+
+            public static CVImage Resize(CVImage pSourceImage, double dRatio)
+            {
+                return new CVImage(Resize(pSourceImage.Matrix, (int)(dRatio * pSourceImage.Width), (int)(dRatio * pSourceImage.Height)));
+            }
+
+            public static CVImage Resize(CVImage pSourceImage, double dRatioX, double dRatioY)
+            {
+                return new CVImage(Resize(pSourceImage.Matrix, (int)(dRatioX * pSourceImage.Width), (int)(dRatioY * pSourceImage.Height)));
+            }
+
+            public static Mat Resize(Mat pSourceMatrix, int nDestWidth, int nDestHeight)
+            {
+                return pSourceMatrix.Resize(new OpenCvSharp.Size(nDestWidth, nDestHeight));
             }
         }
     }

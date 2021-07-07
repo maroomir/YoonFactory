@@ -111,12 +111,12 @@ namespace YoonSample.CognexInspector
                 case Button pButtonUpdate:
                     cogDisplay_PreviousView.StaticGraphics.Clear();
                     cogDisplay_PreviousView.InteractiveGraphics.Clear();
-                    cogDisplay_PreviousView.Image = m_pCogImageSource.ToCogImage();
+                    cogDisplay_PreviousView.Image = m_pCogImageSource.CogImage;
                     break;
                 case IInspectionTab pTabInsp:
                     cogDisplay_PreviousView.StaticGraphics.Clear();
                     cogDisplay_PreviousView.InteractiveGraphics.Clear();
-                    cogDisplay_PreviousView.Image = m_pCogImageSource.ToCogImage();
+                    cogDisplay_PreviousView.Image = m_pCogImageSource.CogImage;
                     break;
             }
         }
@@ -166,7 +166,7 @@ namespace YoonSample.CognexInspector
                 //// Display Update
                 cogDisplay_ProcessView.StaticGraphics.Clear();
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
-                cogDisplay_ProcessView.Image = m_pCogImageResult.ToCogImage();
+                cogDisplay_ProcessView.Image = m_pCogImageResult.CogImage;
                 //// Result Image를 다른 Tab으로 넘기기
                 OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
@@ -178,7 +178,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogImageConvert pCogForm = new Form_CogImageConvert();
-            pCogForm.CogImageSource = m_pCogImageSource.ToCogImage();    // Convert는 무조건 Source 입력
+            pCogForm.CogImageSource = m_pCogImageSource.CogImage;    // Convert는 무조건 Source 입력
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Convert][string.Empty] as CogImageConvertTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -199,7 +199,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogIPOneImage pCogForm = new Form_CogIPOneImage();
-            pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing.ToCogImage() : m_pCogImageSource.ToCogImage();
+            pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing.CogImage : m_pCogImageSource.CogImage;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Filtering][string.Empty] as CogIPOneImageTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -214,7 +214,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogImageSobelEdge pCogForm = new Form_CogImageSobelEdge();
-            pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing.ToCogImage() as CogImage8Grey : m_pCogImageSource.ToCogImage() as CogImage8Grey;
+            pCogForm.CogImageSource = (m_pCogImageProcessing != null) ? m_pCogImageProcessing.CogImage as CogImage8Grey : m_pCogImageSource.CogImage as CogImage8Grey;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Sobel][string.Empty] as CogSobelEdgeTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;

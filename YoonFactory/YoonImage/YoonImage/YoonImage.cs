@@ -19,19 +19,22 @@ namespace YoonFactory.Image
             {
                 if (disposing)
                 {
-                    m_pBitmap.Dispose();
+                    Bitmap.Dispose();
                 }
                 // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
                 // TODO: 큰 필드를 null로 설정합니다.
-                m_pBitmap = null;
+                Bitmap = null;
+
+                disposedValue = true;
             }
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        // ~DatabaseControl() {
-        //   // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
-        //   Dispose(false);
-        // }
+        ~YoonImage()
+        {
+            // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
+            Dispose(false);
+        }
 
         // 삭제 가능한 패턴을 올바르게 구현하기 위해 추가된 코드입니다.
         public void Dispose()
@@ -43,7 +46,7 @@ namespace YoonFactory.Image
         }
         #endregion
 
-        protected Bitmap m_pBitmap = null;
+        public Bitmap Bitmap { get; protected set; } = null;
         protected const int DEFAULT_WIDTH = 640;
         protected const int DEFAULT_HEIGHT = 480;
 
@@ -51,14 +54,14 @@ namespace YoonFactory.Image
 
         public PixelFormat Format
         {
-            get => m_pBitmap.PixelFormat;
+            get => Bitmap.PixelFormat;
         }
 
         public int Plane
         {
             get
             {
-                switch (m_pBitmap.PixelFormat)
+                switch (Bitmap.PixelFormat)
                 {
                     case PixelFormat.Format8bppIndexed:
                         return 1;
@@ -99,17 +102,17 @@ namespace YoonFactory.Image
 
         public int Stride
         {
-            get => Plane * m_pBitmap.Width;
+            get => Plane * Bitmap.Width;
         }
 
         public int Width
         {
-            get => m_pBitmap.Width;
+            get => Bitmap.Width;
         }
 
         public int Height
         {
-            get => m_pBitmap.Height;
+            get => Bitmap.Height;
         }
 
         public YoonVector2N CenterPos
@@ -120,11 +123,6 @@ namespace YoonFactory.Image
         public YoonRect2N Area
         {
             get => new YoonRect2N(CenterPos, Width, Height);
-        }
-
-        public Bitmap ToBitmap
-        {
-            get => m_pBitmap;
         }
 
         public YoonImage()
@@ -144,13 +142,13 @@ namespace YoonFactory.Image
                 nWidth = DEFAULT_WIDTH;
                 nHeight = DEFAULT_HEIGHT;
             }
-            m_pBitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
-            ColorPalette pPallete = m_pBitmap.Palette;
-            switch (m_pBitmap.PixelFormat)
+            Bitmap = new Bitmap(nWidth, nHeight, GetDefaultFormat(nPlane));
+            ColorPalette pPallete = Bitmap.Palette;
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format8bppIndexed:
                     Parallel.For(0, 256, i => { pPallete.Entries[i] = Color.FromArgb(i, i, i); });
-                    m_pBitmap.Palette = pPallete;
+                    Bitmap.Palette = pPallete;
                     break;
                 default:
                     break;
@@ -164,13 +162,13 @@ namespace YoonFactory.Image
                 nWidth = DEFAULT_WIDTH;
                 nHeight = DEFAULT_HEIGHT;
             }
-            m_pBitmap = new Bitmap(nWidth, nHeight, nFormat);
-            ColorPalette pPallete = m_pBitmap.Palette;
-            switch (m_pBitmap.PixelFormat)
+            Bitmap = new Bitmap(nWidth, nHeight, nFormat);
+            ColorPalette pPallete = Bitmap.Palette;
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format8bppIndexed:
                     Parallel.For(0, 256, i => { pPallete.Entries[i] = Color.FromArgb(i, i, i); });
-                    m_pBitmap.Palette = pPallete;
+                    Bitmap.Palette = pPallete;
                     break;
                 default:
                     break;
@@ -379,7 +377,7 @@ namespace YoonFactory.Image
 
         public YoonImage(Bitmap pBitmap)
         {
-            m_pBitmap = (Bitmap)pBitmap.Clone();
+            Bitmap = (Bitmap)pBitmap.Clone();
         }
 
         public void CopyFrom(IYoonFile pFile)
@@ -387,13 +385,13 @@ namespace YoonFactory.Image
             if (pFile is YoonImage pImage)
             {
                 FilePath = pImage.FilePath;
-                m_pBitmap = pImage.CopyImage();
+                Bitmap = pImage.CopyBitmap();
             }
         }
 
         public virtual IYoonFile Clone()
         {
-            YoonImage pImage = new YoonImage(m_pBitmap);
+            YoonImage pImage = new YoonImage(Bitmap);
             pImage.FilePath = FilePath;
             return pImage;
         }
@@ -421,18 +419,18 @@ namespace YoonFactory.Image
         public void SetVerifiedArea(ref YoonRect2N pArea)
         {
             if (pArea.Left < 0)
-                pArea.CenterPos.X = m_pBitmap.Width / 2;
+                pArea.CenterPos.X = Bitmap.Width / 2;
             if (pArea.Top < 0)
-                pArea.CenterPos.Y = m_pBitmap.Height / 2;
-            if (pArea.Right > m_pBitmap.Width)
-                pArea.Width = m_pBitmap.Width - pArea.Left;
-            if (pArea.Bottom > m_pBitmap.Height)
-                pArea.Height = m_pBitmap.Height - pArea.Top;
+                pArea.CenterPos.Y = Bitmap.Height / 2;
+            if (pArea.Right > Bitmap.Width)
+                pArea.Width = Bitmap.Width - pArea.Left;
+            if (pArea.Bottom > Bitmap.Height)
+                pArea.Height = Bitmap.Height - pArea.Top;
         }
 
         public bool IsVerifiedArea(YoonRect2N pArea)
         {
-            return (pArea.Left < 0 || pArea.Top < 0 || pArea.Right > m_pBitmap.Width || pArea.Bottom > m_pBitmap.Height) ? false : true;
+            return (pArea.Left < 0 || pArea.Top < 0 || pArea.Right > Bitmap.Width || pArea.Bottom > Bitmap.Height) ? false : true;
         }
 
         public virtual bool LoadImage(string strPath)
@@ -440,7 +438,7 @@ namespace YoonFactory.Image
             if (IsFileExist()) return false;
             try
             {
-                m_pBitmap = (Bitmap)System.Drawing.Image.FromFile(strPath);
+                Bitmap = (Bitmap)System.Drawing.Image.FromFile(strPath);
                 return true;
             }
             catch (Exception ex)
@@ -454,7 +452,7 @@ namespace YoonFactory.Image
         {
             try
             {
-                m_pBitmap.Save(strPath);
+                Bitmap.Save(strPath);
                 return true;
             }
             catch (Exception ex)
@@ -464,12 +462,12 @@ namespace YoonFactory.Image
             return false;
         }
 
-        public Bitmap CopyImage()
+        public Bitmap CopyBitmap()
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
 
-            YoonImage pResult = new YoonImage(m_pBitmap.Width, m_pBitmap.Height, m_pBitmap.PixelFormat);
+            YoonImage pResult = new YoonImage(Bitmap.Width, Bitmap.Height, Bitmap.PixelFormat);
             {
                 switch (Plane)
                 {
@@ -486,7 +484,7 @@ namespace YoonFactory.Image
                         break;
                 }
             }
-            return pResult.m_pBitmap;
+            return pResult.Bitmap;
         }
 
         public virtual YoonImage CropImage(YoonRect2N cropArea)
@@ -498,12 +496,12 @@ namespace YoonFactory.Image
                 for (int iY = 0; iY < cropArea.Height; iY++)
                 {
                     int nY = cropArea.Top + iY;
-                    if (nY >= m_pBitmap.Height) continue;
+                    if (nY >= Bitmap.Height) continue;
                     pByte = new byte[cropArea.Width];
                     for (int iX = 0; iX < cropArea.Width; iX++)
                     {
                         int nX = cropArea.Left + iX;
-                        if (nX >= m_pBitmap.Width) continue;
+                        if (nX >= Bitmap.Width) continue;
                         pByte[iX] = Math.Max((byte)0, Math.Min(GetGrayPixel(iX, iY), (byte)255));
                     }
                     pImageResult.SetGrayLine(pByte, iY);
@@ -517,25 +515,25 @@ namespace YoonFactory.Image
             if (Plane == 1)
                 return this;
             byte[] pByte = new byte[Width * Height];
-            switch (Plane)
+            switch (Format)
             {
-                case 3:
-                    byte[,] pBufferRGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
-                    for (int j = 0; j < m_pBitmap.Height; j++)
+                case PixelFormat.Format24bppRgb:
+                    byte[,] pBufferRGB = Scan24bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    for (int j = 0; j < Bitmap.Height; j++)
                     {
-                        for (int i = 0; i < m_pBitmap.Width; i++)
+                        for (int i = 0; i < Bitmap.Width; i++)
                         {
-                            pByte[j * m_pBitmap.Width + i] = (byte)(0.299f * pBufferRGB[j * m_pBitmap.Width + i, 0] + 0.587f * pBufferRGB[j * m_pBitmap.Width + i, 1] + 0.114f * pBufferRGB[j * m_pBitmap.Width + i, 2]); // ITU-RBT.709, YPrPb
+                            pByte[j * Bitmap.Width + i] = (byte)(0.299f * pBufferRGB[j * Bitmap.Width + i, 0] + 0.587f * pBufferRGB[j * Bitmap.Width + i, 1] + 0.114f * pBufferRGB[j * Bitmap.Width + i, 2]); // ITU-RBT.709, YPrPb
                         }
                     }
                     break;
-                case 4:
-                    byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
-                    for (int j = 0; j < m_pBitmap.Height; j++)
+                case PixelFormat.Format32bppArgb:
+                    byte[,] pBufferARGB = Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size));
+                    for (int j = 0; j < Bitmap.Height; j++)
                     {
-                        for (int i = 0; i < m_pBitmap.Width; i++)
+                        for (int i = 0; i < Bitmap.Width; i++)
                         {
-                            pByte[j * m_pBitmap.Width + i] = (byte)(0.299f * pBufferARGB[j * m_pBitmap.Width + i, 1] + 0.587f * pBufferARGB[j * m_pBitmap.Width + i, 2] + 0.114f * pBufferARGB[j * m_pBitmap.Width + i, 3]); // ITU-RBT.709, YPrPb
+                            pByte[j * Bitmap.Width + i] = (byte)(0.299f * pBufferARGB[j * Bitmap.Width + i, 1] + 0.587f * pBufferARGB[j * Bitmap.Width + i, 2] + 0.114f * pBufferARGB[j * Bitmap.Width + i, 3]); // ITU-RBT.709, YPrPb
                         }
                     }
                     break;
@@ -601,7 +599,7 @@ namespace YoonFactory.Image
                     pPoint[2].Y = pPoint[0].Y - (float)(size / 2 * zoom);
                     break;
             }
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillPolygon(brush, pPoint);
@@ -612,7 +610,7 @@ namespace YoonFactory.Image
         {
             float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
             float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillRectangle(brush, startX, startY, (float)pRect.Width, (float)pRect.Height);
@@ -623,7 +621,7 @@ namespace YoonFactory.Image
         {
             float startX = (float)(pRect.CenterPos.X - pRect.Width / 2) * (float)dRatio;
             float startY = (float)(pRect.CenterPos.Y - pRect.Height / 2) * (float)dRatio;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillRectangle(brush, startX, startY, (float)pRect.Width, (float)pRect.Height);
@@ -634,7 +632,7 @@ namespace YoonFactory.Image
         {
             float startX = (float)(centerX - width / 2) * (float)zoom;
             float startY = (float)(centerY - height / 2) * (float)zoom;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillRectangle(brush, startX, startY, (float)width, (float)height);
@@ -650,7 +648,7 @@ namespace YoonFactory.Image
                 pArrayDraw[iPoint].Y = (float)pArrayPoint[iPoint].Y * (float)dRatio;
             }
 
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 graph.FillPolygon(brush, pArrayDraw);
@@ -659,8 +657,8 @@ namespace YoonFactory.Image
 
         public void FillCanvas(Color fillColor)
         {
-            Rectangle pRectCanvas = new Rectangle(0, 0, m_pBitmap.Width, m_pBitmap.Height);
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            Rectangle pRectCanvas = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 SolidBrush brush = new SolidBrush(fillColor);
                 Region pRegion = new Region(pRectCanvas);
@@ -700,7 +698,7 @@ namespace YoonFactory.Image
                     pIYoonVector[2].Y = pIYoonVector[0].Y - (float)(size / 2 * zoom);
                     break;
             }
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(penColor, (float)penWidth);
                 graph.DrawLine(pen, pIYoonVector[0], pIYoonVector[1]);
@@ -736,7 +734,7 @@ namespace YoonFactory.Image
             deltaY = vecPos1.Y * dRatio;
             deltaX1 = vecPos2.X * dRatio;
             deltaY1 = vecPos2.Y * dRatio;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(penColor, penWidth);
                 graph.DrawLine(pen, new PointF((float)Math.Round(deltaX), (float)Math.Round(deltaY)), new PointF((float)Math.Round(deltaX1), (float)Math.Round(deltaY1)));
@@ -750,7 +748,7 @@ namespace YoonFactory.Image
             deltaY = (double)y * zoom;
             deltaX1 = (double)x1 * zoom;
             deltaY1 = (double)y1 * zoom;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(penColor, penWidth);
                 graph.DrawLine(pen, new PointF((float)Math.Round(deltaX), (float)Math.Round(deltaY)), new PointF((float)Math.Round(deltaX1), (float)Math.Round(deltaY1)));
@@ -764,7 +762,7 @@ namespace YoonFactory.Image
             deltaY = (float)(vecPos.Y * dRatio);
             size = (float)fontSize;
             if (size < 10) size = 10;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Brush brush = new SolidBrush(fontColor);
                 FontFamily fontFamily = new FontFamily("Tahoma");
@@ -783,7 +781,7 @@ namespace YoonFactory.Image
             x2 = deltaX + size;
             y1 = deltaY - size;
             y2 = deltaY + size;
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(penColor, (float)penWidth);
                 graph.DrawLine(pen, new PointF(x1, deltaY), new PointF(x2, deltaY));
@@ -798,7 +796,7 @@ namespace YoonFactory.Image
             y1 = (int)Math.Round(rect.Top * dRatio);
             x2 = (int)Math.Round(rect.Right * dRatio);
             y2 = (int)Math.Round(rect.Bottom * dRatio);
-            using (Graphics graph = Graphics.FromImage(m_pBitmap))
+            using (Graphics graph = Graphics.FromImage(Bitmap))
             {
                 Pen pen = new Pen(penColor, (float)penWidth);
                 graph.DrawEllipse(pen, x1, y1, (x2 - x1), (y2 - y1));
@@ -807,14 +805,14 @@ namespace YoonFactory.Image
 
         public bool SetOffset(byte offset)
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
             byte[] pByte;
             bool bResult = true;
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                pByte = new byte[m_pBitmap.Width];
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                pByte = new byte[Bitmap.Width];
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     pByte[iX] = (byte)Math.Max(0, Math.Min(GetGrayPixel(iX, iY) + offset, 255));
                 }
@@ -826,16 +824,16 @@ namespace YoonFactory.Image
 
         public int[] GetGrayHistogram()
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (m_pBitmap.PixelFormat != PixelFormat.Format8bppIndexed)
+            if (Bitmap.PixelFormat != PixelFormat.Format8bppIndexed)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             int[] pHistogram = new int[256];
             Array.Clear(pHistogram, 0, pHistogram.Length);
             ////  Histogram 그래프를 만든다.
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte value = GetGrayPixel(iX, iY);
                     if (value > 255 || value < 0)
@@ -848,16 +846,16 @@ namespace YoonFactory.Image
 
         public int[] GetRedHistogram()
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb && Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             int[] pHistogram = new int[256];
             Array.Clear(pHistogram, 0, pHistogram.Length);
             ////  Histogram 그래프를 만든다.
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte value = GetRedPixel(iX, iY);
                     if (value > 255 || value < 0)
@@ -870,16 +868,16 @@ namespace YoonFactory.Image
 
         public int[] GetBlueHistogram()
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb && Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             int[] pHistogram = new int[256];
             Array.Clear(pHistogram, 0, pHistogram.Length);
             ////  Histogram 그래프를 만든다.
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte value = GetBluePixel(iX, iY);
                     if (value > 255 || value < 0)
@@ -892,16 +890,16 @@ namespace YoonFactory.Image
 
         public int[] GetGreenHistogram()
         {
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb && m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb && Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             int[] pHistogram = new int[256];
             Array.Clear(pHistogram, 0, pHistogram.Length);
             ////  Histogram 그래프를 만든다.
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte value = GetGreenPixel(iX, iY);
                     if (value > 255 || value < 0)
@@ -914,12 +912,12 @@ namespace YoonFactory.Image
 
         public byte[] GetGrayBuffer()
         {
-            return Scan8bitBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Scan8bitBuffer(new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         public byte[] GetGrayLine(int nPixelY)
         {
-            return Scan8bitBuffer(new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Scan8bitBuffer(new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public byte GetGrayPixel(int nPixelX, int nPixelY)
@@ -934,22 +932,22 @@ namespace YoonFactory.Image
 
         public byte[] GetRGBBuffer()
         {
-            return Scan24bitBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Scan24bitBuffer(new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         public int[] GetARGBBuffer()
         {
-            return Scan32bitBuffer(new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Scan32bitBuffer(new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         private byte[] GetPlaneBuffer(int nPlane) // RGB Plane 0 : R, 1 : G, 2 : B / ARGB Plane 0 : A, 1 : R, 2 : G, 3 : B
         {
-            switch(m_pBitmap.PixelFormat)
+            switch(Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
-                    return Scan24bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
+                    return Scan24bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size), nPlane);
                 case PixelFormat.Format32bppArgb:
-                    return Scan32bitPlaneBuffer(new Rectangle(Point.Empty, m_pBitmap.Size), nPlane);
+                    return Scan32bitPlaneBuffer(new Rectangle(Point.Empty, Bitmap.Size), nPlane);
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
             }
@@ -957,7 +955,7 @@ namespace YoonFactory.Image
 
         private byte GetPlanePixel(int nPlane, int nPixelX, int nPixelY)
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return Scan24bitPlaneBuffer(new Rectangle(nPixelX, nPixelY, 1, 1), nPlane)[0];
@@ -970,7 +968,7 @@ namespace YoonFactory.Image
 
         public byte[] GetRedBuffer()
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlaneBuffer(0); // 0 : Red
@@ -983,7 +981,7 @@ namespace YoonFactory.Image
 
         public byte GetRedPixel(int nPixelX, int nPixelY)
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlanePixel(0, nPixelX, nPixelY); // 0 : Red
@@ -996,7 +994,7 @@ namespace YoonFactory.Image
 
         public byte[] GetGreenBuffer()
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlaneBuffer(1); // 1 : Green
@@ -1009,7 +1007,7 @@ namespace YoonFactory.Image
 
         public byte GetGreenPixel(int nPixelX, int nPixelY)
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlanePixel(1, nPixelX, nPixelY); // 1 : Green
@@ -1022,7 +1020,7 @@ namespace YoonFactory.Image
 
         public byte[] GetBlueBuffer()
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlaneBuffer(2); // 2 : Blue
@@ -1035,7 +1033,7 @@ namespace YoonFactory.Image
 
         public byte GetBluePixel(int nPixelX, int nPixelY)
         {
-            switch (m_pBitmap.PixelFormat)
+            switch (Bitmap.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return GetPlanePixel(2, nPixelX, nPixelY); // 2 : Blue
@@ -1048,7 +1046,7 @@ namespace YoonFactory.Image
 
         public byte[] GetRGBLine(int nPixelY)
         {
-            return Scan24bitBuffer(new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Scan24bitBuffer(new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public byte[] GetRGBPixel(int nPixelX, int nPixelY)
@@ -1063,7 +1061,7 @@ namespace YoonFactory.Image
 
         public int[] GetARGBLine(int nPixelY)
         {
-            return Scan32bitBuffer(new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Scan32bitBuffer(new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public int GetARGBPixel(int nPixelX, int nPixelY)
@@ -1080,22 +1078,22 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
 
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height);
             return SetGrayImage(pBuffer);
         }
 
         public bool SetGrayImage(byte[] pBuffer)
         {
-            return Print8bitBuffer(pBuffer, new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Print8bitBuffer(pBuffer, new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         public bool SetGrayLine(byte[] pBuffer, int nPixelY)
         {
-            return Print8bitBuffer(pBuffer, new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Print8bitBuffer(pBuffer, new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public bool SetGrayPixel(byte nLevel, int nPixelX, int nPixelY)
@@ -1112,22 +1110,22 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
 
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height * 3];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height * 3];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height);
             return SetRGBImage(pBuffer);
         }
 
         public bool SetRGBImage(byte[] pBuffer)
         {
-            return Print24bitBuffer(pBuffer, new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Print24bitBuffer(pBuffer, new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         public bool SetRGBLine(byte[] pBuffer, int nPixelY)
         {
-            return Print24bitBuffer(pBuffer, new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Print24bitBuffer(pBuffer, new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public bool SetRGBPixel(byte[] pLevel, int nPixelX, int nPixelY)
@@ -1144,32 +1142,32 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0 || m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0 || Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap property is not normal");
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height * 3];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height * 3);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height * 3];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height * 3);
             return SetRGBImageWithColorMixed(pBuffer, bRGBOrder);
         }
 
         public bool SetRGBImageWithColorMixed(byte[] pBuffer, bool bRGBOrder = true)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pBuffer.Length != m_pBitmap.Width * m_pBitmap.Height * 3)
+            if (pBuffer.Length != Bitmap.Width * Bitmap.Height * 3)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             int nRed, nGreen, nBlue;
             if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
             else { nRed = 2; nGreen = 1; nBlue = 0; }
             byte[] pPixel;
             bool bResult = true;
-            for (int iY = 0; iY < m_pBitmap.Height; iY++) // Exception for nHeight-1
+            for (int iY = 0; iY < Bitmap.Height; iY++) // Exception for nHeight-1
             {
-                pPixel = new byte[m_pBitmap.Width * 3];
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                pPixel = new byte[Bitmap.Width * 3];
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
-                    pPixel[iX * 3 + 0] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nBlue]; // Blue
-                    pPixel[iX * 3 + 1] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nGreen]; // Green
-                    pPixel[iX * 3 + 2] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nRed]; // Red
+                    pPixel[iX * 3 + 0] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nBlue]; // Blue
+                    pPixel[iX * 3 + 1] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nGreen]; // Green
+                    pPixel[iX * 3 + 2] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nRed]; // Red
                 }
                 if (!SetRGBLine(pPixel, iY))
                     bResult = false;
@@ -1181,18 +1179,18 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0 || m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0 || Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap property is not normal");
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height * 3];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height * 3);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height * 3];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height * 3);
             return SetRGBImageWithColorParallel(pBuffer, bRGBOrder);
         }
 
         public bool SetRGBImageWithColorParallel(byte[] pBuffer, bool bRGBOrder = true)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pBuffer.Length != m_pBitmap.Width * m_pBitmap.Height * 3)
+            if (pBuffer.Length != Bitmap.Width * Bitmap.Height * 3)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             int nRed, nGreen, nBlue;
             if (bRGBOrder) { nRed = 0; nGreen = 1; nBlue = 2; }
@@ -1201,14 +1199,14 @@ namespace YoonFactory.Image
             bool bResult = true;
             for (int iPlane = 0; iPlane < 3; iPlane++)
             {
-                pPixel = new byte[m_pBitmap.Width * 3];
-                for (int iY = 0; iY < m_pBitmap.Height; iY++) // Exception for nHeight-1
+                pPixel = new byte[Bitmap.Width * 3];
+                for (int iY = 0; iY < Bitmap.Height; iY++) // Exception for nHeight-1
                 {
-                    for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                    for (int iX = 0; iX < Bitmap.Width; iX++)
                     {
-                        pPixel[iX * 3 + 0] = pBuffer[(nBlue * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Blue
-                        pPixel[iX * 3 + 1] = pBuffer[(nGreen * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Green
-                        pPixel[iX * 3 + 2] = pBuffer[(nRed * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Red
+                        pPixel[iX * 3 + 0] = pBuffer[(nBlue * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Blue
+                        pPixel[iX * 3 + 1] = pBuffer[(nGreen * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Green
+                        pPixel[iX * 3 + 2] = pBuffer[(nRed * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Red
                     }
                     if (!SetRGBLine(pPixel, iY))
                         bResult = false;
@@ -1219,22 +1217,22 @@ namespace YoonFactory.Image
 
         public bool SetRGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pRed == null || pRed.Length != m_pBitmap.Width * m_pBitmap.Height ||
-                pGreen == null || pGreen.Length != m_pBitmap.Width * m_pBitmap.Height ||
-                pBlue == null || pBlue.Length != m_pBitmap.Width * m_pBitmap.Height)
+            if (pRed == null || pRed.Length != Bitmap.Width * Bitmap.Height ||
+                pGreen == null || pGreen.Length != Bitmap.Width * Bitmap.Height ||
+                pBlue == null || pBlue.Length != Bitmap.Width * Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             byte[] pPixel;
             bool bResult = true;
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                pPixel = new byte[m_pBitmap.Width * 3];
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                pPixel = new byte[Bitmap.Width * 3];
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
-                    pPixel[iX * 3 + 0] = pBlue[iY * m_pBitmap.Width + iX];
-                    pPixel[iX * 3 + 1] = pGreen[iY * m_pBitmap.Width + iX];
-                    pPixel[iX * 3 + 2] = pRed[iY * m_pBitmap.Width + iX];
+                    pPixel[iX * 3 + 0] = pBlue[iY * Bitmap.Width + iX];
+                    pPixel[iX * 3 + 1] = pGreen[iY * Bitmap.Width + iX];
+                    pPixel[iX * 3 + 2] = pRed[iY * Bitmap.Width + iX];
                 }
                 if (!SetRGBLine(pPixel, iY))
                     bResult = false;
@@ -1246,22 +1244,22 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
 
-            int[] pBuffer = new int[m_pBitmap.Width * m_pBitmap.Height];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height);
+            int[] pBuffer = new int[Bitmap.Width * Bitmap.Height];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height);
             return SetARGBImage(pBuffer);
         }
 
         public bool SetARGBImage(int[] pBuffer)
         {
-            return Print32bitBuffer(pBuffer, new Rectangle(Point.Empty, m_pBitmap.Size));
+            return Print32bitBuffer(pBuffer, new Rectangle(Point.Empty, Bitmap.Size));
         }
 
         public bool SetARGBLine(int[] pBuffer, int nPixelY)
         {
-            return Print32bitBuffer(pBuffer, new Rectangle(0, nPixelY, m_pBitmap.Width, 1));
+            return Print32bitBuffer(pBuffer, new Rectangle(0, nPixelY, Bitmap.Width, 1));
         }
 
         public bool SetARGBPixel(int nLevel, int nPixelX, int nPixelY)
@@ -1278,18 +1276,18 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0 || m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0 || Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap property is not normal");
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height * 4];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height * 4);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height * 4];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height * 4);
             return SetARGBImageWithColorMixed(pBuffer, bRGBOrder);
         }
 
         public bool SetARGBImageWithColorMixed(byte[] pBuffer, bool bRGBOrder = true)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pBuffer.Length != m_pBitmap.Width * m_pBitmap.Height * 3)
+            if (pBuffer.Length != Bitmap.Width * Bitmap.Height * 3)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             int nRed, nGreen, nBlue;
             int nAlpha = 3;
@@ -1297,16 +1295,16 @@ namespace YoonFactory.Image
             else { nRed = 2; nGreen = 1; nBlue = 0; } // Alpha = 3
             int[] pPixel;
             bool bResult = true;
-            for (int iY = 0; iY < m_pBitmap.Height; iY++) // Exception for nHeight-1
+            for (int iY = 0; iY < Bitmap.Height; iY++) // Exception for nHeight-1
             {
-                pPixel = new int[m_pBitmap.Width];
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                pPixel = new int[Bitmap.Width];
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte[] pBytePixel = new byte[4];
-                    pBytePixel[0] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nBlue]; // Blue
-                    pBytePixel[1] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nGreen]; // Green
-                    pBytePixel[2] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nRed]; // Red
-                    pBytePixel[3] = pBuffer[iY * m_pBitmap.Width * 3 + iX * 3 + nAlpha]; // Alpha = Max (0xFF)
+                    pBytePixel[0] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nBlue]; // Blue
+                    pBytePixel[1] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nGreen]; // Green
+                    pBytePixel[2] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nRed]; // Red
+                    pBytePixel[3] = pBuffer[iY * Bitmap.Width * 3 + iX * 3 + nAlpha]; // Alpha = Max (0xFF)
                     pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                 }
                 if (!SetARGBLine(pPixel, iY))
@@ -1319,18 +1317,18 @@ namespace YoonFactory.Image
         {
             if (pBufferAddress == IntPtr.Zero)
                 throw new ArgumentNullException("[YOONIMAGE EXCEPTION] Address is null");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0 || m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0 || Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap property is not normal");
-            byte[] pBuffer = new byte[m_pBitmap.Width * m_pBitmap.Height * 4];
-            Marshal.Copy(pBufferAddress, pBuffer, 0, m_pBitmap.Width * m_pBitmap.Height * 4);
+            byte[] pBuffer = new byte[Bitmap.Width * Bitmap.Height * 4];
+            Marshal.Copy(pBufferAddress, pBuffer, 0, Bitmap.Width * Bitmap.Height * 4);
             return SetARGBImageWithColorParallel(pBuffer, bRGBOrder);
         }
 
         public bool SetARGBImageWithColorParallel(byte[] pBuffer, bool bRGBOrder = true)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pBuffer.Length != m_pBitmap.Width * m_pBitmap.Height * 3)
+            if (pBuffer.Length != Bitmap.Width * Bitmap.Height * 3)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             int nRed, nGreen, nBlue;
             int nAlpha = 3;
@@ -1340,16 +1338,16 @@ namespace YoonFactory.Image
             bool bResult = true;
             for (int iPlane = 0; iPlane < 3; iPlane++)
             {
-                pPixel = new int[m_pBitmap.Width];
-                for (int iY = 0; iY < m_pBitmap.Height; iY++) // Exception for nHeight-1
+                pPixel = new int[Bitmap.Width];
+                for (int iY = 0; iY < Bitmap.Height; iY++) // Exception for nHeight-1
                 {
-                    for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                    for (int iX = 0; iX < Bitmap.Width; iX++)
                     {
                         byte[] pBytePixel = new byte[4];
-                        pBytePixel[0] = pBuffer[(nBlue * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Blue
-                        pBytePixel[1] = pBuffer[(nGreen * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Green
-                        pBytePixel[2] = pBuffer[(nRed * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; // Red
-                        pBytePixel[3] = pBuffer[(nAlpha * m_pBitmap.Width * m_pBitmap.Height) + iY * m_pBitmap.Width + iX]; ; // Alpha = Max (0xFF)
+                        pBytePixel[0] = pBuffer[(nBlue * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Blue
+                        pBytePixel[1] = pBuffer[(nGreen * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Green
+                        pBytePixel[2] = pBuffer[(nRed * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; // Red
+                        pBytePixel[3] = pBuffer[(nAlpha * Bitmap.Width * Bitmap.Height) + iY * Bitmap.Width + iX]; ; // Alpha = Max (0xFF)
                         pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                     }
                     if (!SetARGBLine(pPixel, iY))
@@ -1361,23 +1359,23 @@ namespace YoonFactory.Image
 
         public bool SetARGBImageWithPlane(byte[] pRed, byte[] pGreen, byte[] pBlue)
         {
-            if (m_pBitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Pixel format isnot correct");
-            if (pRed == null || pRed.Length != m_pBitmap.Width * m_pBitmap.Height ||
-                pGreen == null || pGreen.Length != m_pBitmap.Width * m_pBitmap.Height ||
-                pBlue == null || pBlue.Length != m_pBitmap.Width * m_pBitmap.Height)
+            if (pRed == null || pRed.Length != Bitmap.Width * Bitmap.Height ||
+                pGreen == null || pGreen.Length != Bitmap.Width * Bitmap.Height ||
+                pBlue == null || pBlue.Length != Bitmap.Width * Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Buffer property is out of range");
             int[] pPixel;
             bool bResult = true;
-            for (int iY = 0; iY < m_pBitmap.Height; iY++)
+            for (int iY = 0; iY < Bitmap.Height; iY++)
             {
-                pPixel = new int[m_pBitmap.Width];
-                for (int iX = 0; iX < m_pBitmap.Width; iX++)
+                pPixel = new int[Bitmap.Width];
+                for (int iX = 0; iX < Bitmap.Width; iX++)
                 {
                     byte[] pBytePixel = new byte[4];
-                    pBytePixel[0] = pBlue[iY * m_pBitmap.Width + iX];
-                    pBytePixel[1] = pGreen[iY * m_pBitmap.Width + iX];
-                    pBytePixel[2] = pRed[iY * m_pBitmap.Width + iX];
+                    pBytePixel[0] = pBlue[iY * Bitmap.Width + iX];
+                    pBytePixel[1] = pGreen[iY * Bitmap.Width + iX];
+                    pBytePixel[2] = pRed[iY * Bitmap.Width + iX];
                     pBytePixel[3] = (byte)0xFF; // Alpha = Max (0xFF)
                     pPixel[iX] = BitConverter.ToInt32(pBytePixel, 0);
                 }
@@ -1391,14 +1389,14 @@ namespace YoonFactory.Image
         {
             if (Plane != 1)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot Indexed format");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[] pBuffer = new byte[pRect.Width * pRect.Height];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pImageData.Scan0, pBuffer, 0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1412,14 +1410,14 @@ namespace YoonFactory.Image
         {
             if (Plane != 3)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[] pBuffer = new byte[pRect.Width * pRect.Height * Plane];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pImageData.Scan0, pBuffer, 0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1433,14 +1431,14 @@ namespace YoonFactory.Image
         {
             if (Plane != 4)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             int[] pBuffer = new int[pRect.Width * pRect.Height];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pImageData.Scan0, pBuffer, 0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1454,12 +1452,12 @@ namespace YoonFactory.Image
         {
             if (Plane != 3)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[,] pPixelPlanes = new byte[pRect.Width * pRect.Height, Plane];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
@@ -1471,7 +1469,7 @@ namespace YoonFactory.Image
                         pPixelPlanes[j * pRect.Width + i, 2] = pBytePixel[2];  // B
                     }
                 });
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1487,12 +1485,12 @@ namespace YoonFactory.Image
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (nPlane < 0 || nPlane >= Plane)
                 throw new ArgumentException("[YOONIMAGE EXCEPTION] Plane isnot adjust");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[] pPixelPlanes = new byte[pRect.Width * pRect.Height];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
@@ -1502,7 +1500,7 @@ namespace YoonFactory.Image
                         pPixelPlanes[j * pRect.Width + i] = pBytePixel[nPlane];
                     }
                 });
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1516,12 +1514,12 @@ namespace YoonFactory.Image
         {
             if (Plane != 4)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[,] pPixelPlanes = new byte[pRect.Width * pRect.Height, Plane];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
@@ -1534,7 +1532,7 @@ namespace YoonFactory.Image
                         pPixelPlanes[j * pRect.Width + i, 3] = pBytePixel[3];  // B
                     }
                 });
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1550,12 +1548,12 @@ namespace YoonFactory.Image
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (nPlane < 0 || nPlane >= Plane)
                 throw new ArgumentException("[YOONIMAGE EXCEPTION] Plane isnot adjust");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             byte[] pPixelPlanes = new byte[pRect.Width * pRect.Height];
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.ReadOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
                 Parallel.For(0, pRect.Height, j =>
                 {
                     for (int i = 0; i < pRect.Width; i++)
@@ -1565,7 +1563,7 @@ namespace YoonFactory.Image
                         pPixelPlanes[j * pRect.Width + i] = pBytePixel[nPlane];
                     }
                 });
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
             }
             catch (Exception ex)
             {
@@ -1579,17 +1577,17 @@ namespace YoonFactory.Image
         {
             if (Plane != 1)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot Indexed format");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             if (pBuffer.Length != pRect.Width * pRect.Height)
                 throw new ArgumentException("[YOONIMAGE ERROR] Rect or Buffer property is abnormal");
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.WriteOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.WriteOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pBuffer, 0, pImageData.Scan0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
                 return true;
             }
             catch (Exception ex)
@@ -1603,17 +1601,17 @@ namespace YoonFactory.Image
         {
             if (Plane != 3)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             if (pBuffer.Length != pRect.Width * pRect.Height * Plane)
                 throw new ArgumentException("[YOONIMAGE ERROR] Rect or Buffer property is abnormal");
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.WriteOnly, m_pBitmap.PixelFormat);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.WriteOnly, Bitmap.PixelFormat);
                 Marshal.Copy(pBuffer, 0, pImageData.Scan0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
                 return true;
             }
             catch (Exception ex)
@@ -1627,17 +1625,17 @@ namespace YoonFactory.Image
         {
             if (Plane != 4)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
-            if (m_pBitmap.Width <= 0 || m_pBitmap.Height <= 0)
+            if (Bitmap.Width <= 0 || Bitmap.Height <= 0)
                 throw new IndexOutOfRangeException("[YOONIMAGE ERROR] Bitmap size is not normal");
-            if (pRect.X > m_pBitmap.Width || pRect.Y > m_pBitmap.Height)
+            if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
             if (pBuffer.Length != pRect.Width * pRect.Height)
                 throw new ArgumentException("[YOONIMAGE ERROR] Rect or Buffer property is abnormal");
             try
             {
-                BitmapData pImageData = m_pBitmap.LockBits(pRect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                BitmapData pImageData = Bitmap.LockBits(pRect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
                 Marshal.Copy(pBuffer, 0, pImageData.Scan0, pBuffer.Length);
-                m_pBitmap.UnlockBits(pImageData);
+                Bitmap.UnlockBits(pImageData);
                 return true;
             }
             catch (Exception ex)
@@ -1651,28 +1649,26 @@ namespace YoonFactory.Image
         {
             return other != null &&
                    disposedValue == other.disposedValue &&
-                   EqualityComparer<Bitmap>.Default.Equals(m_pBitmap, other.m_pBitmap) &&
+                   EqualityComparer<Bitmap>.Default.Equals(Bitmap, other.Bitmap) &&
                    FilePath == other.FilePath &&
                    Format == other.Format &&
                    Plane == other.Plane &&
                    Stride == other.Stride &&
                    Width == other.Width &&
-                   Height == other.Height &&
-                   EqualityComparer<Bitmap>.Default.Equals(ToBitmap, other.ToBitmap);
+                   Height == other.Height;
         }
 
         public override int GetHashCode()
         {
             int hashCode = 1198763934;
             hashCode = hashCode * -1521134295 + disposedValue.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<Bitmap>.Default.GetHashCode(m_pBitmap);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Bitmap>.Default.GetHashCode(Bitmap);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(FilePath);
             hashCode = hashCode * -1521134295 + Format.GetHashCode();
             hashCode = hashCode * -1521134295 + Plane.GetHashCode();
             hashCode = hashCode * -1521134295 + Stride.GetHashCode();
             hashCode = hashCode * -1521134295 + Width.GetHashCode();
             hashCode = hashCode * -1521134295 + Height.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<Bitmap>.Default.GetHashCode(ToBitmap);
             return hashCode;
         }
 

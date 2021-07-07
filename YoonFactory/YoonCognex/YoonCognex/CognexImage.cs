@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using YoonFactory.Image;
 using Cognex.VisionPro;
@@ -13,77 +10,124 @@ namespace YoonFactory.Cognex
 {
     public class CognexImage : YoonImage
     {
-        public CognexImage() : base()
-        {
-            //
-        }
+        #region IDisposable Support
+        private bool disposedValue = false; // 중복 호출을 검색하려면
 
-        public CognexImage(Bitmap pBitmap) : base(pBitmap)
+        protected override void Dispose(bool disposing)
         {
-            //
-        }
-
-        public CognexImage(ICogImage pImage) : this()
-        {
-            if (pImage.Width != 0 && pImage.Height != 0)
-                m_pBitmap = ConvertBitmap(pImage);
-        }
-
-        private Bitmap ConvertBitmap(ICogImage cogImage)
-        {
-            YoonImage pResultImage = new YoonImage(cogImage.ToBitmap());
-            if (cogImage is CogImage8Grey)
-                pResultImage = pResultImage.ToGrayImage();
-            return pResultImage.CopyImage();
-        }
-
-        public ICogImage ToCogImage()
-        {
-            switch (Plane)
+            if (!disposedValue)
             {
-                case 1:
-                    CogImage8Grey pImage8bit = new CogImage8Grey();
-                    pImage8bit.Allocate(Width, Height);
-                    for (int iY = 0; iY < Height; iY++)
+                if (disposing)
+                {
+                    base.Bitmap.Dispose();
+                    switch (CogImage)
                     {
-                        for (int iX = 0; iX < Width; iX++)
+                        case CogImage8Grey pImage8Bit:
+                            pImage8Bit.Dispose();
+                            break;
+                        case CogImage24PlanarColor pImage24Bit:
+                            pImage24Bit.Dispose();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
+                // TODO: 큰 필드를 null로 설정합니다.
+                base.Bitmap = null;
+                CogImage = null;
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
+        ~CognexImage()
+        {
+            // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
+            Dispose(false);
+        }
+        #endregion
+
+        public static ICogImage ToCogImage(Bitmap pBitmap)
+        {
+            switch (pBitmap?.PixelFormat)
+            {
+                case System.Drawing.Imaging.PixelFormat.Format8bppIndexed:
+                    CogImage8Grey pImage8bit = new CogImage8Grey();
+                    pImage8bit.Allocate(pBitmap.Width, pBitmap.Height);
+                    for(int iY = 0; iY < pBitmap.Height; iY++)
+                    {
+                        for (int iX = 0; iX < pBitmap.Width; iX++)
                         {
-                            Color pColor = m_pBitmap.GetPixel(iX, iY);
+                            Color pColor = pBitmap.GetPixel(iX, iY);
                             byte nLevel = (byte)(pColor.R * 0.299f + pColor.G * 0.587f + pColor.B * 0.114f); // ITU-RBT.709, YPrPb
                             pImage8bit.SetPixel(iX, iY, nLevel);
                         }
                     }
-                    return pImage8bit;
-                case 3:
-                case 4:
+                    return pImage8bit.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                case System.Drawing.Imaging.PixelFormat.Format24bppRgb:
+                case System.Drawing.Imaging.PixelFormat.Format32bppRgb:
                     CogImage24PlanarColor pImage24bit = new CogImage24PlanarColor();
-                    pImage24bit.Allocate(Width, Height);
-                    for (int iY = 0; iY < Height; iY++)
+                    pImage24bit.Allocate(pBitmap.Width, pBitmap.Height);
+                    for (int iY = 0; iY < pBitmap.Height; iY++)
                     {
-                        for (int iX = 0; iX < Width; iX++)
+                        for (int iX = 0; iX < pBitmap.Width; iX++)
                         {
-                            Color pColor = m_pBitmap.GetPixel(iX, iY);
+                            Color pColor = pBitmap.GetPixel(iX, iY);
                             pImage24bit.SetPixel(iX, iY, pColor.R, pColor.G, pColor.B);
                         }
                     }
-                    return pImage24bit;
+                    return pImage24bit.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                default:
+                    System.Diagnostics.Debug.WriteLine("[CognexImage] Unsupported Image Format");
+                    return null;
             }
-            return null;
+        }
+
+        public static Bitmap ToBitmap(ICogImage pImage)
+        {
+            if (pImage?.Width == 0 || pImage?.Height == 0)
+                return null;
+            YoonImage pResultImage = new YoonImage(pImage?.ToBitmap());
+            if (pImage is CogImage8Grey)
+                pResultImage = pResultImage.ToGrayImage();
+            return pResultImage.CopyBitmap();
+        }
+
+        public ICogImage CogImage { get; private set; } = null;
+
+        public CognexImage() : base()
+        {
+            CogImage = ToCogImage(base.Bitmap);
+        }
+
+        public CognexImage(ICogImage pImage) : this()
+        {
+            Task pTask = Task.Factory.StartNew(() => base.Bitmap = ToBitmap(pImage));
+            CogImage = pImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+            pTask.Wait();
+        }
+
+        public CognexImage(YoonImage pImage)
+        {
+            Task pTask = Task.Factory.StartNew(() => CogImage = ToCogImage(pImage.Bitmap));
+            base.Bitmap = pImage.CopyBitmap();
+            pTask.Wait();
         }
 
         public override bool LoadImage(string strPath)
         {
             FilePath = strPath;
             if (!IsFileExist()) return false;
-            ICogImage pCogImage = null;
             CogImageFile pCogFile = new CogImageFile();
             try
             {
                 pCogFile.Open(FilePath, CogImageFileModeConstants.Read);
                 if (pCogFile[0] != null)
                 {
-                    pCogImage = pCogFile[0];
-                    m_pBitmap = ConvertBitmap(pCogImage);
+                    CogImage = pCogFile[0].CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    base.Bitmap = ToBitmap(CogImage);
                 }
                 pCogFile.Close();
                 return true;
@@ -99,14 +143,13 @@ namespace YoonFactory.Cognex
         public override bool SaveImage(string strPath)
         {
             FilePath = strPath;
-            ICogImage pImage = ToCogImage();
             CogImageFile pCogFile = new CogImageFile();
             try
             {
                 if (IsFileExist())
                 {
                     pCogFile.Open(FilePath, CogImageFileModeConstants.Update);
-                    pCogFile.Append(pImage);
+                    pCogFile.Append(CogImage);
                     pCogFile.Close();
                 }
                 else
@@ -114,7 +157,7 @@ namespace YoonFactory.Cognex
                     if (FileFactory.VerifyDirectory(FilePath))
                     {
                         pCogFile.Open(FilePath, CogImageFileModeConstants.Write);
-                        pCogFile.Append(pImage);
+                        pCogFile.Append(CogImage);
                         pCogFile.Close();
                     }
                 }
@@ -129,37 +172,35 @@ namespace YoonFactory.Cognex
 
         public ICogImage CopyCogImage()
         {
-            return ToCogImage().CopyBase(CogImageCopyModeConstants.CopyPixels);
+            return CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
         }
 
         public override IYoonFile Clone()
         {
-            CognexImage pImage = new CognexImage(m_pBitmap);
+            CognexImage pImage = new CognexImage(CogImage);
             pImage.FilePath = FilePath;
             return pImage;
         }
 
         public override YoonImage ToGrayImage()
         {
-            ICogImage pImageSource = ToCogImage();
-            if (pImageSource is CogImage8Grey)
+            if (CogImage is CogImage8Grey)
                 return Clone() as YoonImage;
-            CogImage8Grey pImage = CogImageConvert.GetIntensityImage(pImageSource, 0, 0, Width, Height);
+            CogImage8Grey pImage = CogImageConvert.GetIntensityImage(CogImage, 0, 0, Width, Height);
             return new CognexImage(pImage);
         }
 
         public override YoonImage ToRGBImage()
         {
-            ICogImage pImageSource = ToCogImage();
-            if (pImageSource is CogImage24PlanarColor)
+            if (CogImage is CogImage24PlanarColor)
                 return Clone() as YoonImage;
-            CogImage24PlanarColor pImage = CogImageConvert.GetRGBImage(pImageSource, 0, 0, Width, Height) as CogImage24PlanarColor;
+            CogImage24PlanarColor pImage = CogImageConvert.GetRGBImage(CogImage, 0, 0, Width, Height) as CogImage24PlanarColor;
             return new CognexImage(pImage);
         }
 
         public CognexImage ToHSIImage()
         {
-            CogImage24PlanarColor pImage = CogImageConvert.GetHSIImage(ToCogImage(), 0, 0, Width, Height) as CogImage24PlanarColor;
+            CogImage24PlanarColor pImage = CogImageConvert.GetHSIImage(CogImage, 0, 0, Width, Height) as CogImage24PlanarColor;
             return new CognexImage(pImage);
         }
 

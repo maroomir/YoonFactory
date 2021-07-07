@@ -290,7 +290,7 @@ namespace YoonSample.CognexInspector
                 //// Display Update
                 cogDisplay_CombineView.StaticGraphics.Clear();
                 cogDisplay_CombineView.InteractiveGraphics.Clear();
-                cogDisplay_CombineView.Image = m_pCogImageResult.ToCogImage();
+                cogDisplay_CombineView.Image = m_pCogImageResult.CogImage;
                 //// Result Image를 다른 Tab으로 넘기기
                 OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
@@ -324,7 +324,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_SourceView.StaticGraphics.Clear();
             cogDisplay_SourceView.InteractiveGraphics.Clear();
-            cogDisplay_SourceView.Image = m_pCogImageSourceSelected.ToCogImage();
+            cogDisplay_SourceView.Image = m_pCogImageSourceSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
             CommonClass.pParamTemplate[m_nType].Parameter = pParam;
@@ -359,7 +359,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_ObjectView.StaticGraphics.Clear();
             cogDisplay_ObjectView.InteractiveGraphics.Clear();
-            cogDisplay_ObjectView.Image = m_pCogImageObjectSelected.ToCogImage();
+            cogDisplay_ObjectView.Image = m_pCogImageObjectSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
             CommonClass.pParamTemplate[m_nType].Parameter = pParam;

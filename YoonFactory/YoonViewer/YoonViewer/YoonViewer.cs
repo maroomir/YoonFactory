@@ -138,7 +138,7 @@ namespace YoonFactory.Viewer
             vScrollBar.LargeChange = pRectDrawing.Height;
             vScrollBar.Maximum = m_pSourceImage.Height;
             // Buffered Image
-            m_pGraphicsBuffered.DrawImage(m_pSourceImage.ToBitmap, pRectDC, pRectDrawing, GraphicsUnit.Pixel);
+            m_pGraphicsBuffered.DrawImage(m_pSourceImage.Bitmap, pRectDC, pRectDrawing, GraphicsUnit.Pixel);
             // Refresh Controls;
             Invalidate(false);
         }

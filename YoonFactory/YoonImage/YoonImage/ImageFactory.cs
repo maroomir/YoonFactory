@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -65,14 +66,14 @@ namespace YoonFactory.Image
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
                 byte[] pByte = new byte[pBuffer.Length];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
                         pByte[j * nWidth + i] = (byte)(0.299f * pBytePixel[2] + 0.587f * pBytePixel[1] + 0.114f * pBytePixel[0]); // ITU-RBT.709, YPrPb
                     }
-                }
+                });
                 return pByte;
             }
 
@@ -84,7 +85,7 @@ namespace YoonFactory.Image
                 double nValueMax = 0;
                 double nValueMin = 65536;
                 double dRatio = 1.0;
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
@@ -92,16 +93,16 @@ namespace YoonFactory.Image
                         if (value > nValueMax) nValueMax = value;
                         if (value < nValueMin) nValueMin = value;
                     }
-                }
+                });
                 ////  최대 Gray Level값이 255를 넘는 경우, 이에 맞게 Image 전체 Gray Level을 조정함.
                 if (nValueMax > 255) dRatio = 255.0 / nValueMax;
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         pByte[j * nWidth + i] = Convert.ToByte(Convert.ToDouble(pBuffer[j * nWidth + i]) * dRatio);
                     }
-                }
+                });
                 return pByte;
             }
 
@@ -113,7 +114,7 @@ namespace YoonFactory.Image
                     return null;
 
                 int[] pPixel = new int[nWidth * nHeight];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
@@ -124,7 +125,7 @@ namespace YoonFactory.Image
                         pBytePixel[3] = (byte)0;
                         pPixel[i] = BitConverter.ToInt32(pBytePixel, 0);
                     }
-                }
+                });
                 return pPixel;
             }
 
@@ -133,13 +134,13 @@ namespace YoonFactory.Image
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
                 int[] pPixel = new int[pBuffer.Length];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         pPixel[j * nWidth + i] = 3 * Math.Max((byte)0, Math.Min(Convert.ToByte(pBuffer[j * nWidth + i]), (byte)255));
                     }
-                }
+                });
                 return pPixel;
             }
 
@@ -148,14 +149,14 @@ namespace YoonFactory.Image
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
                 byte[] pByte = new byte[pBuffer.Length];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
                         pByte[j * nWidth] = pBytePixel[2];
                     }
-                }
+                });
                 return pByte;
             }
 
@@ -164,14 +165,14 @@ namespace YoonFactory.Image
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
                 byte[] pByte = new byte[pBuffer.Length];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
                         pByte[j * nWidth] = pBytePixel[1];
                     }
-                }
+                });
                 return pByte;
             }
 
@@ -180,14 +181,14 @@ namespace YoonFactory.Image
                 if (pBuffer.Length != nWidth * nHeight) return null;
 
                 byte[] pByte = new byte[pBuffer.Length];
-                for (int j = 0; j < nHeight; j++)
+                Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
                     {
                         byte[] pBytePixel = BitConverter.GetBytes(pBuffer[j * nWidth + i]); // Order by {B/G/R/A}
                         pByte[j * nWidth] = pBytePixel[0];
                     }
-                }
+                });
                 return pByte;
             }
         }
@@ -258,7 +259,7 @@ namespace YoonFactory.Image
                                 }
                             }
                         }
-                        ////// 최대한 White IYoonVector가 많은 Pattern을 찾는다.
+                        ////// 최대한 White Point 많은 Pattern을 찾는다.
                         if (bWhite)
                         {
                             if (whiteCount > whiteCountMax)
@@ -625,21 +626,19 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Combine(byte[] pSourceBuffer, byte[] pObjectBuffer, int width, int height)
+            public static byte[] Combine(byte[] pSourceBuffer, byte[] pObjectBuffer, int nWidth, int nHeight)
             {
-                int i, j;
-                byte[] pResultBuffer;
-                pResultBuffer = new byte[width * height];
-                for (j = 0; j < height; j++)
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                Parallel.For(0, nHeight, j =>
                 {
-                    for (i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
-                        if (pSourceBuffer[j * width + i] > pObjectBuffer[j * width + i])
-                            pResultBuffer[j * width + i] = pSourceBuffer[j * width + i];
+                        if (pSourceBuffer[j * nWidth + i] > pObjectBuffer[j * nWidth + i])
+                            pResultBuffer[j * nWidth + i] = pSourceBuffer[j * nWidth + i];
                         else
-                            pResultBuffer[j * width + i] = pObjectBuffer[j * width + i];
+                            pResultBuffer[j * nWidth + i] = pObjectBuffer[j * nWidth + i];
                     }
-                }
+                });
                 return pResultBuffer;
             }
 
@@ -653,48 +652,43 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Add(byte[] pSourceBuffer, byte[] pObjectBuffer, int width, int height)
+            public static byte[] Add(byte[] pSourceBuffer, byte[] pObjectBuffer, int nWidth, int nHeight)
             {
-                int i, j, value;
-                int maxValue, minValue;
-                int[] pTempBuffer;
-                byte[] pResultBuffer;
-                double ratio;
-                maxValue = 0;
-                minValue = 1024;
-                pTempBuffer = new int[width * height];
-                pResultBuffer = new byte[width * height];
-                for (j = 0; j < height; j++)
+                int nMaxValue = 0;
+                int nMinValue = 1024;
+                int[] pTempBuffer = new int[nWidth * nHeight];
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                Parallel.For(0, nHeight, j =>
                 {
-                    for (i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
-                        pTempBuffer[j * width + i] = pSourceBuffer[j * width + i] + pObjectBuffer[j * width + i];
+                        pTempBuffer[j * nWidth + i] = pSourceBuffer[j * nWidth + i] + pObjectBuffer[j * nWidth + i];
                     }
-                }
+                });
                 ////  합해진 Buffer(pBuffer)의 최대 Gray Level 값과 최소 Gray Level 값을 산출함.
-                for (j = 0; j < height; j++)
+                for (int j = 0; j < nHeight; j++)
                 {
-                    for (i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
-                        value = pTempBuffer[j * width + i];
-                        if (value < minValue) minValue = value;
-                        if (value > maxValue) maxValue = value;
+                        int nValue = pTempBuffer[j * nWidth + i];
+                        if (nValue < nMinValue) nMinValue = nValue;
+                        if (nValue > nMaxValue) nMaxValue = nValue;
                     }
                 }
                 ////  최대 Gray Level값이 255를 넘는 경우, 이에 맞게 Image 전체 Gray Level을 조정함.
-                if (maxValue > 255)
+                if (nMaxValue > 255)
                 {
-                    ratio = 255.0 / (double)maxValue;
-                    for (j = 0; j < height; j++)
+                    double dRatio = 255.0 / nMaxValue;
+                    Parallel.For(0, nHeight, j =>
                     {
-                        for (i = 0; i < width; i++)
+                        for (int i = 0; i < nWidth; i++)
                         {
-                            value = (int)(pTempBuffer[j * width + i] * ratio);
-                            if (value > 255) value = 255;
-                            if (value < 0) value = 0;
-                            pResultBuffer[j * width + i] = (byte)value;
+                            int nValue = (int)(pTempBuffer[j * nWidth + i] * dRatio);
+                            if (nValue > 255) nValue = 255;
+                            if (nValue < 0) nValue = 0;
+                            pResultBuffer[j * nWidth + i] = (byte)nValue;
                         }
-                    }
+                    });
                 }
                 return pResultBuffer;
             }
@@ -709,21 +703,20 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Subtract(byte[] pSourceBuffer, byte[] pObjectBuffer, int width, int height)
+            public static byte[] Subtract(byte[] pSourceBuffer, byte[] pObjectBuffer, int nWidth, int nHeight)
             {
-                int i, j, value;
                 byte[] pResultBuffer;
-                pResultBuffer = new byte[width * height];
-                for (j = 0; j < height; j++)
+                pResultBuffer = new byte[nWidth * nHeight];
+                Parallel.For(0, nHeight, j =>
                 {
-                    for (i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
-                        value = pSourceBuffer[j * width + i] - pObjectBuffer[j * width + i];
-                        if (value > 255) value = 255;
-                        if (value < 0) value = 0;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        int nValue = pSourceBuffer[j * nWidth + i] - pObjectBuffer[j * nWidth + i];
+                        if (nValue > 255) nValue = 255;
+                        if (nValue < 0) nValue = 0;
+                        pResultBuffer[j * nWidth + i] = (byte)nValue;
                     }
-                }
+                });
                 return pResultBuffer;
             }
         }
