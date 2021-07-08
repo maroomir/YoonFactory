@@ -13,4 +13,8 @@
       <OutputPath>../Release/AnyCPU/</OutputPath>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="obj" />
+    </ItemGroup>
+
 </Project>
