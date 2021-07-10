@@ -11,7 +11,7 @@ namespace YoonFactory
         IYoonMatrix Inverse();
         IYoonMatrix Transpose();
         IYoonMatrix Unit();
-        void CopyFrom(IYoonMatrix m);
+        void CopyFrom(IYoonMatrix pMatrix);
     }
 
     public interface IYoonMatrix<T> : IYoonMatrix where T : IComparable, IComparable<T>
@@ -25,20 +25,20 @@ namespace YoonFactory
 
     public interface IYoonMatrix2D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T sx, T sy);
-        IYoonMatrix SetMovementUnit(T dx, T dy);
-        IYoonMatrix SetMovementUnit(IYoonVector2D<T> v);
-        IYoonMatrix SetRotateUnit(double angle);
+        IYoonMatrix SetScaleUnit(T nScaleX, T nScaleY);
+        IYoonMatrix SetMovementUnit(T nMoveX, T nMoveY);
+        IYoonMatrix SetMovementUnit(IYoonVector2D<T> pVector);
+        IYoonMatrix SetRotateUnit(double dAngle);
     }
 
     public interface IYoonMatrix3D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T sx, T sy, T sz);
-        IYoonMatrix SetMovementUnit(T dx, T dy, T dz);
-        IYoonMatrix SetMovementUnit(IYoonVector3D<T> v);
-        IYoonMatrix SetRotateXUnit(double angle);
-        IYoonMatrix SetRotateYUnit(double angle);
-        IYoonMatrix SetRotateZUnit(double angle);
+        IYoonMatrix SetScaleUnit(T dScaleX, T dScaleY, T dScaleZ);
+        IYoonMatrix SetMovementUnit(T dMoveX, T dMoveY, T dMoveZ);
+        IYoonMatrix SetMovementUnit(IYoonVector3D<T> pVector);
+        IYoonMatrix SetRotateXUnit(double dAngle);
+        IYoonMatrix SetRotateYUnit(double dAngle);
+        IYoonMatrix SetRotateZUnit(double dAngle);
     }
 
     public interface IYoonFigure
@@ -108,7 +108,7 @@ namespace YoonFactory
     public interface IYoonJoint
     {
         IYoonJoint Clone();
-        void CopyFrom(IYoonJoint j);
+        void CopyFrom(IYoonJoint pJoint);
     }
 
     public interface IYoonJoint<T> : IYoonJoint where T : IComparable, IComparable<T>
@@ -127,7 +127,7 @@ namespace YoonFactory
     public interface IYoonCartesian
     {
         IYoonCartesian Clone();
-        void CopyFrom(IYoonCartesian c);
+        void CopyFrom(IYoonCartesian pCart);
     }
 
     public interface IYoonCartesian<T> : IYoonCartesian where T : IComparable, IComparable<T>

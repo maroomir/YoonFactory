@@ -2,64 +2,52 @@
 
 namespace YoonFactory
 {
-    public class YoonCartesianN : IYoonCartesian, IYoonCartesian<int>
+    public class YoonCartesianN : IYoonCartesian<int>
     {
         public IYoonCartesian Clone()
         {
-            YoonCartesianN c = new YoonCartesianN();
-            c.X = X;
-            c.Y = Y;
-            c.Z = Z;
-            c.RX = RX;
-            c.RY = RY;
-            c.RZ = RZ;
-            return c;
+            return new YoonCartesianN
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                RX = RX,
+                RY = RY,
+                RZ = RZ
+            };
         }
 
-        public void CopyFrom(IYoonCartesian c)
+        public void CopyFrom(IYoonCartesian pCart)
         {
-            if (c is YoonCartesianN cart)
+            if (pCart is YoonCartesianN pCartInt)
             {
-                X = cart.X;
-                Y = cart.Y;
-                Z = cart.Z;
-                RX = cart.RX;
-                RY = cart.RY;
-                RZ = cart.RZ;
+                X = pCartInt.X;
+                Y = pCartInt.Y;
+                Z = pCartInt.Z;
+                RX = pCartInt.RX;
+                RY = pCartInt.RY;
+                RZ = pCartInt.RZ;
             }
         }
 
-        [XmlIgnore]
-        public int X { get; set; }
-        [XmlAttribute]
-        public int Y { get; set; }
-        [XmlAttribute]
-        public int Z { get; set; }
-        [XmlIgnore]
-        public int RX { get; set; }
-        [XmlAttribute]
-        public int RY { get; set; }
-        [XmlAttribute]
-        public int RZ { get; set; }
+        [XmlIgnore] public int X { get; set; }
+        [XmlAttribute] public int Y { get; set; }
+        [XmlAttribute] public int Z { get; set; }
+        [XmlIgnore] public int RX { get; set; }
+        [XmlAttribute] public int RY { get; set; }
+        [XmlAttribute] public int RZ { get; set; }
 
         public int[] Array
         {
-            get => new int[6] { X, Y, Z, RX, RY, RZ };
+            get => new int[6] {X, Y, Z, RX, RY, RZ};
             set
             {
-                try
-                {
-                    X = value[0];
-                    Y = value[1];
-                    Z = value[2];
-                    RX = value[3];
-                    RY = value[4];
-                    RZ = value[5];
-                }
-                catch
-                {
-                    //
-                }
+                X = value[0];
+                Y = value[1];
+                Z = value[2];
+                RX = value[3];
+                RY = value[4];
+                RZ = value[5];
             }
         }
 
@@ -67,113 +55,114 @@ namespace YoonFactory
         {
             Unit();
         }
+
         public YoonCartesianN(IYoonCartesian c)
         {
             CopyFrom(c);
         }
-        public YoonCartesianN(int dX, int dY, int dZ, int dRX, int dRY, int dRZ)
+
+        public YoonCartesianN(int nX, int nY, int nZ, int nRX, int nRY, int nRZ)
         {
-            X = dX;
-            Y = dY;
-            Z = dZ;
-            RX = dRX;
-            RY = dRY;
-            RZ = dRZ;
+            X = nX;
+            Y = nY;
+            Z = nZ;
+            RX = nRX;
+            RY = nRY;
+            RZ = nRZ;
         }
 
         public void Zero()
         {
             X = Y = Z = RX = RY = RZ = 0;
         }
+
         public void Unit()
         {
             X = Y = Z = 1;
             RX = RY = RZ = 0;
         }
-        public static YoonCartesianN operator *(YoonCartesianN c, int a)
+
+        public static YoonCartesianN operator *(YoonCartesianN pCart, int nNum)
         {
-            return new YoonCartesianN(c.X * a, c.Y * a, c.Z * a, c.RX, c.RY, c.RZ);
+            return new YoonCartesianN(pCart.X * nNum, pCart.Y * nNum, pCart.Z * nNum, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianN operator +(YoonCartesianN c1, YoonCartesianN c2)
+
+        public static YoonCartesianN operator +(YoonCartesianN pCartSource, YoonCartesianN pCartObject)
         {
-            return new YoonCartesianN(c1.X + c2.X, c1.Y + c2.Y, c1.Z + c2.Z, c1.RX + c2.RX, c1.RY + c2.RY, c1.RZ + c2.RZ);
+            return new YoonCartesianN(pCartSource.X + pCartObject.X, pCartSource.Y + pCartObject.Y,
+                pCartSource.Z + pCartObject.Z, pCartSource.RX + pCartObject.RX, pCartSource.RY + pCartObject.RY,
+                pCartSource.RZ + pCartObject.RZ);
         }
-        public static YoonCartesianN operator +(YoonCartesianN c, YoonVector2N v)
+
+        public static YoonCartesianN operator +(YoonCartesianN pCart, YoonVector2N pVector)
         {
-            return new YoonCartesianN(c.X + v.X, c.Y + v.Y, c.Z, c.RX, c.RY, c.RZ);
+            return new YoonCartesianN(pCart.X + pVector.X, pCart.Y + pVector.Y, pCart.Z, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianN operator -(YoonCartesianN c1, YoonCartesianN c2)
+
+        public static YoonCartesianN operator -(YoonCartesianN pCartSource, YoonCartesianN pCartObject)
         {
-            return new YoonCartesianN(c1.X - c2.X, c1.Y - c2.Y, c1.Z - c2.Z, c1.RX - c2.RX, c1.RY - c2.RY, c1.RZ - c2.RZ);
+            return new YoonCartesianN(pCartSource.X - pCartObject.X, pCartSource.Y - pCartObject.Y,
+                pCartSource.Z - pCartObject.Z, pCartSource.RX - pCartObject.RX, pCartSource.RY - pCartObject.RY,
+                pCartSource.RZ - pCartObject.RZ);
         }
-        public static YoonCartesianN operator -(YoonCartesianN c, YoonVector2N v)
+
+        public static YoonCartesianN operator -(YoonCartesianN pCart, YoonVector2N pVector)
         {
-            return new YoonCartesianN(c.X - v.X, c.Y - v.Y, c.Z, c.RX, c.RY, c.RZ);
+            return new YoonCartesianN(pCart.X - pVector.X, pCart.Y - pVector.Y, pCart.Z, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianN operator /(YoonCartesianN c, int a)
+
+        public static YoonCartesianN operator /(YoonCartesianN pCart, int nNum)
         {
-            return new YoonCartesianN(c.X / a, c.Y / a, c.Z / a, c.RX, c.RY, c.RZ);
+            return new YoonCartesianN(pCart.X / nNum, pCart.Y / nNum, pCart.Z / nNum, pCart.RX, pCart.RY, pCart.RZ);
         }
     }
 
-    public class YoonCartesianD : IYoonCartesian, IYoonCartesian<double>
+    public class YoonCartesianD : IYoonCartesian<double>
     {
         public IYoonCartesian Clone()
         {
-            YoonCartesianD c = new YoonCartesianD();
-            c.X = X;
-            c.Y = Y;
-            c.Z = Z;
-            c.RX = RX;
-            c.RY = RY;
-            c.RZ = RZ;
-            return c;
+            return new YoonCartesianD
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                RX = RX,
+                RY = RY,
+                RZ = RZ
+            };
         }
 
-        public void CopyFrom(IYoonCartesian c)
+        public void CopyFrom(IYoonCartesian pCart)
         {
-            if (c is YoonCartesianD cart)
+            if (pCart is YoonCartesianD pCartDouble)
             {
-                X = cart.X;
-                Y = cart.Y;
-                Z = cart.Z;
-                RX = cart.RX;
-                RY = cart.RY;
-                RZ = cart.RZ;
+                X = pCartDouble.X;
+                Y = pCartDouble.Y;
+                Z = pCartDouble.Z;
+                RX = pCartDouble.RX;
+                RY = pCartDouble.RY;
+                RZ = pCartDouble.RZ;
             }
         }
 
-        [XmlIgnore]
-        public double X { get; set; }
-        [XmlAttribute]
-        public double Y { get; set; }
-        [XmlAttribute]
-        public double Z { get; set; }
-        [XmlIgnore]
-        public double RX { get; set; }
-        [XmlAttribute]
-        public double RY { get; set; }
-        [XmlAttribute]
-        public double RZ { get; set; }
+        [XmlIgnore] public double X { get; set; }
+        [XmlAttribute] public double Y { get; set; }
+        [XmlAttribute] public double Z { get; set; }
+        [XmlIgnore] public double RX { get; set; }
+        [XmlAttribute] public double RY { get; set; }
+        [XmlAttribute] public double RZ { get; set; }
 
         public double[] Array
         {
-            get => new double[6] { X, Y, Z, RX, RY, RZ };
+            get => new double[6] {X, Y, Z, RX, RY, RZ};
             set
             {
-                try
-                {
-                    X = value[0];
-                    Y = value[1];
-                    Z = value[2];
-                    RX = value[3];
-                    RY = value[4];
-                    RZ = value[5];
-                }
-                catch
-                {
-                    //
-                }
+                X = value[0];
+                Y = value[1];
+                Z = value[2];
+                RX = value[3];
+                RY = value[4];
+                RZ = value[5];
             }
         }
 
@@ -181,10 +170,12 @@ namespace YoonFactory
         {
             Unit();
         }
-        public YoonCartesianD(IYoonCartesian c)
+
+        public YoonCartesianD(IYoonCartesian pCart)
         {
-            CopyFrom(c);
+            CopyFrom(pCart);
         }
+
         public YoonCartesianD(double dX, double dY, double dZ, double dRX, double dRY, double dRZ)
         {
             X = dX;
@@ -199,35 +190,45 @@ namespace YoonFactory
         {
             X = Y = Z = RX = RY = RZ = 0;
         }
+
         public void Unit()
         {
             X = Y = Z = 1;
             RX = RY = RZ = 0;
         }
-        public static YoonCartesianD operator *(YoonCartesianD c, double a)
+
+        public static YoonCartesianD operator *(YoonCartesianD pCart, double dNum)
         {
-            return new YoonCartesianD(c.X * a, c.Y * a, c.Z * a, c.RX, c.RY, c.RZ);
+            return new YoonCartesianD(pCart.X * dNum, pCart.Y * dNum, pCart.Z * dNum, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianD operator +(YoonCartesianD c1, YoonCartesianD c2)
+
+        public static YoonCartesianD operator +(YoonCartesianD pCartSource, YoonCartesianD pCartObject)
         {
-            return new YoonCartesianD(c1.X + c2.X, c1.Y + c2.Y, c1.Z + c2.Z, c1.RX + c2.RX, c1.RY + c2.RY, c1.RZ + c2.RZ);
+            return new YoonCartesianD(pCartSource.X + pCartObject.X, pCartSource.Y + pCartObject.Y,
+                pCartSource.Z + pCartObject.Z, pCartSource.RX + pCartObject.RX, pCartSource.RY + pCartObject.RY,
+                pCartSource.RZ + pCartObject.RZ);
         }
-        public static YoonCartesianD operator +(YoonCartesianD c, YoonVector2D v)
+
+        public static YoonCartesianD operator +(YoonCartesianD pCart, YoonVector2D pVector)
         {
-            return new YoonCartesianD(c.X + v.X, c.Y + v.Y, c.Z, c.RX, c.RY, c.RZ);
+            return new YoonCartesianD(pCart.X + pVector.X, pCart.Y + pVector.Y, pCart.Z, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianD operator -(YoonCartesianD c1, YoonCartesianD c2)
+
+        public static YoonCartesianD operator -(YoonCartesianD pCartSource, YoonCartesianD pCartObject)
         {
-            return new YoonCartesianD(c1.X - c2.X, c1.Y - c2.Y, c1.Z - c2.Z, c1.RX - c2.RX, c1.RY - c2.RY, c1.RZ - c2.RZ);
+            return new YoonCartesianD(pCartSource.X - pCartObject.X, pCartSource.Y - pCartObject.Y,
+                pCartSource.Z - pCartObject.Z, pCartSource.RX - pCartObject.RX, pCartSource.RY - pCartObject.RY,
+                pCartSource.RZ - pCartObject.RZ);
         }
-        public static YoonCartesianD operator -(YoonCartesianD c, YoonVector2D v)
+
+        public static YoonCartesianD operator -(YoonCartesianD pCart, YoonVector2D pVector)
         {
-            return new YoonCartesianD(c.X - v.X, c.Y - v.Y, c.Z, c.RX, c.RY, c.RZ);
+            return new YoonCartesianD(pCart.X - pVector.X, pCart.Y - pVector.Y, pCart.Z, pCart.RX, pCart.RY, pCart.RZ);
         }
-        public static YoonCartesianD operator /(YoonCartesianD c, double a)
+
+        public static YoonCartesianD operator /(YoonCartesianD pCart, double dNum)
         {
-            return new YoonCartesianD(c.X / a, c.Y / a, c.Z / a, c.RX, c.RY, c.RZ);
+            return new YoonCartesianD(pCart.X / dNum, pCart.Y / dNum, pCart.Z / dNum, pCart.RX, pCart.RY, pCart.RZ);
         }
     }
-
 }

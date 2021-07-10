@@ -6,55 +6,47 @@ namespace YoonFactory
     {
         public IYoonJoint Clone()
         {
-            YoonJointD j = new YoonJointD();
-            j.J1 = J1;
-            j.J2 = J2;
-            j.J3 = J3;
-            j.J4 = J4;
-            j.J5 = J5;
-            j.J6 = J6;
-            return j;
-        }
-
-        public void CopyFrom(IYoonJoint j)
-        {
-            if (j is YoonJointD joint)
+            return new YoonJointD
             {
-                J1 = joint.J1;
-                J2 = joint.J2;
-                J3 = joint.J3;
-                J4 = joint.J4;
-                J5 = joint.J5;
-                J6 = joint.J6;
-            }
+                J1 = J1,
+                J2 = J2,
+                J3 = J3,
+                J4 = J4,
+                J5 = J5,
+                J6 = J6
+            };
         }
 
-        [XmlIgnore]
-        public double J1 { get; set; }
-        [XmlAttribute]
-        public double J2 { get; set; }
-        [XmlAttribute]
-        public double J3 { get; set; }
-        [XmlIgnore]
-        public double J4 { get; set; }
-        [XmlAttribute]
-        public double J5 { get; set; }
-        [XmlAttribute]
-        public double J6 { get; set; }
-
-        public double[] ToArray
+        public void CopyFrom(IYoonJoint pJoint)
         {
-            get => new double[6] { J1, J2, J3, J4, J5, J6 };
+            if (pJoint is not YoonJointD pJointDouble) return;
+            J1 = pJointDouble.J1;
+            J2 = pJointDouble.J2;
+            J3 = pJointDouble.J3;
+            J4 = pJointDouble.J4;
+            J5 = pJointDouble.J5;
+            J6 = pJointDouble.J6;
         }
+
+        [XmlIgnore] public double J1 { get; set; }
+        [XmlAttribute] public double J2 { get; set; }
+        [XmlAttribute] public double J3 { get; set; }
+        [XmlIgnore] public double J4 { get; set; }
+        [XmlAttribute] public double J5 { get; set; }
+        [XmlAttribute] public double J6 { get; set; }
+
+        public double[] ToArray => new double[6] {J1, J2, J3, J4, J5, J6};
 
         public YoonJointD()
         {
             Zero();
         }
+
         public YoonJointD(IYoonJoint j)
         {
             CopyFrom(j);
         }
+
         public YoonJointD(double dJ1, double dJ2, double dJ3, double dJ4, double dJ5, double dJ6)
         {
             J1 = dJ1;
@@ -69,22 +61,31 @@ namespace YoonFactory
         {
             J1 = J2 = J3 = J4 = J5 = J6 = 0;
         }
-        public static YoonJointD operator *(YoonJointD j, double a)
+
+        public static YoonJointD operator *(YoonJointD pJoint, double dNum)
         {
-            return new YoonJointD(j.J1 * a, j.J2 * a, j.J3 * a, j.J4 * a, j.J5 * a, j.J6 * a);
+            return new YoonJointD(pJoint.J1 * dNum, pJoint.J2 * dNum, pJoint.J3 * dNum, pJoint.J4 * dNum,
+                pJoint.J5 * dNum, pJoint.J6 * dNum);
         }
-        public static YoonJointD operator +(YoonJointD j1, YoonJointD j2)
+
+        public static YoonJointD operator +(YoonJointD pJointSource, YoonJointD pJointObject)
         {
-            return new YoonJointD(j1.J1 + j2.J1, j1.J2 + j2.J2, j1.J3 + j2.J3, j1.J4 + j2.J4, j1.J5 + j2.J5, j1.J6 + j2.J6);
+            return new YoonJointD(pJointSource.J1 + pJointObject.J1, pJointSource.J2 + pJointObject.J2,
+                pJointSource.J3 + pJointObject.J3, pJointSource.J4 + pJointObject.J4, pJointSource.J5 + pJointObject.J5,
+                pJointSource.J6 + pJointObject.J6);
         }
-        public static YoonJointD operator -(YoonJointD j1, YoonJointD j2)
+
+        public static YoonJointD operator -(YoonJointD pJointSource, YoonJointD pJointObject)
         {
-            return new YoonJointD(j1.J1 - j2.J1, j1.J2 - j2.J2, j1.J3 - j2.J3, j1.J4 - j2.J4, j1.J5 - j2.J5, j1.J6 - j2.J6);
+            return new YoonJointD(pJointSource.J1 - pJointObject.J1, pJointSource.J2 - pJointObject.J2,
+                pJointSource.J3 - pJointObject.J3, pJointSource.J4 - pJointObject.J4, pJointSource.J5 - pJointObject.J5,
+                pJointSource.J6 - pJointObject.J6);
         }
-        public static YoonJointD operator /(YoonJointD j, double a)
+
+        public static YoonJointD operator /(YoonJointD pJoint, double dNum)
         {
-            return new YoonJointD(j.J1 / a, j.J2 / a, j.J3 / a, j.J4 / a, j.J5 / a, j.J6 / a);
+            return new YoonJointD(pJoint.J1 / dNum, pJoint.J2 / dNum, pJoint.J3 / dNum, pJoint.J4 / dNum,
+                pJoint.J5 / dNum, pJoint.J6 / dNum);
         }
     }
-
 }
