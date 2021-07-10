@@ -4,166 +4,138 @@ using System.Xml.Serialization;
 
 namespace YoonFactory
 {
-    public class YoonRectAffine2D : IYoonRect, IYoonRect2D<double>, IEquatable<YoonRectAffine2D>
+    public class YoonRectAffine2D : IYoonRect2D<double>, IEquatable<YoonRectAffine2D>
     {
         public override bool Equals(object obj)
         {
             return Equals(obj as IYoonRect);
         }
 
-        public bool Equals(IYoonRect r)
+        public bool Equals(IYoonRect pRect)
         {
-            if (r is YoonRectAffine2D rect)
-            {
-                if (CenterPos.X == rect.CenterPos.X &&
-                    CenterPos.Y == rect.CenterPos.Y &&
-                    Width == rect.Width &&
-                    Height == rect.Height &&
-                    Rotation == rect.Rotation)
-                    return true;
-            }
-            return false;
+            if (pRect is not YoonRectAffine2D pRectAffine2D) return false;
+            return CenterPos.X == pRectAffine2D.CenterPos.X &&
+                   CenterPos.Y == pRectAffine2D.CenterPos.Y &&
+                   Width == pRectAffine2D.Width &&
+                   Height == pRectAffine2D.Height &&
+                   Rotation == pRectAffine2D.Rotation;
         }
 
         public IYoonRect Clone()
         {
-            YoonRectAffine2D r = new YoonRectAffine2D(0.0, 0.0, 0.0);
-            r.CenterPos = this.CenterPos.Clone() as YoonVector2D;
-            r.Width = this.Width;
-            r.Height = this.Height;
-            r.Rotation = this.Rotation;
-            return r;
-        }
-        public void CopyFrom(IYoonRect r)
-        {
-            if (r is YoonRectAffine2D rect)
+            return new YoonRectAffine2D(0.0, 0.0, 0.0)
             {
-                CenterPos = rect.CenterPos.Clone() as YoonVector2D;
-                Width = rect.Width;
-                Height = rect.Height;
-                Rotation = rect.Rotation;
-            }
+                CenterPos = this.CenterPos.Clone() as YoonVector2D,
+                Width = this.Width,
+                Height = this.Height,
+                Rotation = this.Rotation
+            };
+        }
+
+        public void CopyFrom(IYoonRect pRect)
+        {
+            if (pRect is not YoonRectAffine2D pRectAffine2D) return;
+            CenterPos = pRectAffine2D.CenterPos.Clone() as YoonVector2D;
+            Width = pRectAffine2D.Width;
+            Height = pRectAffine2D.Height;
+            Rotation = pRectAffine2D.Rotation;
         }
 
         [XmlAttribute]
         public IYoonVector2D<double> CenterPos
         {
-            get => m_vecCenter;
+            get => _pCenter;
             set
             {
-                m_vecCenter = value as YoonVector2D;
-                InitRectOrigin(m_vecCenter as YoonVector2D, m_dWidth, m_dHeight);
+                _pCenter = value as YoonVector2D;
+                InitRectOrigin((YoonVector2D) _pCenter, _dWidth, _dHeight);
             }
         }
+
         [XmlAttribute]
         public double Width
         {
-            get => m_dWidth;
+            get => _dWidth;
             set
             {
-                m_dWidth = value;
-                InitRectOrigin(m_vecCenter as YoonVector2D, m_dWidth, m_dHeight);
+                _dWidth = value;
+                InitRectOrigin(_pCenter as YoonVector2D, _dWidth, _dHeight);
             }
         }
+
         [XmlAttribute]
         public double Height
         {
-            get => m_dHeight;
+            get => _dHeight;
             set
             {
-                m_dHeight = value;
-                InitRectOrigin(m_vecCenter as YoonVector2D, m_dWidth, m_dHeight);
+                _dHeight = value;
+                InitRectOrigin(_pCenter as YoonVector2D, _dWidth, _dHeight);
             }
         }
+
         [XmlAttribute]
         public double Rotation
         {
-            get => m_dRotation;
+            get => _dRotation;
             set
             {
-                m_dRotation = value;
-                InitRectOrigin(m_vecCenter as YoonVector2D, m_dWidth, m_dHeight);
+                _dRotation = value;
+                InitRectOrigin(_pCenter as YoonVector2D, _dWidth, _dHeight);
 
-                m_vecCornerRotate_TopLeft = m_vecCornerOrigin_TopLeft.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_BottomLeft = m_vecCornerOrigin_BottomLeft.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_TopRight = m_vecCornerOrigin_TopRight.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
-                m_vecCornerRotate_BottomRight = m_vecCornerOrigin_BottomRight.GetRotateVector(m_vecCenter, m_dRotation) as YoonVector2D;
+                _pCornerRotateTopLeft = _pCornerOriginTopLeft.GetRotateVector(_pCenter, _dRotation) as YoonVector2D;
+                _pCornerRotateBottomLeft =
+                    _pCornerOriginBottomLeft.GetRotateVector(_pCenter, _dRotation) as YoonVector2D;
+                _pCornerRotateTopRight = _pCornerOriginTopRight.GetRotateVector(_pCenter, _dRotation) as YoonVector2D;
+                _pCornerRotateBottomRight =
+                    _pCornerOriginBottomRight.GetRotateVector(_pCenter, _dRotation) as YoonVector2D;
             }
         }
 
         private void InitRectOrigin(YoonVector2D vecCenter, double dWidth, double dHeight)
         {
-            m_vecCornerOrigin_TopLeft.X = vecCenter.X - dWidth / 2;
-            m_vecCornerOrigin_TopLeft.Y = vecCenter.Y - dHeight / 2;
-            m_vecCornerOrigin_TopRight.X = vecCenter.X + dWidth / 2;
-            m_vecCornerOrigin_TopRight.Y = vecCenter.Y - dHeight / 2;
-            m_vecCornerOrigin_BottomLeft.X = vecCenter.X - dWidth / 2;
-            m_vecCornerOrigin_BottomLeft.Y = vecCenter.Y + dHeight / 2;
-            m_vecCornerOrigin_BottomRight.X = vecCenter.X + dWidth / 2;
-            m_vecCornerOrigin_BottomRight.Y = vecCenter.Y + dHeight / 2;
+            _pCornerOriginTopLeft.X = vecCenter.X - dWidth / 2;
+            _pCornerOriginTopLeft.Y = vecCenter.Y - dHeight / 2;
+            _pCornerOriginTopRight.X = vecCenter.X + dWidth / 2;
+            _pCornerOriginTopRight.Y = vecCenter.Y - dHeight / 2;
+            _pCornerOriginBottomLeft.X = vecCenter.X - dWidth / 2;
+            _pCornerOriginBottomLeft.Y = vecCenter.Y + dHeight / 2;
+            _pCornerOriginBottomRight.X = vecCenter.X + dWidth / 2;
+            _pCornerOriginBottomRight.Y = vecCenter.Y + dHeight / 2;
         }
 
-        #region 내부 변수
-        private YoonVector2D m_vecCornerOrigin_TopLeft = new YoonVector2D();
-        private YoonVector2D m_vecCornerOrigin_BottomLeft = new YoonVector2D();
-        private YoonVector2D m_vecCornerOrigin_TopRight = new YoonVector2D();
-        private YoonVector2D m_vecCornerOrigin_BottomRight = new YoonVector2D();
-        private YoonVector2D m_vecCornerRotate_TopLeft = null;
-        private YoonVector2D m_vecCornerRotate_BottomLeft = null;
-        private YoonVector2D m_vecCornerRotate_TopRight = null;
-        private YoonVector2D m_vecCornerRotate_BottomRight = null;
-        private YoonVector2D m_vecCenter = new YoonVector2D(); // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
-        private double m_dWidth = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
-        private double m_dHeight = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
-        private double m_dRotation = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
-        #endregion
+        private readonly YoonVector2D _pCornerOriginTopLeft = new YoonVector2D();
+        private readonly YoonVector2D _pCornerOriginBottomLeft = new YoonVector2D();
+        private readonly YoonVector2D _pCornerOriginTopRight = new YoonVector2D();
+        private readonly YoonVector2D _pCornerOriginBottomRight = new YoonVector2D();
+        private YoonVector2D _pCornerRotateTopLeft = null;
+        private YoonVector2D _pCornerRotateBottomLeft = null;
+        private YoonVector2D _pCornerRotateTopRight = null;
+        private YoonVector2D _pCornerRotateBottomRight = null;
+        private YoonVector2D _pCenter = new YoonVector2D(); // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
+        private double _dWidth = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
+        private double _dHeight = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
+        private double _dRotation = 0.0; // Set 내 InitOrigin과 충돌에 따른 StackOverflow 방지용
 
-        public double Left
-        {
-            get => CenterPos.X - Width / 2;
-        }
+        public double Left => CenterPos.X - Width / 2;
 
-        public double Top
-        {
-            get => CenterPos.Y - Height / 2;
-        }
+        public double Top => CenterPos.Y - Height / 2;
 
-        public double Right
-        {
-            get => CenterPos.X + Width / 2;
-        }
+        public double Right => CenterPos.X + Width / 2;
 
-        public double Bottom
-        {
-            get => CenterPos.Y + Height / 2;
-        }
+        public double Bottom => CenterPos.Y + Height / 2;
 
-        public IYoonVector2D<double> TopLeft
-        {
-            get => m_vecCornerRotate_TopLeft;
+        public IYoonVector2D<double> TopLeft => _pCornerRotateTopLeft;
 
-        }
+        public IYoonVector2D<double> TopRight => _pCornerRotateTopRight;
 
-        public IYoonVector2D<double> TopRight
-        {
-            get => m_vecCornerRotate_TopRight;
-        }
+        public IYoonVector2D<double> BottomLeft => _pCornerRotateBottomLeft;
 
-        public IYoonVector2D<double> BottomLeft
-        {
-            get => m_vecCornerRotate_BottomLeft;
-        }
-
-        public IYoonVector2D<double> BottomRight
-        {
-            get => m_vecCornerRotate_BottomRight;
-        }
+        public IYoonVector2D<double> BottomRight => _pCornerRotateBottomRight;
 
         public YoonRectAffine2D()
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = 0;
-            CenterPos.Y = 0;
+            CenterPos = new YoonVector2D {X = 0, Y = 0};
             Width = 0;
             Height = 0;
             Rotation = 0;
@@ -171,9 +143,7 @@ namespace YoonFactory
 
         public YoonRectAffine2D(double dWidth, double dHeight, double dTheta)
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = 0;
-            CenterPos.Y = 0;
+            CenterPos = new YoonVector2D {X = 0, Y = 0};
             Width = dWidth;
             Height = dHeight;
 
@@ -182,34 +152,28 @@ namespace YoonFactory
 
         public YoonRectAffine2D(double dX, double dY, double dWidth, double dHeight, double dTheta)
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = dX;
-            CenterPos.Y = dY;
+            CenterPos = new YoonVector2D {X = dX, Y = dY};
             Width = dWidth;
             Height = dHeight;
 
             Rotation = dTheta;
         }
 
-        public YoonRectAffine2D(YoonVector2D vecPos, double dWidth, double dHeight, double dTheta)
+        public YoonRectAffine2D(YoonVector2D pVector, double dWidth, double dHeight, double dTheta)
         {
-            CenterPos = vecPos.Clone() as YoonVector2D;
+            CenterPos = pVector.Clone() as YoonVector2D;
             Width = dWidth;
             Height = dHeight;
             Rotation = dTheta;
         }
 
-        public bool IsContain(IYoonVector vec)
+        public bool IsContain(IYoonVector pVector)
         {
-            if (vec is YoonVector2D pPos)
-            {
-                if (m_vecCornerRotate_BottomLeft.X < pPos.X && m_vecCornerRotate_TopLeft.X < pPos.X &&
-                    pPos.X < m_vecCornerRotate_BottomRight.X && pPos.X < m_vecCornerRotate_TopRight.X &&
-                    m_vecCornerRotate_TopLeft.Y < pPos.Y && m_vecCornerRotate_TopRight.Y < pPos.Y &&
-                    pPos.Y < m_vecCornerRotate_BottomLeft.Y && pPos.Y < m_vecCornerRotate_BottomRight.Y)
-                    return true;
-            }
-            return false;
+            if (pVector is not YoonVector2D pVector2D) return false;
+            return _pCornerRotateBottomLeft.X < pVector2D.X && _pCornerRotateTopLeft.X < pVector2D.X &&
+                   pVector2D.X < _pCornerRotateBottomRight.X && pVector2D.X < _pCornerRotateTopRight.X &&
+                   _pCornerRotateTopLeft.Y < pVector2D.Y && _pCornerRotateTopRight.Y < pVector2D.Y &&
+                   pVector2D.Y < _pCornerRotateBottomLeft.Y && pVector2D.Y < _pCornerRotateBottomRight.Y;
         }
 
         public double Area()
@@ -224,18 +188,24 @@ namespace YoonFactory
                    Width == other.Width &&
                    Height == other.Height &&
                    Rotation == other.Rotation &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerOrigin_TopLeft, other.m_vecCornerOrigin_TopLeft) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerOrigin_BottomLeft, other.m_vecCornerOrigin_BottomLeft) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerOrigin_TopRight, other.m_vecCornerOrigin_TopRight) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerOrigin_BottomRight, other.m_vecCornerOrigin_BottomRight) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerRotate_TopLeft, other.m_vecCornerRotate_TopLeft) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerRotate_BottomLeft, other.m_vecCornerRotate_BottomLeft) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerRotate_TopRight, other.m_vecCornerRotate_TopRight) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCornerRotate_BottomRight, other.m_vecCornerRotate_BottomRight) &&
-                   EqualityComparer<YoonVector2D>.Default.Equals(m_vecCenter, other.m_vecCenter) &&
-                   m_dWidth == other.m_dWidth &&
-                   m_dHeight == other.m_dHeight &&
-                   m_dRotation == other.m_dRotation &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerOriginTopLeft, other._pCornerOriginTopLeft) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerOriginBottomLeft,
+                       other._pCornerOriginBottomLeft) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerOriginTopRight,
+                       other._pCornerOriginTopRight) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerOriginBottomRight,
+                       other._pCornerOriginBottomRight) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerRotateTopLeft, other._pCornerRotateTopLeft) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerRotateBottomLeft,
+                       other._pCornerRotateBottomLeft) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerRotateTopRight,
+                       other._pCornerRotateTopRight) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCornerRotateBottomRight,
+                       other._pCornerRotateBottomRight) &&
+                   EqualityComparer<YoonVector2D>.Default.Equals(_pCenter, other._pCenter) &&
+                   _dWidth == other._dWidth &&
+                   _dHeight == other._dHeight &&
+                   _dRotation == other._dRotation &&
                    Left == other.Left &&
                    Top == other.Top &&
                    Right == other.Right &&
@@ -253,18 +223,26 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + Width.GetHashCode();
             hashCode = hashCode * -1521134295 + Height.GetHashCode();
             hashCode = hashCode * -1521134295 + Rotation.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerOrigin_TopLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerOrigin_BottomLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerOrigin_TopRight);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerOrigin_BottomRight);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerRotate_TopLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerRotate_BottomLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerRotate_TopRight);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCornerRotate_BottomRight);
-            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(m_vecCenter);
-            hashCode = hashCode * -1521134295 + m_dWidth.GetHashCode();
-            hashCode = hashCode * -1521134295 + m_dHeight.GetHashCode();
-            hashCode = hashCode * -1521134295 + m_dRotation.GetHashCode();
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerOriginTopLeft);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerOriginBottomLeft);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerOriginTopRight);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerOriginBottomRight);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerRotateTopLeft);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerRotateBottomLeft);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerRotateTopRight);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCornerRotateBottomRight);
+            hashCode = hashCode * -1521134295 + EqualityComparer<YoonVector2D>.Default.GetHashCode(_pCenter);
+            hashCode = hashCode * -1521134295 + _dWidth.GetHashCode();
+            hashCode = hashCode * -1521134295 + _dHeight.GetHashCode();
+            hashCode = hashCode * -1521134295 + _dRotation.GetHashCode();
             hashCode = hashCode * -1521134295 + Left.GetHashCode();
             hashCode = hashCode * -1521134295 + Top.GetHashCode();
             hashCode = hashCode * -1521134295 + Right.GetHashCode();
@@ -272,35 +250,26 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopLeft);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopRight);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
             return hashCode;
         }
 
         public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)
         {
-            switch (nDir)
+            return nDir switch
             {
-                case eYoonDir2D.TopLeft:
-                    return TopLeft;
-                case eYoonDir2D.Top:
-                    return new YoonVector2D(CenterPos.X, Top);
-                case eYoonDir2D.TopRight:
-                    return TopRight;
-                case eYoonDir2D.Left:
-                    return new YoonVector2D(Left, CenterPos.Y);
-                case eYoonDir2D.Center:
-                    return CenterPos;
-                case eYoonDir2D.Right:
-                    return new YoonVector2D(Right, CenterPos.Y);
-                case eYoonDir2D.BottomLeft:
-                    return BottomLeft;
-                case eYoonDir2D.Bottom:
-                    return new YoonVector2D(CenterPos.X, Bottom);
-                case eYoonDir2D.BottomRight:
-                    return BottomRight;
-                default:
-                    return new YoonVector2D();
-            }
+                eYoonDir2D.TopLeft => TopLeft,
+                eYoonDir2D.Top => new YoonVector2D(CenterPos.X, Top),
+                eYoonDir2D.TopRight => TopRight,
+                eYoonDir2D.Left => new YoonVector2D(Left, CenterPos.Y),
+                eYoonDir2D.Center => CenterPos,
+                eYoonDir2D.Right => new YoonVector2D(Right, CenterPos.Y),
+                eYoonDir2D.BottomLeft => BottomLeft,
+                eYoonDir2D.Bottom => new YoonVector2D(CenterPos.X, Bottom),
+                eYoonDir2D.BottomRight => BottomRight,
+                _ => new YoonVector2D()
+            };
         }
 
         public static bool operator ==(YoonRectAffine2D r1, YoonRectAffine2D r2)
@@ -313,5 +282,4 @@ namespace YoonFactory
             return r1?.Equals(r2) == false;
         }
     }
-
 }

@@ -14,134 +14,98 @@ namespace YoonFactory
             return Equals(obj as IYoonRect);
         }
 
-        public bool Equals(IYoonRect r)
+        public bool Equals(IYoonRect pRect)
         {
-            if (r is YoonRect2N rect)
-            {
-                if (CenterPos.X == rect.CenterPos.X &&
-                    CenterPos.Y == rect.CenterPos.Y &&
-                    Width == rect.Width &&
-                    Height == rect.Height)
-                    return true;
-            }
-            return false;
+            if (pRect is not YoonRect2N pRect2N) return false;
+            return CenterPos.X == pRect2N.CenterPos.X &&
+                   CenterPos.Y == pRect2N.CenterPos.Y &&
+                   Width == pRect2N.Width &&
+                   Height == pRect2N.Height;
         }
 
         public IYoonRect Clone()
         {
-            YoonRect2N r = new YoonRect2N();
-            r.CenterPos = this.CenterPos.Clone() as YoonVector2N;
-            r.Width = this.Width;
-            r.Height = this.Height;
-            return r;
-        }
-        public void CopyFrom(IYoonRect r)
-        {
-            if (r is YoonRect2N rect)
+            return new YoonRect2N
             {
-                CenterPos = rect.CenterPos.Clone() as YoonVector2N;
-                Width = rect.Width;
-                Height = rect.Height;
-            }
+                CenterPos = this.CenterPos.Clone() as YoonVector2N, Width = this.Width, Height = this.Height
+            };
         }
 
-        [XmlAttribute]
-        public IYoonVector2D<int> CenterPos { get; set; }
-        [XmlAttribute]
-        public int Width { get; set; }
-        [XmlAttribute]
-        public int Height { get; set; }
-
-        public int Left
+        public void CopyFrom(IYoonRect pRect)
         {
-            get => (CenterPos as YoonVector2N).X - Width / 2;
+            if (pRect is not YoonRect2N pRect2N) return;
+            CenterPos = pRect2N.CenterPos.Clone() as YoonVector2N;
+            Width = pRect2N.Width;
+            Height = pRect2N.Height;
         }
 
-        public int Top
-        {
-            get => (CenterPos as YoonVector2N).Y - Height / 2;
-        }
+        [XmlAttribute] public IYoonVector2D<int> CenterPos { get; set; }
+        [XmlAttribute] public int Width { get; set; }
+        [XmlAttribute] public int Height { get; set; }
 
-        public int Right
-        {
-            get => (CenterPos as YoonVector2N).X + Width / 2;
-        }
-        public int Bottom
-        {
-            get => (CenterPos as YoonVector2N).Y + Height / 2;
-        }
+        public int Left => ((YoonVector2N) CenterPos).X - Width / 2;
 
-        public IYoonVector2D<int> TopLeft
-        {
-            get => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
-        }
+        public int Top => ((YoonVector2N) CenterPos).Y - Height / 2;
 
-        public IYoonVector2D<int> TopRight
-        {
-            get => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
-        }
+        public int Right => ((YoonVector2N) CenterPos).X + Width / 2;
 
-        public IYoonVector2D<int> BottomLeft
-        {
-            get => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
-        }
+        public int Bottom => ((YoonVector2N) CenterPos).Y + Height / 2;
 
-        public IYoonVector2D<int> BottomRight
-        {
-            get => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
-        }
+        public IYoonVector2D<int> TopLeft => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
+
+        public IYoonVector2D<int> TopRight => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
+
+        public IYoonVector2D<int> BottomLeft => new YoonVector2N(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
+
+        public IYoonVector2D<int> BottomRight => new YoonVector2N(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
 
         public YoonRect2N()
         {
-            CenterPos = new YoonVector2N();
-            CenterPos.X = 0;
-            CenterPos.Y = 0;
+            CenterPos = new YoonVector2N {X = 0, Y = 0};
             Width = 0;
             Height = 0;
         }
-        public YoonRect2N(YoonVector2N pos, int dw, int dh)
+
+        public YoonRect2N(YoonVector2N pVector, int nWidth, int nHeight)
         {
-            CenterPos = new YoonVector2N();
-            CenterPos.X = pos.X;
-            CenterPos.Y = pos.Y;
-            Width = dw;
-            Height = dh;
+            CenterPos = new YoonVector2N {X = pVector.X, Y = pVector.Y};
+            Width = nWidth;
+            Height = nHeight;
         }
 
-        public YoonRect2N(int dx, int dy, int dw, int dh)
+        public YoonRect2N(int nX, int nY, int nWidth, int nHeight)
         {
-            CenterPos = new YoonVector2N();
-            CenterPos.X = dx;
-            CenterPos.Y = dy;
-            Width = dw;
-            Height = dh;
+            CenterPos = new YoonVector2N {X = nX, Y = nY};
+            Width = nWidth;
+            Height = nHeight;
         }
 
-        public YoonRect2N(eYoonDir2D dir1, YoonVector2N pos1, eYoonDir2D dir2, YoonVector2N pos2)
+        public YoonRect2N(eYoonDir2D nDir1, YoonVector2N nVector1, eYoonDir2D nDir2, YoonVector2N nVector2)
         {
-            if (dir1 == eYoonDir2D.TopLeft && dir2 == eYoonDir2D.BottomRight)
+            if (nDir1 == eYoonDir2D.TopLeft && nDir2 == eYoonDir2D.BottomRight)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos2.X - pos1.X;
-                Height = pos2.Y - pos1.Y;
+                CenterPos = (nVector1 + nVector2) / 2;
+                Width = nVector2.X - nVector1.X;
+                Height = nVector2.Y - nVector1.Y;
             }
-            else if (dir1 == eYoonDir2D.BottomRight && dir2 == eYoonDir2D.TopLeft)
+            else if (nDir1 == eYoonDir2D.BottomRight && nDir2 == eYoonDir2D.TopLeft)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos1.X - pos2.X;
-                Height = pos1.Y - pos2.Y;
+                CenterPos = (nVector1 + nVector2) / 2;
+                Width = nVector1.X - nVector2.X;
+                Height = nVector1.Y - nVector2.Y;
             }
-            if (dir1 == eYoonDir2D.TopRight && dir2 == eYoonDir2D.BottomLeft)
+
+            if (nDir1 == eYoonDir2D.TopRight && nDir2 == eYoonDir2D.BottomLeft)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos2.X - pos1.X;
-                Height = pos1.Y - pos2.Y;
+                CenterPos = (nVector1 + nVector2) / 2;
+                Width = nVector2.X - nVector1.X;
+                Height = nVector1.Y - nVector2.Y;
             }
-            else if (dir1 == eYoonDir2D.BottomLeft && dir2 == eYoonDir2D.TopRight)
+            else if (nDir1 == eYoonDir2D.BottomLeft && nDir2 == eYoonDir2D.TopRight)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos1.X - pos2.X;
-                Height = pos2.Y - pos1.Y;
+                CenterPos = (nVector1 + nVector2) / 2;
+                Width = nVector1.X - nVector2.X;
+                Height = nVector2.Y - nVector1.Y;
             }
             else
                 throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
@@ -179,9 +143,20 @@ namespace YoonFactory
                         case eYoonDir2D.BottomLeft:
                             pPosTopLeft.X = pArgs[iParam].X;
                             break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.Right:
+                            break;
+                        case eYoonDir2D.BottomRight:
+                            break;
+                        case eYoonDir2D.Bottom:
+                            break;
                         default:
                             break;
                     }
+
                     switch (nDirDiffBottomRight)
                     {
                         case eYoonDir2D.TopRight:
@@ -200,25 +175,32 @@ namespace YoonFactory
                             pPosBottomRight.X = pArgs[iParam].X;
                             pPosBottomRight.Y = pArgs[iParam].Y;
                             break;
+                        case eYoonDir2D.None:
+                            break;
+                        case eYoonDir2D.Center:
+                            break;
+                        case eYoonDir2D.TopLeft:
+                            break;
+                        case eYoonDir2D.Top:
+                            break;
+                        case eYoonDir2D.Left:
+                            break;
                         default:
                             break;
                     }
                 }
+
                 CenterPos = (pPosTopLeft + pPosBottomRight) / 2;
                 Width = (pPosBottomRight - pPosTopLeft).X;
                 Height = (pPosBottomRight - pPosTopLeft).Y;
             }
         }
 
-        public bool IsContain(IYoonVector vec)
+        public bool IsContain(IYoonVector pVector)
         {
-            if (vec is YoonVector2D pPos)
-            {
-                if (Left < pPos.X && pPos.X < Right &&
-                    Top < pPos.Y && pPos.Y < Bottom)
-                    return true;
-            }
-            return false;
+            if (pVector is not YoonVector2D pVector2D) return false;
+            return Left < pVector2D.X && pVector2D.X < Right &&
+                   Top < pVector2D.Y && pVector2D.Y < Bottom;
         }
 
         public double Area()
@@ -261,29 +243,19 @@ namespace YoonFactory
 
         public IYoonVector2D<int> GetPosition(eYoonDir2D nDir)
         {
-            switch (nDir)
+            return nDir switch
             {
-                case eYoonDir2D.TopLeft:
-                    return TopLeft;
-                case eYoonDir2D.Top:
-                    return new YoonVector2N(CenterPos.X, Top);
-                case eYoonDir2D.TopRight:
-                    return TopRight;
-                case eYoonDir2D.Left:
-                    return new YoonVector2N(Left, CenterPos.Y);
-                case eYoonDir2D.Center:
-                    return CenterPos;
-                case eYoonDir2D.Right:
-                    return new YoonVector2N(Right, CenterPos.Y);
-                case eYoonDir2D.BottomLeft:
-                    return BottomLeft;
-                case eYoonDir2D.Bottom:
-                    return new YoonVector2N(CenterPos.X, Bottom);
-                case eYoonDir2D.BottomRight:
-                    return BottomRight;
-                default:
-                    return new YoonVector2N();
-            }
+                eYoonDir2D.TopLeft => TopLeft,
+                eYoonDir2D.Top => new YoonVector2N(CenterPos.X, Top),
+                eYoonDir2D.TopRight => TopRight,
+                eYoonDir2D.Left => new YoonVector2N(Left, CenterPos.Y),
+                eYoonDir2D.Center => CenterPos,
+                eYoonDir2D.Right => new YoonVector2N(Right, CenterPos.Y),
+                eYoonDir2D.BottomLeft => BottomLeft,
+                eYoonDir2D.Bottom => new YoonVector2N(CenterPos.X, Bottom),
+                eYoonDir2D.BottomRight => BottomRight,
+                _ => new YoonVector2N()
+            };
         }
 
         public YoonRect2D ToRect2D()
@@ -291,23 +263,23 @@ namespace YoonFactory
             return new YoonRect2D(CenterPos.X, CenterPos.Y, Width, Height);
         }
 
-        public static YoonRect2N operator +(YoonRect2N r1, YoonRect2N r2)
+        public static YoonRect2N operator +(YoonRect2N pRectSource, YoonRect2N pRectObject)
         {
-            int nTop = Math.Min(r1.Top, r2.Top);
-            int nBottom = Math.Max(r1.Bottom, r2.Bottom);
-            int nLeft = Math.Min(r1.Left, r2.Left);
-            int nRight = Math.Max(r1.Right, r2.Right);
+            int nTop = Math.Min(pRectSource.Top, pRectObject.Top);
+            int nBottom = Math.Max(pRectSource.Bottom, pRectObject.Bottom);
+            int nLeft = Math.Min(pRectSource.Left, pRectObject.Left);
+            int nRight = Math.Max(pRectSource.Right, pRectObject.Right);
             return new YoonRect2N((nLeft + nRight) / 2, (nTop + nBottom) / 2, nRight - nLeft, nBottom - nTop);
         }
 
-        public static bool operator ==(YoonRect2N r1, YoonRect2N r2)
+        public static bool operator ==(YoonRect2N pRectSource, YoonRect2N pRectObject)
         {
-            return r1?.Equals(r2) == true;
+            return pRectSource?.Equals(pRectObject) == true;
         }
 
-        public static bool operator !=(YoonRect2N r1, YoonRect2N r2)
+        public static bool operator !=(YoonRect2N pRectSource, YoonRect2N pRectObject)
         {
-            return r1?.Equals(r2) == false;
+            return pRectSource?.Equals(pRectObject) == false;
         }
     }
 
@@ -321,213 +293,193 @@ namespace YoonFactory
             return Equals(obj as IYoonRect);
         }
 
-        public bool Equals(IYoonRect r)
+        public bool Equals(IYoonRect pRect)
         {
-            if (r is YoonRect2D rect)
-            {
-                if (CenterPos.X == rect.CenterPos.X &&
-                    CenterPos.Y == rect.CenterPos.Y &&
-                    Width == rect.Width &&
-                    Height == rect.Height)
-                    return true;
-            }
-            return false;
+            if (pRect is not YoonRect2D pRect2D) return false;
+            return CenterPos.X == pRect2D.CenterPos.X &&
+                   CenterPos.Y == pRect2D.CenterPos.Y &&
+                   Width == pRect2D.Width &&
+                   Height == pRect2D.Height;
         }
 
         public IYoonRect Clone()
         {
-            YoonRect2D r = new YoonRect2D();
-            r.CenterPos = this.CenterPos.Clone() as YoonVector2D;
-            r.Width = this.Width;
-            r.Height = this.Height;
-            return r;
-        }
-        public void CopyFrom(IYoonRect r)
-        {
-            if (r is YoonRect2D rect)
+            return new YoonRect2D
             {
-                CenterPos = rect.CenterPos.Clone() as YoonVector2D;
-                Width = rect.Width;
-                Height = rect.Height;
-            }
+                CenterPos = this.CenterPos.Clone() as YoonVector2D, Width = this.Width, Height = this.Height
+            };
         }
 
-        [XmlAttribute]
-        public IYoonVector2D<double> CenterPos { get; set; }
-        [XmlAttribute]
-        public double Width { get; set; }
-        [XmlAttribute]
-        public double Height { get; set; }
-
-        public double Left
+        public void CopyFrom(IYoonRect pRect)
         {
-            get => CenterPos.X - Width / 2;
+            if (pRect is not YoonRect2D pRect2D) return;
+            CenterPos = pRect2D.CenterPos.Clone() as YoonVector2D;
+            Width = pRect2D.Width;
+            Height = pRect2D.Height;
         }
 
-        public double Top
-        {
-            get => CenterPos.Y - Height / 2;
-        }
+        [XmlAttribute] public IYoonVector2D<double> CenterPos { get; set; }
+        [XmlAttribute] public double Width { get; set; }
+        [XmlAttribute] public double Height { get; set; }
 
-        public double Right
-        {
-            get => CenterPos.X + Width / 2;
-        }
+        public double Left => CenterPos.X - Width / 2;
 
-        public double Bottom
-        {
-            get => CenterPos.Y + Height / 2;
-        }
+        public double Top => CenterPos.Y - Height / 2;
 
-        public IYoonVector2D<double> TopLeft
-        {
-            get => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
-        }
+        public double Right => CenterPos.X + Width / 2;
 
-        public IYoonVector2D<double> TopRight
-        {
-            get => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
-        }
+        public double Bottom => CenterPos.Y + Height / 2;
 
-        public IYoonVector2D<double> BottomLeft
-        {
-            get => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
-        }
+        public IYoonVector2D<double> TopLeft => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y - Height / 2);
 
-        public IYoonVector2D<double> BottomRight
-        {
-            get => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
-        }
+        public IYoonVector2D<double> TopRight => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y - Height / 2);
+
+        public IYoonVector2D<double> BottomLeft => new YoonVector2D(CenterPos.X - Width / 2, CenterPos.Y + Height / 2);
+
+        public IYoonVector2D<double> BottomRight => new YoonVector2D(CenterPos.X + Width / 2, CenterPos.Y + Height / 2);
 
         public YoonRect2D()
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = 0;
-            CenterPos.Y = 0;
+            CenterPos = new YoonVector2D {X = 0, Y = 0};
             Width = 0;
             Height = 0;
         }
 
         public YoonRect2D(YoonVector2D pos, double dw, double dh)
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = pos.X;
-            CenterPos.Y = pos.Y;
+            CenterPos = new YoonVector2D {X = pos.X, Y = pos.Y};
             Width = dw;
             Height = dh;
         }
 
         public YoonRect2D(double dx, double dy, double dw, double dh)
         {
-            CenterPos = new YoonVector2D();
-            CenterPos.X = dx;
-            CenterPos.Y = dy;
+            CenterPos = new YoonVector2D {X = dx, Y = dy};
             Width = dw;
             Height = dh;
         }
 
-        public YoonRect2D(eYoonDir2D dir1, YoonVector2D pos1, eYoonDir2D dir2, YoonVector2D pos2)
+        public YoonRect2D(eYoonDir2D nDir1, YoonVector2D pVector1, eYoonDir2D nDir2, YoonVector2D pVector2)
         {
-            if (dir1 == eYoonDir2D.TopLeft && dir2 == eYoonDir2D.BottomRight)
+            switch (nDir1)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos2.X - pos1.X;
-                Height = pos2.Y - pos1.Y;
+                case eYoonDir2D.TopLeft when nDir2 == eYoonDir2D.BottomRight:
+                    CenterPos = (pVector1 + pVector2) / 2;
+                    Width = pVector2.X - pVector1.X;
+                    Height = pVector2.Y - pVector1.Y;
+                    break;
+                case eYoonDir2D.BottomRight when nDir2 == eYoonDir2D.TopLeft:
+                    CenterPos = (pVector1 + pVector2) / 2;
+                    Width = pVector1.X - pVector2.X;
+                    Height = pVector1.Y - pVector2.Y;
+                    break;
             }
-            else if (dir1 == eYoonDir2D.BottomRight && dir2 == eYoonDir2D.TopLeft)
+
+            switch (nDir1)
             {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos1.X - pos2.X;
-                Height = pos1.Y - pos2.Y;
+                case eYoonDir2D.TopRight when nDir2 == eYoonDir2D.BottomLeft:
+                    CenterPos = (pVector1 + pVector2) / 2;
+                    Width = pVector2.X - pVector1.X;
+                    Height = pVector1.Y - pVector2.Y;
+                    break;
+                case eYoonDir2D.BottomLeft when nDir2 == eYoonDir2D.TopRight:
+                    CenterPos = (pVector1 + pVector2) / 2;
+                    Width = pVector1.X - pVector2.X;
+                    Height = pVector2.Y - pVector1.Y;
+                    break;
+                default:
+                    throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
             }
-            if (dir1 == eYoonDir2D.TopRight && dir2 == eYoonDir2D.BottomLeft)
-            {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos2.X - pos1.X;
-                Height = pos1.Y - pos2.Y;
-            }
-            else if (dir1 == eYoonDir2D.BottomLeft && dir2 == eYoonDir2D.TopRight)
-            {
-                CenterPos = (pos1 + pos2) / 2;
-                Width = pos1.X - pos2.X;
-                Height = pos2.Y - pos1.Y;
-            }
-            else
-                throw new ArgumentException("[YOONCOMMON] Direction Argument is not correct");
         }
 
         public YoonRect2D(params YoonVector2D[] pArgs)
         {
-            if(pArgs.Length >= 2)
+            if (pArgs.Length < 2) return;
+            double dInitLeft = (pArgs[0].X > pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
+            double dInitRight = (pArgs[0].X < pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
+            double dInitTop = (pArgs[0].Y > pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
+            double dInitBottom = (pArgs[0].Y < pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
+            YoonVector2D pVectorTopLeft = new YoonVector2D(dInitLeft, dInitTop);
+            YoonVector2D pVectorBottomRight = new YoonVector2D(dInitRight, dInitBottom);
+            for (int iParam = 2; iParam < pArgs.Length; iParam++)
             {
-                double dInitLeft = (pArgs[0].X > pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
-                double dInitRight = (pArgs[0].X < pArgs[1].X) ? pArgs[1].X : pArgs[0].X;
-                double dInitTop = (pArgs[0].Y > pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
-                double dInitBottom = (pArgs[0].Y < pArgs[1].Y) ? pArgs[1].Y : pArgs[0].Y;
-                YoonVector2D pPosTopLeft = new YoonVector2D(dInitLeft, dInitTop);
-                YoonVector2D pPosBottomRight = new YoonVector2D(dInitRight, dInitBottom);
-                for (int iParam = 2; iParam < pArgs.Length; iParam++)
+                eYoonDir2D nDirDiffTopLeft = pVectorTopLeft.DirectionTo(pArgs[iParam]);
+                eYoonDir2D nDirDiffBottomRight = pVectorBottomRight.DirectionTo(pArgs[iParam]);
+                switch (nDirDiffTopLeft)
                 {
-                    eYoonDir2D nDirDiffTopLeft = pPosTopLeft.DirectionTo(pArgs[iParam]);
-                    eYoonDir2D nDirDiffBottomRight = pPosBottomRight.DirectionTo(pArgs[iParam]);
-                    switch(nDirDiffTopLeft)
-                    {
-                        case eYoonDir2D.TopLeft:
-                            pPosTopLeft.X = pArgs[iParam].X;
-                            pPosTopLeft.Y = pArgs[iParam].Y;
-                            break;
-                        case eYoonDir2D.Top:
-                            pPosTopLeft.Y = pArgs[iParam].Y;
-                            break;
-                        case eYoonDir2D.TopRight:
-                            pPosTopLeft.Y = pArgs[iParam].Y;
-                            break;
-                        case eYoonDir2D.Left:
-                            pPosTopLeft.X = pArgs[iParam].X;
-                            break;
-                        case eYoonDir2D.BottomLeft:
-                            pPosTopLeft.X = pArgs[iParam].X;
-                            break;
-                        default:
-                            break;
-                    }
-                    switch(nDirDiffBottomRight)
-                    {
-                        case eYoonDir2D.TopRight:
-                            pPosBottomRight.X = pArgs[iParam].X;
-                            break;
-                        case eYoonDir2D.Right:
-                            pPosBottomRight.X = pArgs[iParam].X;
-                            break;
-                        case eYoonDir2D.BottomLeft:
-                            pPosBottomRight.Y = pArgs[iParam].Y;
-                            break;
-                        case eYoonDir2D.Bottom:
-                            pPosBottomRight.Y = pArgs[iParam].Y;
-                            break;
-                        case eYoonDir2D.BottomRight:
-                            pPosBottomRight.X = pArgs[iParam].X;
-                            pPosBottomRight.Y = pArgs[iParam].Y;
-                            break;
-                        default:
-                            break;
-                    }
+                    case eYoonDir2D.TopLeft:
+                        pVectorTopLeft.X = pArgs[iParam].X;
+                        pVectorTopLeft.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.Top:
+                        pVectorTopLeft.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.TopRight:
+                        pVectorTopLeft.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.Left:
+                        pVectorTopLeft.X = pArgs[iParam].X;
+                        break;
+                    case eYoonDir2D.BottomLeft:
+                        pVectorTopLeft.X = pArgs[iParam].X;
+                        break;
+                    case eYoonDir2D.None:
+                        break;
+                    case eYoonDir2D.Center:
+                        break;
+                    case eYoonDir2D.Right:
+                        break;
+                    case eYoonDir2D.BottomRight:
+                        break;
+                    case eYoonDir2D.Bottom:
+                        break;
+                    default:
+                        break;
                 }
-                CenterPos = (pPosTopLeft + pPosBottomRight) / 2;
-                Width = (pPosBottomRight - pPosTopLeft).X;
-                Height = (pPosBottomRight - pPosTopLeft).Y;
+
+                switch (nDirDiffBottomRight)
+                {
+                    case eYoonDir2D.TopRight:
+                        pVectorBottomRight.X = pArgs[iParam].X;
+                        break;
+                    case eYoonDir2D.Right:
+                        pVectorBottomRight.X = pArgs[iParam].X;
+                        break;
+                    case eYoonDir2D.BottomLeft:
+                        pVectorBottomRight.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.Bottom:
+                        pVectorBottomRight.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.BottomRight:
+                        pVectorBottomRight.X = pArgs[iParam].X;
+                        pVectorBottomRight.Y = pArgs[iParam].Y;
+                        break;
+                    case eYoonDir2D.None:
+                        break;
+                    case eYoonDir2D.Center:
+                        break;
+                    case eYoonDir2D.TopLeft:
+                        break;
+                    case eYoonDir2D.Top:
+                        break;
+                    case eYoonDir2D.Left:
+                        break;
+                    default:
+                        break;
+                }
             }
+
+            CenterPos = (pVectorTopLeft + pVectorBottomRight) / 2;
+            Width = (pVectorBottomRight - pVectorTopLeft).X;
+            Height = (pVectorBottomRight - pVectorTopLeft).Y;
         }
 
-        public bool IsContain(IYoonVector vec)
+        public bool IsContain(IYoonVector pVector)
         {
-            if (vec is YoonVector2D pPos)
-            {
-                if (Left < pPos.X && pPos.X < Right &&
-                    Top < pPos.Y && pPos.Y < Bottom)
-                    return true;
-            }
-            return false;
+            if (pVector is not YoonVector2D pVector2D) return false;
+            return Left < pVector2D.X && pVector2D.X < Right &&
+                   Top < pVector2D.Y && pVector2D.Y < Bottom;
         }
 
         public double Area()
@@ -564,60 +516,50 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopLeft);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(TopRight);
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomLeft);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
+            hashCode = hashCode * -1521134295 +
+                       EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
             return hashCode;
         }
 
         public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)
         {
-            switch (nDir)
+            return nDir switch
             {
-                case eYoonDir2D.TopLeft:
-                    return TopLeft;
-                case eYoonDir2D.Top:
-                    return new YoonVector2D(CenterPos.X, Top);
-                case eYoonDir2D.TopRight:
-                    return TopRight;
-                case eYoonDir2D.Left:
-                    return new YoonVector2D(Left, CenterPos.Y);
-                case eYoonDir2D.Center:
-                    return CenterPos;
-                case eYoonDir2D.Right:
-                    return new YoonVector2D(Right, CenterPos.Y);
-                case eYoonDir2D.BottomLeft:
-                    return BottomLeft;
-                case eYoonDir2D.Bottom:
-                    return new YoonVector2D(CenterPos.X, Bottom);
-                case eYoonDir2D.BottomRight:
-                    return BottomRight;
-                default:
-                    return new YoonVector2D();
-            }
+                eYoonDir2D.TopLeft => TopLeft,
+                eYoonDir2D.Top => new YoonVector2D(CenterPos.X, Top),
+                eYoonDir2D.TopRight => TopRight,
+                eYoonDir2D.Left => new YoonVector2D(Left, CenterPos.Y),
+                eYoonDir2D.Center => CenterPos,
+                eYoonDir2D.Right => new YoonVector2D(Right, CenterPos.Y),
+                eYoonDir2D.BottomLeft => BottomLeft,
+                eYoonDir2D.Bottom => new YoonVector2D(CenterPos.X, Bottom),
+                eYoonDir2D.BottomRight => BottomRight,
+                _ => new YoonVector2D()
+            };
         }
 
         public YoonRect2N ToRect2N()
         {
-            return new YoonRect2N((int)CenterPos.X, (int)CenterPos.Y, (int)Width, (int)Height);
+            return new YoonRect2N((int) CenterPos.X, (int) CenterPos.Y, (int) Width, (int) Height);
         }
 
-        public static YoonRect2D operator +(YoonRect2D r1, YoonRect2D r2)
+        public static YoonRect2D operator +(YoonRect2D pRectSource, YoonRect2D pRectObject)
         {
-            double nTop = Math.Min(r1.Top, r2.Top);
-            double nBottom = Math.Max(r1.Bottom, r2.Bottom);
-            double nLeft = Math.Min(r1.Left, r2.Left);
-            double nRight = Math.Max(r1.Right, r2.Right);
+            double nTop = Math.Min(pRectSource.Top, pRectObject.Top);
+            double nBottom = Math.Max(pRectSource.Bottom, pRectObject.Bottom);
+            double nLeft = Math.Min(pRectSource.Left, pRectObject.Left);
+            double nRight = Math.Max(pRectSource.Right, pRectObject.Right);
             return new YoonRect2D((nLeft + nRight) / 2, (nTop + nBottom) / 2, nRight - nLeft, nBottom - nTop);
         }
 
-        public static bool operator ==(YoonRect2D r1, YoonRect2D r2)
+        public static bool operator ==(YoonRect2D pRectSource, YoonRect2D pRectObject)
         {
-            return r1?.Equals(r2) == true;
+            return pRectSource?.Equals(pRectObject) == true;
         }
 
-        public static bool operator !=(YoonRect2D r1, YoonRect2D r2)
+        public static bool operator !=(YoonRect2D pRectSource, YoonRect2D pRectObject)
         {
-            return r1?.Equals(r2) == false;
+            return pRectSource?.Equals(pRectObject) == false;
         }
     }
-
 }
