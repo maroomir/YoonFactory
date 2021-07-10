@@ -67,7 +67,7 @@ namespace YoonFactory
         T[] Array { get; set; }
         double Angle2D(IYoonVector pVector);
         eYoonDir2D Direction { get; set; }
-        IYoonCart<T> Cartesian { get; set; }
+        IYoonCartesian<T> Cartesian { get; set; }
         eYoonDir2D DirectionTo(IYoonVector pVector);
         IYoonVector GetScaleVector(T sx, T sy);
         IYoonVector GetNextVector(T dx, T dy);
@@ -93,7 +93,7 @@ namespace YoonFactory
         double AngleX(IYoonVector pVector);
         double AngleY(IYoonVector pVector);
         double AngleZ(IYoonVector pVector);
-        IYoonCart<T> Cartesian { get; set; }
+        IYoonCartesian<T> Cartesian { get; set; }
         IYoonVector GetScaleVector(T sx, T sy, T sz);
         IYoonVector GetNextVector(T dx, T dy, T dz);
         IYoonVector GetNextVector(IYoonVector v);
@@ -124,13 +124,13 @@ namespace YoonFactory
         void Zero();
     }
 
-    public interface IYoonCart
+    public interface IYoonCartesian
     {
-        IYoonCart Clone();
-        void CopyFrom(IYoonCart c);
+        IYoonCartesian Clone();
+        void CopyFrom(IYoonCartesian c);
     }
 
-    public interface IYoonCart<T> : IYoonCart where T : IComparable, IComparable<T>
+    public interface IYoonCartesian<T> : IYoonCartesian where T : IComparable, IComparable<T>
     {
         T X { get; set; }
         T Y { get; set; }
