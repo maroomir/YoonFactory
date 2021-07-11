@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Collections;
-using System.Text;
-using System.Threading.Tasks;
 using YoonFactory.Files;
 
 namespace YoonFactory.Param
