@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonParameter", "YoonParame
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonLog", "YoonLog\YoonLog.csproj", "{D15C3CA6-DF81-48A6-9E31-799322FEE688}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoonImage", "YoonImage\YoonImage.csproj", "{4043EFF0-477B-4862-8AE0-BB01103B5868}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{D15C3CA6-DF81-48A6-9E31-799322FEE688}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D15C3CA6-DF81-48A6-9E31-799322FEE688}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D15C3CA6-DF81-48A6-9E31-799322FEE688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4043EFF0-477B-4862-8AE0-BB01103B5868}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4043EFF0-477B-4862-8AE0-BB01103B5868}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4043EFF0-477B-4862-8AE0-BB01103B5868}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4043EFF0-477B-4862-8AE0-BB01103B5868}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
