@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -31,10 +32,10 @@ namespace YoonFactory.Image
         public static YoonImage DeMargin2D(this YoonImage pSourceImage) => Filter.DeMargin2D(pSourceImage);
         public static YoonImage Smooth1D(this YoonImage pSourceImage, int nMargin = 1, int nStep = 3) => Filter.Smooth1D(pSourceImage, nMargin, nStep);
         public static YoonImage Smooth2D(this YoonImage pSourceImage, int nStep = 5) => Filter.Smooth2D(pSourceImage, nStep);
-        public static IYoonObject FindMaxObject(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindMaxObject(pSourceImage, scanArea, nThreshold, bWhite);
-        public static IYoonObject FindMaxObject(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindMaxObject(pSourceImage, nThreshold, bWhite);
-        public static ObjectList<YoonRect2N> FindObjects(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindObjects(pSourceImage, scanArea, nThreshold, bWhite);
-        public static ObjectList<YoonRect2N> FindObjects(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => ObjectDetection.FindObjects(pSourceImage, nThreshold, bWhite);
+        public static IYoonObject FindMaxBlob(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => Blob.FindMaxBlob(pSourceImage, scanArea, nThreshold, bWhite);
+        public static IYoonObject FindMaxBlob(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => Blob.FindMaxBlob(pSourceImage, nThreshold, bWhite);
+        public static ObjectList<YoonRect2N> FindBlobs(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false) => Blob.FindBlobs(pSourceImage, scanArea, nThreshold, bWhite);
+        public static ObjectList<YoonRect2N> FindBlobs(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) => Blob.FindBlobs(pSourceImage, nThreshold, bWhite);
         public static YoonImage Binarize(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128) => Binary.Binarize(pSourceImage, scanArea, nThreshold);
         public static YoonImage Binarize(this YoonImage pSourceImage, byte nThreshold = 128) => Binary.Binarize(pSourceImage, nThreshold);
         public static YoonImage Erosion(this YoonImage pSourceImage) => Morphology.Erosion(pSourceImage);
@@ -409,210 +410,197 @@ namespace YoonFactory.Image
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format arguments is not comportable");
             }
 
-            public static YoonRect2N FindPattern(byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, byte diffThreshold, out double score, out int pixelCount)
+            public static YoonRect2N FindPattern(byte[] pPatternBuffer, int patternWidth, int patternHeight,
+                byte[] pSourceBuffer, int sourceWidth, int sourceHeight, byte diffThreshold, out double score,
+                out int pixelCount)
             {
-                int minDiff, sumDiff;
-                int count, findPosX, findPosY;
-                int graySource, grayPattern;
-                int startX, startY, jumpX, jumpY;
-                double dCoefficient = 0.0;
-                ////  초기화
-                YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
-                minDiff = 2147483647;
-                sumDiff = 0;
-                count = 0;
-                findPosX = 0;
-                findPosY = 0;
-                ////  Skip 정도 지정
-                jumpX = patternWidth / 30;
-                jumpY = patternHeight / 30;
-                if (jumpX < 1) jumpX = 1;
-                if (jumpY < 1) jumpY = 1;
-                ////  Match 갯수 및 정도를 찾는다.
+                YoonRect2N pFindRect = new YoonRect2N(0, 0, 0, 0);
+                int nDiffMin = 2147483647;
+                int nDiffSum = 0;
+                int nCount = 0;
+                int nFindPosX = 0;
+                int nFindPosY = 0;
+                // Set-up the skip parameter
+                int nJumpX = patternWidth / 30;
+                int nJumpY = patternHeight / 30;
+                if (nJumpX < 1) nJumpX = 1;
+                if (nJumpY < 1) nJumpY = 1;
+                // Find the matching accuracy and count
                 for (int iY = 0; iY < sourceHeight - patternHeight; iY += 1)
                 {
                     for (int iX = 0; iX < sourceWidth - patternWidth; iX += 1)
                     {
-                        startX = iX;
-                        startY = iY;
-                        ////// 전체 영역 내에서의 차이 값을 구한다.
-                        sumDiff = 0;
-                        for (int y = 0; y < patternHeight - jumpY; y += jumpY)
+                        int nStartX = iX;
+                        int nStartY = iY;
+                        // Find the difference within the whole image
+                        nDiffSum = 0;
+                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - jumpX; x += jumpX)
+                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
                             {
-                                graySource = pSourceBuffer[(startY + y) * sourceWidth + startX + x];
-                                grayPattern = pPatternBuffer[y * patternWidth + x];
-                                sumDiff += Math.Abs(graySource - grayPattern);
-                                if (Math.Abs(graySource - grayPattern) < diffThreshold)
-                                    count++;
+                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                nDiffSum += Math.Abs(nGraySource - nGrayPattern);
+                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                    nCount++;
                             }
                         }
-                        ////// Diff가 최소인 지점을 찾는다.
-                        if (sumDiff < minDiff)
+
+                        // Find the lower limit of difference
+                        if (nDiffSum < nDiffMin)
                         {
-                            minDiff = sumDiff;
-                            findPosX = iX;
-                            findPosY = iY;
+                            nDiffMin = nDiffSum;
+                            nFindPosX = iX;
+                            nFindPosY = iY;
                         }
                     }
                 }
-                findRect.CenterPos.X = findPosX;
-                findRect.CenterPos.Y = findPosY;
-                findRect.Width = patternWidth;
-                findRect.Height = patternHeight;
-                ////  상관계수 구하기
-                byte[] pTempBuffer;
-                pTempBuffer = new byte[patternWidth * patternHeight];
-                for (int j = 0; j < patternHeight; j++)
-                    for (int i = 0; i < patternWidth; i++)
-                        pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
-                dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
 
+                pFindRect.CenterPos.X = nFindPosX;
+                pFindRect.CenterPos.Y = nFindPosY;
+                pFindRect.Width = patternWidth;
+                pFindRect.Height = patternHeight;
+                // Find the coefficient
+                byte[] pTempBuffer = new byte[patternWidth * patternHeight];
+                for (int j = 0; j < patternHeight; j++)
+                for (int i = 0; i < patternWidth; i++)
+                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                double dCoefficient =
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
                 score = dCoefficient;
-                pixelCount = count;
-                return findRect;
+                pixelCount = nCount;
+                return pFindRect;
             }
 
-            public static YoonRect2N FindPattern(int[] pPatternBuffer, int patternWidth, int patternHeight, int[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score, out int pixelCount)
+            public static YoonRect2N FindPattern(int[] pPatternBuffer, int patternWidth, int patternHeight,
+                int[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score,
+                out int pixelCount)
             {
-                int minDiff, sumDiff;
-                int count, findPosX, findPosY;
-                int graySource, grayPattern;
-                int startX, startY, jumpX, jumpY;
-                double dCoefficient = 0.0;
-                ////  초기화
                 YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
-                minDiff = 2147483647;
-                sumDiff = 0;
-                count = 0;
-                findPosX = 0;
-                findPosY = 0;
-                ////  Skip 정도 지정
-                jumpX = patternWidth / 60;
-                jumpY = patternHeight / 60;
-                if (jumpX < 1) jumpX = 1;
-                if (jumpY < 1) jumpY = 1;
-                ////  Match 갯수 및 정도를 찾는다.
+                int nDiffMin = 2147483647;
+                int nDiffSum = 0;
+                int nCount = 0;
+                int nFindPosX = 0;
+                int nFindPosY = 0;
+                int nJumpX = patternWidth / 60;
+                int nJumpY = patternHeight / 60;
+                if (nJumpX < 1) nJumpX = 1;
+                if (nJumpY < 1) nJumpY = 1;
                 for (int iY = 0; iY < sourceHeight - patternHeight; iY += 1)
                 {
                     for (int iX = 0; iX < sourceWidth - patternWidth; iX += 1)
                     {
-                        startX = iX;
-                        startY = iY;
-                        ////// 전체 영역 내에서의 차이 값을 구한다.
-                        sumDiff = 0;
-                        for (int y = 0; y < patternHeight - jumpY; y += jumpY)
+                        int nStartX = iX;
+                        int nStartY = iY;
+                        nDiffSum = 0;
+                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - jumpX; x += jumpX)
+                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
                             {
-                                graySource = pSourceBuffer[(startY + y) * sourceWidth + startX + x];
-                                grayPattern = pPatternBuffer[y * patternWidth + x];
-                                sumDiff += Math.Abs(graySource - grayPattern);
-                                if (Math.Abs(graySource - grayPattern) < diffThreshold)
-                                    count++;
+                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                nDiffSum += Math.Abs(nGraySource - nGrayPattern);
+                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                    nCount++;
                             }
                         }
-                        ////// Diff가 최소인 지점을 찾는다.
-                        if (sumDiff < minDiff)
+
+                        if (nDiffSum < nDiffMin)
                         {
-                            minDiff = sumDiff;
-                            findPosX = iX;
-                            findPosY = iY;
+                            nDiffMin = nDiffSum;
+                            nFindPosX = iX;
+                            nFindPosY = iY;
                         }
                     }
                 }
-                findRect.CenterPos.X = findPosX;
-                findRect.CenterPos.Y = findPosY;
+
+                findRect.CenterPos.X = nFindPosX;
+                findRect.CenterPos.Y = nFindPosY;
                 findRect.Width = patternWidth;
                 findRect.Height = patternHeight;
-                ////  상관계수 구하기
-                int[] pTempBuffer;
-                pTempBuffer = new int[patternWidth * patternHeight];
+                int[] pTempBuffer = new int[patternWidth * patternHeight];
                 for (int j = 0; j < patternHeight; j++)
-                    for (int i = 0; i < patternWidth; i++)
-                        pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
-                dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
-
+                for (int i = 0; i < patternWidth; i++)
+                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                double dCoefficient =
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
                 score = dCoefficient;
-                pixelCount = count;
+                pixelCount = nCount;
                 return findRect;
             }
 
-            public static IYoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage, int nDiffThreshold)
+            public static IYoonObject FindPattern(YoonRect2N scanArea, YoonImage pPatternImage, YoonImage pSourceImage,
+                int nDiffThreshold)
             {
-                if (pPatternImage.Format != PixelFormat.Format8bppIndexed || pSourceImage.Format != PixelFormat.Format8bppIndexed)
+                if (pPatternImage.Format != PixelFormat.Format8bppIndexed ||
+                    pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
                 if (!pPatternImage.IsVerifiedArea(scanArea))
                     throw new ArgumentOutOfRangeException("[YOONIMAGE EXCEPTION] Scan area is not verified");
                 double dScore;
                 int nPixelCount;
-                YoonRect2N pRectResult = FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, out dScore, out nPixelCount);
-                return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
+                YoonRect2N pRectResult = FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width,
+                    pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                    nDiffThreshold, out dScore, out nPixelCount);
+                return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
+                    nPixelCount);
             }
 
-            public static YoonRect2N FindPattern(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth, int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold, out double score, out int pixelCount)
+            public static YoonRect2N FindPattern(YoonRect2N scanArea, byte[] pPatternBuffer, int patternWidth,
+                int patternHeight, byte[] pSourceBuffer, int sourceWidth, int sourceHeight, int diffThreshold,
+                out double score, out int pixelCount)
             {
-                int minDiff, sumDiff;
-                int count, findPosX, findPosY;
-                int graySource, grayPattern;
-                int startX, startY, jumpX, jumpY;
-                double dCoefficient = 0.0;
-                ////  초기화
                 YoonRect2N findRect = new YoonRect2N(0, 0, 0, 0);
                 if (patternWidth < 1 || patternHeight < 1)
                     throw new ArgumentException("[YOONIMAGE EXCEPTION] Pattern size is not verified");
-                minDiff = 2147483647;
-                sumDiff = 0;
-                count = 0;
-                findPosX = 0;
-                findPosY = 0;
-                ////  Skip 정도 지정
-                jumpX = patternWidth / 60;
-                jumpY = patternHeight / 60;
-                if (jumpX < 1) jumpX = 1;
-                if (jumpY < 1) jumpY = 1;
+                int nDiffMin = 2147483647;
+                int nDiffSum = 0;
+                int nCount = 0;
+                int nFindPosX = 0;
+                int nFindPosY = 0;
+                int nJumpX = patternWidth / 60;
+                int nJumpY = patternHeight / 60;
+                if (nJumpX < 1) nJumpX = 1;
+                if (nJumpY < 1) nJumpY = 1;
                 for (int iY = scanArea.Top; iY < scanArea.Bottom - patternHeight; iY += 2)
                 {
                     for (int iX = scanArea.Left; iX < scanArea.Right - patternWidth; iX += 2)
                     {
-                        startX = iX;
-                        startY = iY;
-                        ////// 전체 영역 내에서의 차이 값을 구한다.
-                        sumDiff = 0;
-                        for (int y = 0; y < patternHeight - jumpY; y += jumpY)
+                        int nStartX = iX;
+                        int nStartY = iY;
+                        nDiffSum = 0;
+                        for (int y = 0; y < patternHeight - nJumpY; y += nJumpY)
                         {
-                            for (int x = 0; x < patternWidth - jumpX; x += jumpX)
+                            for (int x = 0; x < patternWidth - nJumpX; x += nJumpX)
                             {
-                                graySource = pSourceBuffer[(startY + y) * sourceWidth + startX + x];
-                                grayPattern = pPatternBuffer[y * patternWidth + x];
-                                sumDiff += Math.Abs(graySource - grayPattern);
-                                if (Math.Abs(graySource - grayPattern) < diffThreshold)
-                                    count++;
+                                int nGraySource = pSourceBuffer[(nStartY + y) * sourceWidth + nStartX + x];
+                                int nGrayPattern = pPatternBuffer[y * patternWidth + x];
+                                nDiffSum += Math.Abs(nGraySource - nGrayPattern);
+                                if (Math.Abs(nGraySource - nGrayPattern) < diffThreshold)
+                                    nCount++;
                             }
                         }
-                        ////// Diff가 최소인 지점을 찾는다.
-                        if (sumDiff < minDiff)
+
+                        if (nDiffSum < nDiffMin)
                         {
-                            minDiff = sumDiff;
-                            findPosX = iX;
-                            findPosY = iY;
+                            nDiffMin = nDiffSum;
+                            nFindPosX = iX;
+                            nFindPosY = iY;
                         }
                     }
                 }
-                findRect.CenterPos.X = findPosX;
-                findRect.CenterPos.Y = findPosY;
+
+                findRect.CenterPos.X = nFindPosX;
+                findRect.CenterPos.Y = nFindPosY;
                 findRect.Width = patternWidth;
                 findRect.Height = patternHeight;
-                ////  상관계수 구하기
-                byte[] pTempBuffer;
-                pTempBuffer = new byte[patternWidth * patternHeight];
+                byte[] pTempBuffer = new byte[patternWidth * patternHeight];
                 for (int j = 0; j < patternHeight; j++)
-                    for (int i = 0; i < patternWidth; i++)
-                        pTempBuffer[j * patternWidth + i] = pSourceBuffer[(findPosY + j) * sourceWidth + (findPosX + i)];
-                dCoefficient = MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
-
-                pixelCount = count;
+                for (int i = 0; i < patternWidth; i++)
+                    pTempBuffer[j * patternWidth + i] = pSourceBuffer[(nFindPosY + j) * sourceWidth + (nFindPosX + i)];
+                double dCoefficient =
+                    MathFactory.GetCorrelationCoefficient(pPatternBuffer, pTempBuffer, patternWidth, patternHeight);
+                pixelCount = nCount;
                 score = dCoefficient;
                 return findRect;
             }
@@ -626,7 +614,9 @@ namespace YoonFactory.Image
                     throw new ArgumentException("[YOONIMAGE EXCEPTION] Source and object size is not same");
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Combine(pSourceImage.GetGrayBuffer(), pObjectImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
+                return new YoonImage(
+                    Combine(pSourceImage.GetGrayBuffer(), pObjectImage.GetGrayBuffer(), pSourceImage.Width,
+                        pSourceImage.Height),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
@@ -669,7 +659,7 @@ namespace YoonFactory.Image
                         pTempBuffer[j * nWidth + i] = pSourceBuffer[j * nWidth + i] + pObjectBuffer[j * nWidth + i];
                     }
                 });
-                ////  합해진 Buffer(pBuffer)의 최대 Gray Level 값과 최소 Gray Level 값을 산출함.
+                // Find the combined buffer of maximum gray level and minimum gray level
                 for (int j = 0; j < nHeight; j++)
                 {
                     for (int i = 0; i < nWidth; i++)
@@ -679,7 +669,7 @@ namespace YoonFactory.Image
                         if (nValue > nMaxValue) nMaxValue = nValue;
                     }
                 }
-                ////  최대 Gray Level값이 255를 넘는 경우, 이에 맞게 Image 전체 Gray Level을 조정함.
+                // Adjust the gray level
                 if (nMaxValue > 255)
                 {
                     double dRatio = 255.0 / nMaxValue;
@@ -709,8 +699,7 @@ namespace YoonFactory.Image
 
             public static byte[] Subtract(byte[] pSourceBuffer, byte[] pObjectBuffer, int nWidth, int nHeight)
             {
-                byte[] pResultBuffer;
-                pResultBuffer = new byte[nWidth * nHeight];
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
                 Parallel.For(0, nHeight, j =>
                 {
                     for (int i = 0; i < nWidth; i++)
@@ -732,61 +721,65 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Sobel(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nIntensity, bCombine),
+                return new YoonImage(
+                    Sobel(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nIntensity, bCombine),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Sobel(byte[] pBuffer, int width, int height, int nIntensity, bool bCombineSource)
+            public static byte[] Sobel(byte[] pBuffer, int nWidth, int nHeight, int nIntensity, bool bCombineSource)
             {
-                int x, y, i, j;
-                int posX, posY;
-                int imageWidth, imageHeight, imageSize;
-                int centerValue1, centerValue2, sum, value;
-                byte[] pResultBuffer;
                 ////  Sobel Mask 생성.
                 int maskValue = nIntensity;
-                int[,] mask1 = new int[3, 3] {{-maskValue, 0, maskValue},
-                                          {-maskValue, 0, maskValue},
-                                          {-maskValue, 0, maskValue}};
-                int[,] mask2 = new int[3, 3] {{maskValue,  maskValue,  maskValue},
-                                          {0,  0,  0},
-                                          {-maskValue, -maskValue, -maskValue}};
-                imageWidth = width;
-                imageHeight = height;
-                imageSize = imageWidth * imageHeight;
-                pResultBuffer = new byte[imageSize];
-                ////  Sobel Mask 처리.
-                for (y = 0; y < height - 2; y++)
+                int[,] mask1 = new int[3, 3]
                 {
-                    for (x = 0; x < width - 2; x++)
+                    {-maskValue, 0, maskValue},
+                    {-maskValue, 0, maskValue},
+                    {-maskValue, 0, maskValue}
+                };
+                int[,] mask2 = new int[3, 3]
+                {
+                    {maskValue, maskValue, maskValue},
+                    {0, 0, 0},
+                    {-maskValue, -maskValue, -maskValue}
+                };
+                int nImageWidth = nWidth;
+                int nImageHeight = nHeight;
+                int nImageSize = nImageWidth * nImageHeight;
+                byte[] pResultBuffer = new byte[nImageSize];
+                ////  Sobel Masking
+                for (int y = 0; y < nHeight - 2; y++)
+                {
+                    for (int x = 0; x < nWidth - 2; x++)
                     {
-                        centerValue1 = 0;
-                        centerValue2 = 0;
-                        for (j = 0; j < 3; j++)
+                        int nCenterValue1 = 0;
+                        int nCenterValue2 = 0;
+                        for (int j = 0; j < 3; j++)
                         {
-                            for (i = 0; i < 3; i++)
+                            for (int i = 0; i < 3; i++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                value = pBuffer[posY * imageWidth + posX];
-                                centerValue1 += value * mask1[i, j];
-                                centerValue2 += value * mask2[i, j];
+                                int posX = x + i;
+                                int posY = y + j;
+                                byte nValue = pBuffer[posY * nImageWidth + posX];
+                                nCenterValue1 += nValue * mask1[i, j];
+                                nCenterValue2 += nValue * mask2[i, j];
                             }
                         }
-                        sum = Math.Abs(centerValue1) + Math.Abs(centerValue2);
 
-                        if (sum > 255) sum = 255;
-                        if (sum < 0) sum = 0;
-                        posX = x + 1;
-                        posY = y + 1;
-                        pResultBuffer[posY * imageWidth + posX] = (byte)sum;
+                        int nSum = Math.Abs(nCenterValue1) + Math.Abs(nCenterValue2);
+                        if (nSum > 255) nSum = 255;
+                        if (nSum < 0) nSum = 0;
+                        int nPosX = x + 1;
+                        int nPosY = y + 1;
+                        pResultBuffer[nPosY * nImageWidth + nPosX] = (byte) nSum;
                     }
                 }
-                ////  Sobel Filtering 결과와 원본을 합친 영상을 원하는 경우.
+
+                // Get the buffer that combines the filter result with the original
                 if (bCombineSource)
                 {
-                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, width, height);
+                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, nWidth, nHeight);
                 }
+
                 return pResultBuffer;
             }
 
@@ -794,35 +787,38 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Laplacian(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nIntensity, bCombine),
+                return new YoonImage(
+                    Laplacian(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nIntensity,
+                        bCombine),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Laplacian(byte[] pBuffer, int width, int height, int Intensity, bool bCombineSource)
+            public static byte[] Laplacian(byte[] pBuffer, int nWidth, int nHeight, int nIntensity, bool bCombineSource)
             {
-                if (width < 1 || height < 1)
+                if (nWidth < 1 || nHeight < 1)
                     throw new ArgumentException("[YOONIMAGE EXCEPTION] Buffer size is not normalized");
-                int i, j;
-                int centerValue, value;
-                byte[] pResultBuffer;
-                centerValue = 4 * Intensity;
-                pResultBuffer = new byte[width * height];
-                ////  Laplacian Mask 처리.
-                for (j = 1; j < height - 1; j++)
+                int nCenterValue = 4 * nIntensity;
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                ////  Laplacian Masking
+                for (int j = 1; j < nHeight - 1; j++)
                 {
-                    for (i = 1; i < width - 1; i++)
+                    for (int i = 1; i < nWidth - 1; i++)
                     {
-                        value = centerValue * pBuffer[j * width + i] - pBuffer[(j - 1) * width + i] - pBuffer[j * width + i + 1] - pBuffer[(j + 1) * width + i] - pBuffer[j * width + i - 1];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        int nValue = nCenterValue * pBuffer[j * nWidth + i] - pBuffer[(j - 1) * nWidth + i] -
+                                     pBuffer[j * nWidth + i + 1] - pBuffer[(j + 1) * nWidth + i] -
+                                     pBuffer[j * nWidth + i - 1];
+                        if (nValue < 0) nValue = 0;
+                        if (nValue > 255) nValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) nValue;
                     }
                 }
-                ////  Laplacian 결과와 원본 영상을 합친 경우.
+
+                // Get the buffer that combines the filter result with the original
                 if (bCombineSource)
                 {
-                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, width, height);
+                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, nWidth, nHeight);
                 }
+
                 return pResultBuffer;
             }
 
@@ -834,53 +830,51 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] RC1D(byte[] pBuffer, int size, double frequency, bool bCombineSource)
+            public static byte[] RC1D(byte[] pBuffer, int nSize, double dFrequency, bool bCombineSource)
             {
-                int i, j;
-                double value;
-                int width, height;
-                double[] pWidth, pHeight;
-                byte[] pResultBuffer;
-                width = size;
-                height = 1;
-                pWidth = new double[width];
-                pHeight = new double[height];
-                pResultBuffer = new byte[width * height];
-                ////  가로방향 Filtering
-                for (j = 0; j < height; j++)
+                int nWidth = nSize;
+                int nHeight = 1;
+                double[] pWidth = new double[nWidth];
+                double[] pHeight = new double[nHeight];
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                // Filtering Horizontal
+                for (int j = 0; j < nHeight; j++)
                 {
-                    pHeight[j] = pBuffer[j * width + 0];
-                    pResultBuffer[j * width + 0] = (byte)(0.5 * pHeight[j]);
-                    for (i = 1; i < width; i++)
+                    pHeight[j] = pBuffer[j * nWidth + 0];
+                    pResultBuffer[j * nWidth + 0] = (byte) (0.5 * pHeight[j]);
+                    for (int i = 1; i < nWidth; i++)
                     {
-                        pHeight[j] = frequency * pHeight[j] + (1 - frequency) * pBuffer[j * width + i];
-                        value = 0.5 * pHeight[j];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pHeight[j] = dFrequency * pHeight[j] + (1 - dFrequency) * pBuffer[j * nWidth + i];
+                        double dValue = 0.5 * pHeight[j];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                for (j = 0; j < height; j++)
+
+                for (int j = 0; j < nHeight; j++)
                 {
-                    pHeight[j] = pBuffer[j * width + (width - 1)];
-                    value = 0.5 * pHeight[j] + pResultBuffer[j * width + (width - 1)];
-                    if (value < 0) value = 0;
-                    if (value > 255) value = 255;
-                    pResultBuffer[j * width + (width - 1)] = (byte)value;
-                    for (i = width - 2; i >= 0; i--)
+                    pHeight[j] = pBuffer[j * nWidth + (nWidth - 1)];
+                    double dValue = 0.5 * pHeight[j] + pResultBuffer[j * nWidth + (nWidth - 1)];
+                    if (dValue < 0) dValue = 0;
+                    if (dValue > 255) dValue = 255;
+                    pResultBuffer[j * nWidth + (nWidth - 1)] = (byte) dValue;
+                    for (int i = nWidth - 2; i >= 0; i--)
                     {
-                        pHeight[j] = frequency * pHeight[j] + (1 - frequency) * pBuffer[j * width + i];
-                        value = pResultBuffer[j * width + i] + 0.5 * pHeight[j];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pHeight[j] = dFrequency * pHeight[j] + (1 - dFrequency) * pBuffer[j * nWidth + i];
+                        dValue = pResultBuffer[j * nWidth + i] + 0.5 * pHeight[j];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                ////  RC 결과와 원본 영상을 합친 경우.
+
+                // Get the buffer that combines the filter result with the original
                 if (bCombineSource)
                 {
-                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, width, height);
+                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, nWidth, nHeight);
                 }
+
                 return pResultBuffer;
             }
 
@@ -888,84 +882,86 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(RC2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dFrequency, bCombine),
+                return new YoonImage(
+                    RC2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, dFrequency, bCombine),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] RC2D(byte[] pBuffer, int width, int height, double frequency, bool bSumSource)
+            public static byte[] RC2D(byte[] pBuffer, int nWidth, int nHeight, double dFrequency, bool bSumSource)
             {
-                int i, j;
-                double value;
-                double[] pWidth, pHeight;
-                byte[] pResultBuffer;
-                pWidth = new double[width];
-                pHeight = new double[height];
-                pResultBuffer = new byte[width * height];
-                ////  가로방향 Filtering
-                for (j = 0; j < height; j++)
+                double[] pWidth = new double[nWidth];
+                double[] pHeight = new double[nHeight];
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                // Filtering Horizontal
+                for (int j = 0; j < nHeight; j++)
                 {
-                    pHeight[j] = pBuffer[j * width + 0];
-                    pResultBuffer[j * width + 0] = (byte)(0.5 * pHeight[j]);
-                    for (i = 1; i < width; i++)
+                    pHeight[j] = pBuffer[j * nWidth + 0];
+                    pResultBuffer[j * nWidth + 0] = (byte) (0.5 * pHeight[j]);
+                    for (int i = 1; i < nWidth; i++)
                     {
-                        pHeight[j] = frequency * pHeight[j] + (1 - frequency) * pBuffer[j * width + i];
-                        value = 0.5 * pHeight[j];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pHeight[j] = dFrequency * pHeight[j] + (1 - dFrequency) * pBuffer[j * nWidth + i];
+                        double dValue = 0.5 * pHeight[j];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                for (j = 0; j < height; j++)
+
+                for (int j = 0; j < nHeight; j++)
                 {
-                    pHeight[j] = pBuffer[j * width + (width - 1)];
-                    value = 0.5 * pHeight[j] + pResultBuffer[j * width + (width - 1)];
-                    if (value < 0) value = 0;
-                    if (value > 255) value = 255;
-                    pResultBuffer[j * width + (width - 1)] = (byte)value;
-                    for (i = width - 2; i >= 0; i--)
+                    pHeight[j] = pBuffer[j * nWidth + (nWidth - 1)];
+                    double dValue = 0.5 * pHeight[j] + pResultBuffer[j * nWidth + (nWidth - 1)];
+                    if (dValue < 0) dValue = 0;
+                    if (dValue > 255) dValue = 255;
+                    pResultBuffer[j * nWidth + (nWidth - 1)] = (byte) dValue;
+                    for (int i = nWidth - 2; i >= 0; i--)
                     {
-                        pHeight[j] = frequency * pHeight[j] + (1 - frequency) * pBuffer[j * width + i];
-                        value = pResultBuffer[j * width + i] + 0.5 * pHeight[j];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pHeight[j] = dFrequency * pHeight[j] + (1 - dFrequency) * pBuffer[j * nWidth + i];
+                        dValue = pResultBuffer[j * nWidth + i] + 0.5 * pHeight[j];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                ////  세로방향 Filtering
-                for (i = 0; i < width; i++)
+
+                // Filtering Vertical
+                for (int i = 0; i < nWidth; i++)
                 {
-                    pWidth[i] = pResultBuffer[0 * width + i];
-                    pResultBuffer[0 * width + i] = (byte)(0.5 * pWidth[i]);
-                    for (j = 1; j < height; j++)
+                    pWidth[i] = pResultBuffer[0 * nWidth + i];
+                    pResultBuffer[0 * nWidth + i] = (byte) (0.5 * pWidth[i]);
+                    for (int j = 1; j < nHeight; j++)
                     {
-                        pWidth[i] = frequency * pWidth[i] + (1 - frequency) * pResultBuffer[j * width + i];
-                        value = 0.5 * pWidth[i];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pWidth[i] = dFrequency * pWidth[i] + (1 - dFrequency) * pResultBuffer[j * nWidth + i];
+                        double dValue = 0.5 * pWidth[i];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                for (i = 0; i < width; i++)
+
+                for (int i = 0; i < nWidth; i++)
                 {
-                    pWidth[i] = pResultBuffer[(height - 1) * width + i];
-                    value = 0.5 * pWidth[i] + pResultBuffer[(height - 1) * width + i];
-                    if (value < 0) value = 0;
-                    if (value > 255) value = 255;
-                    pResultBuffer[(height - 1) * width + i] = (byte)value;
-                    for (j = height - 2; j >= 0; j--)
+                    pWidth[i] = pResultBuffer[(nHeight - 1) * nWidth + i];
+                    double dValue = 0.5 * pWidth[i] + pResultBuffer[(nHeight - 1) * nWidth + i];
+                    if (dValue < 0) dValue = 0;
+                    if (dValue > 255) dValue = 255;
+                    pResultBuffer[(nHeight - 1) * nWidth + i] = (byte) dValue;
+                    for (int j = nHeight - 2; j >= 0; j--)
                     {
-                        pWidth[i] = frequency * pWidth[i] + (1 - frequency) * pResultBuffer[j * width + i];
-                        value = pResultBuffer[j * width + i] + 0.5 * pWidth[i];
-                        if (value < 0) value = 0;
-                        if (value > 255) value = 255;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        pWidth[i] = dFrequency * pWidth[i] + (1 - dFrequency) * pResultBuffer[j * nWidth + i];
+                        dValue = pResultBuffer[j * nWidth + i] + 0.5 * pWidth[i];
+                        if (dValue < 0) dValue = 0;
+                        if (dValue > 255) dValue = 255;
+                        pResultBuffer[j * nWidth + i] = (byte) dValue;
                     }
                 }
-                ////  RC 결과와 원본 영상을 합친 경우.
+
+                // Get the buffer that combines the filter result with the original
                 if (bSumSource)
                 {
-                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, width, height);
+                    pResultBuffer = TwoImageProcess.Combine(pBuffer, pResultBuffer, nWidth, nHeight);
                 }
+
                 return pResultBuffer;
             }
 
@@ -973,93 +969,91 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Level2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, ref dSum),
+                return new YoonImage(
+                    Level2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, ref dSum),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Level2D(byte[] pBuffer, int width, int height, ref double sum)
+            public static byte[] Level2D(byte[] pBuffer, int nWidth, int nHeight, ref double dSum)
             {
-                double diffDx, diffDy;
-                double inverseDx, inverseDy;
-                int centerX, centerY;
-                int count;
-                int x1, x2, y1, y2;
                 double[,] pAverage = new double[2, 2];
-                double value;
-                byte[] pResultBuffer = new byte[width * height];
-                inverseDx = 1 / (double)width;
-                inverseDy = 1 / (double)height;
-                centerX = width / 2;
-                centerY = height / 2;
-                count = 0;
-                sum = 0;
-                x1 = 0;
-                y1 = 0;
-                x2 = 0;
-                y2 = 0;
-                ////  Level 필터 적용하기.
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                double dInverseWidth = 1 / (double) nWidth;
+                double dInverseHeight = 1 / (double) nHeight;
+                int nCenterX = nWidth / 2;
+                int nCenterY = nHeight / 2;
+                int nX1 = 0;
+                int nY1 = 0;
+                int nX2 = 0;
+                int nY2 = 0;
+                dSum = 0;
+                // Adjust the filter
                 for (int iNo = 0; iNo < 4; iNo++)
                 {
                     int iRow = iNo / 2;
                     int iCol = iNo % 2;
-                    count = 0;
-                    //////  Source 크기에 맞게 각기 다른 4개의 Filter 배열 생성하기.
+                    int nCount = 0;
+                    // Create the filter to different each others
                     switch (iNo)
                     {
                         case 0:
-                            x1 = 2;
-                            y1 = 2;
-                            x2 = centerX / 2 - 2;
-                            y2 = centerY / 2 - 2;
+                            nX1 = 2;
+                            nY1 = 2;
+                            nX2 = nCenterX / 2 - 2;
+                            nY2 = nCenterY / 2 - 2;
                             break;
                         case 1:
-                            x1 = centerX + centerX / 2;
-                            x2 = width - 2;
-                            y1 = 2;
-                            y2 = centerY / 2 - 2;
+                            nX1 = nCenterX + nCenterX / 2;
+                            nX2 = nWidth - 2;
+                            nY1 = 2;
+                            nY2 = nCenterY / 2 - 2;
                             break;
                         case 2:
-                            x1 = 2;
-                            y1 = centerY + centerY / 2;
-                            x2 = centerX / 2 - 2;
-                            y2 = height - 2;
+                            nX1 = 2;
+                            nY1 = nCenterY + nCenterY / 2;
+                            nX2 = nCenterX / 2 - 2;
+                            nY2 = nHeight - 2;
                             break;
                         case 3:
-                            x1 = centerX + centerX / 2;
-                            y1 = centerY + centerY / 2;
-                            x2 = width - 2;
-                            y2 = height - 2;
+                            nX1 = nCenterX + nCenterX / 2;
+                            nY1 = nCenterY + nCenterY / 2;
+                            nX2 = nWidth - 2;
+                            nY2 = nHeight - 2;
                             break;
                     }
-                    //////  4개 Filter를 통과한 배열의 평균값 구하기.
-                    for (int j = y1; j < y2; j += 2)
+
+                    // Get the average passing filters
+                    for (int j = nY1; j < nY2; j += 2)
                     {
-                        for (int i = x1; i < x2; i += 2)
+                        for (int i = nX1; i < nX2; i += 2)
                         {
-                            pAverage[iRow, iCol] = pAverage[iRow, iCol] + pBuffer[j * width + i];
-                            count++;
+                            pAverage[iRow, iCol] = pAverage[iRow, iCol] + pBuffer[j * nWidth + i];
+                            nCount++;
                         }
                     }
-                    ////  4가지 Filter 간의 평균값 구하기.
-                    if (count > 1) pAverage[iRow, iCol] = pAverage[iRow, iCol] / (float)count;
+
+                    if (nCount > 1) pAverage[iRow, iCol] = pAverage[iRow, iCol] / (float) nCount;
                     else pAverage[iRow, iCol] = 0;
-                    sum += pAverage[iRow, iCol];
+                    dSum += pAverage[iRow, iCol];
                 }
-                sum /= (float)4.0;
-                //// 역수곱 계산
-                diffDx = inverseDx * (pAverage[1, 0] + pAverage[1, 1] - pAverage[0, 0] - pAverage[0, 1]);
-                diffDy = inverseDy * (pAverage[0, 1] + pAverage[1, 1] - pAverage[0, 0] - pAverage[1, 0]);
-                ////  Filtering 결과 출력.
-                for (int j = 0; j < height; j++)
+
+                dSum /= (float) 4.0;
+                // Find the reciprocal multiplication
+                double dDiffX = dInverseWidth * (pAverage[1, 0] + pAverage[1, 1] - pAverage[0, 0] - pAverage[0, 1]);
+                double dDiffY = dInverseHeight * (pAverage[0, 1] + pAverage[1, 1] - pAverage[0, 0] - pAverage[1, 0]);
+                // Get the result of filtering
+                for (int j = 0; j < nHeight; j++)
                 {
-                    for (int i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
-                        value = 100 * pBuffer[j * width + i] / (sum + diffDx * (i - centerX) + diffDy * (j - centerY));
-                        if (value > 255) value = 255;
-                        if (value < 0) value = 0;
-                        pResultBuffer[j * width + i] = (byte)value;
+                        double nValue = 100 * pBuffer[j * nWidth + i] /
+                                        (dSum + dDiffX * (i - nCenterX) + dDiffY * (j - nCenterY));
+                        if (nValue > 255) nValue = 255;
+                        if (nValue < 0) nValue = 0;
+                        pResultBuffer[j * nWidth + i] = (byte) nValue;
                     }
                 }
+
                 return pResultBuffer;
             }
 
@@ -1071,60 +1065,61 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] DeMargin2D(byte[] pBuffer, int width, int height)
+            public static byte[] DeMargin2D(byte[] pBuffer, int nWidth, int nHeight)
             {
-                int centerX, centerY;
-                float[] pWidth, pHeight;
-                float norm;
-                byte[] pResultBuffer = new byte[width * height];
-                centerX = width / 2;
-                centerY = height / 2;
-                pWidth = new float[width];
-                pHeight = new float[height];
-                ////  각 행별 Data를 Filter에 더하기.
-                for (int j = 0; j < height; j++)
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                int nCenterX = nWidth / 2;
+                int nCenterY = nHeight / 2;
+                float[] pWidth = new float[nWidth];
+                float[] pHeight = new float[nHeight];
+                // Add the data for each row
+                for (int j = 0; j < nHeight; j++)
                 {
-                    pHeight[j] = pBuffer[j * width + 0];
-                    for (int i = 1; i < width; i++)
+                    pHeight[j] = pBuffer[j * nWidth + 0];
+                    for (int i = 1; i < nWidth; i++)
                     {
-                        pHeight[j] = pHeight[j] + pBuffer[j * width + i];
+                        pHeight[j] = pHeight[j] + pBuffer[j * nWidth + i];
                     }
                 }
-                ////  Filter 중심 기준의 배율로 Filter 덮어쓰기.
-                norm = pHeight[centerY];
-                for (int j = 0; j < height; j++)
+
+                // Overwrite the filter by center value
+                float dNorm = pHeight[nCenterY];
+                for (int j = 0; j < nHeight; j++)
                 {
                     if (pHeight[j] > 1)
-                        pHeight[j] = norm / pHeight[j];
+                        pHeight[j] = dNorm / pHeight[j];
                     else
                         pHeight[j] = 1;
                 }
-                ////  세로 방향 Filter를 Buffer에 적용하기.
-                for (int j = 0; j < height; j++)
-                    for (int i = 0; i < width; i++)
-                        pResultBuffer[j * width + i] = (byte)(pHeight[j] * pBuffer[j * width + i]);
-                ////  각 열별 Data를 Filter에 더하기.
-                for (int i = 0; i < width; i++)
+
+                // Filtering vertical
+                for (int j = 0; j < nHeight; j++)
+                for (int i = 0; i < nWidth; i++)
+                    pResultBuffer[j * nWidth + i] = (byte) (pHeight[j] * pBuffer[j * nWidth + i]);
+                // Add the data for each row
+                for (int i = 0; i < nWidth; i++)
                 {
-                    pWidth[i] = pResultBuffer[0 * width + i];
-                    for (int j = 0; j < height; j++)
+                    pWidth[i] = pResultBuffer[0 * nWidth + i];
+                    for (int j = 0; j < nHeight; j++)
                     {
-                        pWidth[i] = pWidth[i] + pResultBuffer[j * width + i];
+                        pWidth[i] = pWidth[i] + pResultBuffer[j * nWidth + i];
                     }
                 }
-                ////  Filter 중심 기준의 배율로 Filter 덮어쓰기.
-                norm = pWidth[centerX];
-                for (int i = 0; i < width; i++)
+
+                // Overwrite the filter by center value
+                dNorm = pWidth[nCenterX];
+                for (int i = 0; i < nWidth; i++)
                 {
                     if (pWidth[i] > 0)
-                        pWidth[i] = norm / pWidth[i];
+                        pWidth[i] = dNorm / pWidth[i];
                     else
                         pWidth[i] = 1;
                 }
-                ////  가로 방향 Filter를 Buffer에 적용하기.
-                for (int j = 0; j < height; j++)
-                    for (int i = 0; i < width; i++)
-                        pResultBuffer[j * width + i] = (byte)(pWidth[i] * pResultBuffer[j * width + i]);
+
+                // Filtering horizontal
+                for (int j = 0; j < nHeight; j++)
+                for (int i = 0; i < nWidth; i++)
+                    pResultBuffer[j * nWidth + i] = (byte) (pWidth[i] * pResultBuffer[j * nWidth + i]);
                 return pResultBuffer;
             }
 
@@ -1132,37 +1127,36 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Smooth1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height, nMargin, nStep),
+                return new YoonImage(
+                    Smooth1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height, nMargin, nStep),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Smooth1D(byte[] pBuffer, int bufferSize, int margin, int step)
+            public static byte[] Smooth1D(byte[] pBuffer, int nBufferSize, int nMargin, int nStep)
             {
-                int x, i, ii;
-                int sum, count;
-                byte[] pResultBuffer = new byte[bufferSize];
-                sum = 0;
-                count = 0;
-                if (step < 1)
-                    step = 1;
-                for (i = margin; i < bufferSize - margin; i++)
+                byte[] pResultBuffer = new byte[nBufferSize];
+                if (nStep < 1)
+                    nStep = 1;
+                for (int i = nMargin; i < nBufferSize - nMargin; i++)
                 {
-                    sum = 0;
-                    count = 0;
-                    ////  (marginX2) 정도의 크기만큼을 Sampling 해야한다.
-                    for (ii = -margin; ii <= margin; ii += step)
+                    int nSum = 0;
+                    int nCount = 0;
+                    // Data sampling
+                    for (int ii = -nMargin; ii <= nMargin; ii += nStep)
                     {
-                        x = i + ii;
-                        if (x >= bufferSize)
+                        int nX = i + ii;
+                        if (nX >= nBufferSize)
                             continue;
-                        sum += pBuffer[x];
-                        count++;
+                        nSum += pBuffer[nX];
+                        nCount++;
                     }
-                    if (count < 1)
-                        count = 1;
-                    //////  Sampling한 주변 Pixel들의 Gray Level을 Buffer에 넣는다. (평균값 필터)
-                    pResultBuffer[i] = (byte)(sum / count);
+
+                    if (nCount < 1)
+                        nCount = 1;
+                    // Set the average filter
+                    pResultBuffer[i] = (byte) (nSum / nCount);
                 }
+
                 return pResultBuffer;
             }
 
@@ -1170,102 +1164,97 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
-                return new YoonImage(Smooth2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nStep),
+                return new YoonImage(
+                    Smooth2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nStep),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Smooth2D(byte[] pBuffer, int width, int height, int nBlurStep)
+            public static byte[] Smooth2D(byte[] pBuffer, int width, int nHeight, int nBlurStep)
             {
-                if (width < 1 || height < 1 || pBuffer == null)
+                if (width < 1 || nHeight < 1 || pBuffer == null)
                     throw new ArgumentException("[YOONIMAGE EXCEPTION] Buffer size is not normalized");
-                int i, j, ii, jj, x, y;
-                int count, sum;
-                int stepSize;
-                byte[] pResultBuffer = new byte[width * height];
-                stepSize = 2 * nBlurStep / 10;
-                if (stepSize < 1)
-                    stepSize = 1;
-                ////  각 Pixel마다 평균값 필터 씌우기.
-                for (j = 0; j < height; j++)
+                byte[] pResultBuffer = new byte[width * nHeight];
+                int nStepSize = 2 * nBlurStep / 10;
+                if (nStepSize < 1)
+                    nStepSize = 1;
+                // Set the average filter
+                for (int j = 0; j < nHeight; j++)
                 {
-                    count = 0;
-                    sum = 0;
-                    for (i = 0; i < width; i++)
+                    for (int i = 0; i < width; i++)
                     {
-                        sum = 0;
-                        count = 0;
-                        //////  각 Pixel에서 좌우로 Blur Size만큼의 Sampling Pixel을 추출해서 평균값을 구한다.
-                        for (jj = -nBlurStep; jj <= nBlurStep; jj += stepSize)
+                        int nSum = 0;
+                        int nCount = 0;
+                        // Extract the average value
+                        for (int jj = -nBlurStep; jj <= nBlurStep; jj += nStepSize)
                         {
-                            y = j + jj;
-                            for (ii = -nBlurStep; ii <= nBlurStep; ii += stepSize)
+                            int nY = j + jj;
+                            for (int ii = -nBlurStep; ii <= nBlurStep; ii += nStepSize)
                             {
-                                x = i + ii;
-                                if (x < 0 || y < 0 || x >= width || y >= height)
+                                int nX = i + ii;
+                                if (nX < 0 || nY < 0 || nX >= width || nY >= nHeight)
                                     continue;
-                                sum += pBuffer[y * width + x];
-                                count++;
+                                nSum += pBuffer[nY * width + nX];
+                                nCount++;
                             }
                         }
-                        if (count < 1)
-                            count = 1;
-                        //////  Sampling으로 구한 평균값을 그대로 각 Pixel에 씌운다.
-                        pResultBuffer[j * width + i] = (byte)(sum / count);
+
+                        if (nCount < 1)
+                            nCount = 1;
+                        // Overwrite the average obtained by sampling
+                        pResultBuffer[j * width + i] = (byte) (nSum / nCount);
                     }
                 }
+
                 return pResultBuffer;
             }
         }
 
-        // Pixel 채우기
         public static class Fill
         {
             public static YoonImage FillBound(YoonImage pSourceImage, int nValue)
             {
-                if (pSourceImage.Plane == 1)
-                    return new YoonImage(FillBound(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte)nValue),
-                        pSourceImage.Width, pSourceImage.Height, 1);
-                else if (pSourceImage.Plane == 4)
-                    return new YoonImage(FillBound(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nValue),
-                        pSourceImage.Width, pSourceImage.Height, 4);
-                else
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return pSourceImage.Plane switch
+                {
+                    1 => new YoonImage(
+                        FillBound(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte) nValue),
+                        pSourceImage.Width, pSourceImage.Height, 1),
+                    4 => new YoonImage(
+                        FillBound(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nValue),
+                        pSourceImage.Width, pSourceImage.Height, 4),
+                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
+                };
             }
 
-            //  테두리 채우기
-            public static int[] FillBound(int[] pBuffer, int width, int height, int value)
+            public static int[] FillBound(int[] pBuffer, int nWidth, int nHeight, int nValue)
             {
-                int[] pResultBuffer = new int[width * height];
-                Array.Copy(pBuffer, pResultBuffer, width * height);
-                ////  양끝단만 한줄씩 지운다.
-                for (int x = 0; x < width; x++)
+                int[] pResultBuffer = new int[nWidth * nHeight];
+                Array.Copy(pBuffer, pResultBuffer, nWidth * nHeight);
+                for (int x = 0; x < nWidth; x++)
                 {
-                    pResultBuffer[0 * width + x] = value;
-                    pResultBuffer[(height - 1) * width + x] = value;
+                    pResultBuffer[0 * nWidth + x] = nValue;
+                    pResultBuffer[(nHeight - 1) * nWidth + x] = nValue;
                 }
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < nHeight; y++)
                 {
-                    pResultBuffer[y * width + 0] = value;
-                    pResultBuffer[y * width + (width - 1)] = value;
+                    pResultBuffer[y * nWidth + 0] = nValue;
+                    pResultBuffer[y * nWidth + (nWidth - 1)] = nValue;
                 }
                 return pResultBuffer;
             }
 
-            //  테두리 채우기
-            public static byte[] FillBound(byte[] pBuffer, int width, int height, byte value)
+            public static byte[] FillBound(byte[] pBuffer, int nWidth, int nHeight, byte nValue)
             {
-                byte[] pResultBuffer = new byte[width * height];
-                Array.Copy(pBuffer, pResultBuffer, width * height);
-                ////  양끝단만 한줄씩 지운다.
-                for (int x = 0; x < width; x++)
+                byte[] pResultBuffer = new byte[nWidth * nHeight];
+                Array.Copy(pBuffer, pResultBuffer, nWidth * nHeight);
+                for (int x = 0; x < nWidth; x++)
                 {
-                    pResultBuffer[0 * width + x] = value;
-                    pResultBuffer[(height - 1) * width + x] = value;
+                    pResultBuffer[0 * nWidth + x] = nValue;
+                    pResultBuffer[(nHeight - 1) * nWidth + x] = nValue;
                 }
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < nHeight; y++)
                 {
-                    pResultBuffer[y * width + 0] = value;
-                    pResultBuffer[y * width + (width - 1)] = value;
+                    pResultBuffer[y * nWidth + 0] = nValue;
+                    pResultBuffer[y * nWidth + (nWidth - 1)] = nValue;
                 }
                 return pResultBuffer;
             }
@@ -1291,527 +1280,498 @@ namespace YoonFactory.Image
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
 
-            //  영역 가득 채우기  (영역 내에 value값 채우기)
-            public static bool FillFlood(ref int[] pBuffer, ref int fillCount, int width, int height, YoonVector2N pVector, int threshold, bool isWhite, int value, ref int totalCount)
+            public static bool FillFlood(ref int[] pBuffer, ref int nFillCount, int nWidth, int nHeight,
+                YoonVector2N pVector, int nThreshold, bool bWhite, int nValue, ref int nTotalCount)
             {
-                if (pVector.X < 0 || pVector.X >= width) return true;
-                if (pVector.Y < 0 || pVector.Y >= height) return true;
-                totalCount++;   // FillFlood의 동작 횟수
-                if (totalCount > MAX_FILL_NUM) return false;
-                //// x, y가 지정치보다 크거나, stact count가 높을 때 Value 값 채우기를 그만한다.
-                if (isWhite)
+                if (pVector.X < 0 || pVector.X >= nWidth) return true;
+                if (pVector.Y < 0 || pVector.Y >= nHeight) return true;
+                nTotalCount++; // Activation count
+                // Stop filling the pixel when an activation count is higher then the constant count
+                if (nTotalCount > MAX_FILL_NUM) return false;
+                if (bWhite)
                 {
-                    if (pBuffer[pVector.Y * width + pVector.X] >= threshold)
+                    if (pBuffer[pVector.Y * nWidth + pVector.X] < nThreshold) return true;
+                    pBuffer[pVector.Y * nWidth + pVector.X] = nValue;
+                    nFillCount++; // Filling count
+                    // Find the flood area in clock directions
+                    foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
                     {
-                        pBuffer[pVector.Y * width + pVector.X] = value;
-                        ////  Object 찾기와 연동하기 위한 Counter.
-                        fillCount++;    // 실제로 Fill 된 Count
-                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
-                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
-                        {
-                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
-                        }
+                        FillFlood(ref pBuffer, ref nFillCount, nWidth, nHeight,
+                            (YoonVector2N) pVector.GetNextVector(nDir), nThreshold, bWhite, nValue,
+                            ref nTotalCount);
                     }
                 }
                 else
                 {
-                    if (pBuffer[pVector.Y * width + pVector.X] < threshold)
+                    if (pBuffer[pVector.Y * nWidth + pVector.X] >= nThreshold) return true;
+                    pBuffer[pVector.Y * nWidth + pVector.X] = nValue;
+                    nFillCount++;
+                    foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
                     {
-                        pBuffer[pVector.Y * width + pVector.X] = value;
-                        fillCount++;
-                        ////  화면에 Display할 경우 사용함.
-                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
-                        foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
-                        {
-                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
-                        }
+                        FillFlood(ref pBuffer, ref nFillCount, nWidth, nHeight,
+                            (YoonVector2N) pVector.GetNextVector(nDir), nThreshold, bWhite, nValue,
+                            ref nTotalCount);
                     }
                 }
+
                 return true;
             }
 
-            //  영역 가득 채우기  (영역 내에 value값 채우기)
-            public static bool FillFlood(ref byte[] pBuffer, ref int fillCount, int width, int height, YoonVector2N pVector, byte threshold, bool isWhite, byte value, ref int totalCount)
+            public static bool FillFlood(ref byte[] pBuffer, ref int nFillCount, int nWidth, int nHeight,
+                YoonVector2N pVector, byte nThreshold, bool bWhite, byte nValue, ref int nTotalCount)
             {
-                if (pVector.X < 0 || pVector.X >= width) return true;
-                if (pVector.Y < 0 || pVector.Y >= height) return true;
-                totalCount++;   // FillFlood의 동작 횟수
-                if (totalCount > MAX_FILL_NUM) return false;
-                //// x, y가 지정치보다 크거나, stact count가 높을 때 Value 값 채우기를 그만한다.
-                if (isWhite)
+                if (pVector.X < 0 || pVector.X >= nWidth) return true;
+                if (pVector.Y < 0 || pVector.Y >= nHeight) return true;
+                nTotalCount++;
+                if (nTotalCount > MAX_FILL_NUM) return false;
+                if (bWhite)
                 {
-                    if (pBuffer[pVector.Y * width + pVector.X] >= threshold)
+                    if (pBuffer[pVector.Y * nWidth + pVector.X] >= nThreshold)
                     {
-                        pBuffer[pVector.Y * width + pVector.X] = value;
-                        ////  Object 찾기와 연동하기 위한 Counter.
-                        fillCount++;    // 실제로 Fill 된 Count
-                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        pBuffer[pVector.Y * nWidth + pVector.X] = nValue;
+                        nFillCount++;
                         foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
                         {
-                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                            FillFlood(ref pBuffer, ref nFillCount, nWidth, nHeight,
+                                (YoonVector2N) pVector.GetNextVector(nDir), nThreshold, bWhite, nValue,
+                                ref nTotalCount);
                         }
                     }
                 }
                 else
                 {
-                    if (pBuffer[pVector.Y * width + pVector.X] < threshold)
+                    if (pBuffer[pVector.Y * nWidth + pVector.X] < nThreshold)
                     {
-                        pBuffer[pVector.Y * width + pVector.X] = value;
-                        fillCount++;
-                        ////  화면에 Display할 경우 사용함.
-                        ////  8방향으로 Flood 영역을 찾는 재귀 함수.
+                        pBuffer[pVector.Y * nWidth + pVector.X] = nValue;
+                        nFillCount++;
                         foreach (eYoonDir2D nDir in YoonDirFactory.GetClockDirections())
                         {
-                            FillFlood(ref pBuffer, ref fillCount, width, height, (YoonVector2N)pVector.GetNextVector(nDir), threshold, isWhite, value, ref totalCount);
+                            FillFlood(ref pBuffer, ref nFillCount, nWidth, nHeight,
+                                (YoonVector2N) pVector.GetNextVector(nDir), nThreshold, bWhite, nValue,
+                                ref nTotalCount);
                         }
                     }
                 }
+
                 return true;
             }
 
-            public static YoonImage FillInside1D(YoonImage pSourceImage, int nThreshold = 128, bool bFillWhite = true, int nSize = 5)
+            public static YoonImage FillInside1D(YoonImage pSourceImage, int nThreshold = 128, bool bFillWhite = true,
+                int nSize = 5)
             {
-                if (pSourceImage.Plane == 1)
-                    return new YoonImage(FillInside1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height, (byte)nThreshold, bFillWhite, nSize),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                else if (pSourceImage.Plane == 4)
-                    return new YoonImage(FillInside1D(pSourceImage.GetARGBBuffer(), pSourceImage.Width * pSourceImage.Height, nThreshold, bFillWhite, nSize),
-                        pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                else
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                return pSourceImage.Plane switch
+                {
+                    1 => new YoonImage(
+                        FillInside1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height,
+                            (byte) nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                        PixelFormat.Format32bppArgb),
+                    4 => new YoonImage(
+                        FillInside1D(pSourceImage.GetARGBBuffer(), pSourceImage.Width * pSourceImage.Height, nThreshold,
+                            bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb),
+                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
+                };
             }
 
-            //  Pixel을 채우는 함수.
-            public static int[] FillInside1D(int[] pBuffer, int bufferSize, int threshold, bool isWhite, int size)
+            public static int[] FillInside1D(int[] pBuffer, int nBufferSize, int nThreshold, bool bWhite, int nSize)
             {
-                int i;
-                int start, end, differential;
-                int intensity;
-                int[] pResultBuffer = new int[bufferSize];
-                Array.Copy(pBuffer, pResultBuffer, bufferSize);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                int[] pResultBuffer = new int[nBufferSize];
+                Array.Copy(pBuffer, pResultBuffer, nBufferSize);
+                // Fill the white pixel
+                if (bWhite)
                 {
-                    start = -1;
-                    end = -1;
-                    for (i = 0; i < bufferSize; i++)
+                    int nStart = -1;
+                    for (int i = 0; i < nBufferSize; i++)
                     {
-                        if (pBuffer[i] < threshold)
+                        if (pBuffer[i] < nThreshold)
                         {
-                            if (start < 0)
-                                start = i;
+                            if (nStart < 0)
+                                nStart = i;
                         }
                         else
                         {
-                            if (start > 0 && end < 0)
+                            if (nStart > 0)
                             {
-                                intensity = pBuffer[i];
-                                end = i;
-                                differential = end - start;
-                                if (differential <= size)
+                                int nIntensity = pBuffer[i];
+                                int nEnd = i;
+                                int nDiff = nEnd - nStart;
+                                if (nDiff <= nSize)
                                 {
-                                    for (int ii = start; ii <= end; ii++)
+                                    for (int ii = nStart; ii <= nEnd; ii++)
                                     {
-                                        pResultBuffer[ii] = intensity;
+                                        pResultBuffer[ii] = nIntensity;
                                     }
                                 }
                             }
-                            start = -1;
-                            end = -1;
+
+                            nStart = -1;
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
+                // Fill the black pixel
                 else
                 {
-                    start = -1;
-                    end = -1;
-                    for (i = 0; i < bufferSize; i++)
+                    int nStart = -1;
+                    for (int i = 0; i < nBufferSize; i++)
                     {
-                        if (pBuffer[i] >= threshold)
+                        if (pBuffer[i] >= nThreshold)
                         {
-                            if (start < 0)
-                                start = i;
+                            if (nStart < 0)
+                                nStart = i;
                         }
                         else
                         {
-                            if (start > 0 && end < 0)
+                            if (nStart > 0)
                             {
-                                intensity = pBuffer[i];
-                                end = i;
-                                differential = end - start;
-                                if (differential <= size)
+                                int nEnd = i;
+                                int nDiff = nEnd - nStart;
+                                if (nDiff <= nSize)
                                 {
-                                    for (int ii = start; ii <= end; ii++)
+                                    for (int ii = nStart; ii <= nEnd; ii++)
                                     {
                                         pResultBuffer[ii] = 0;
                                     }
                                 }
                             }
-                            start = -1;
-                            end = -1;
+
+                            nStart = -1;
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  Pixel을 채우는 함수.
-            public static byte[] FillInside1D(byte[] pBuffer, int bufferSize, byte threshold, bool isWhite, int size)
+            public static byte[] FillInside1D(byte[] pBuffer, int nBufferSize, byte nThreshold, bool bWhite, int nSize)
             {
-                int i;
-                int start, end, differential;
-                byte intensity;
-                byte[] pResultBuffer = new byte[bufferSize];
-                Array.Copy(pBuffer, pResultBuffer, bufferSize);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                byte[] pResultBuffer = new byte[nBufferSize];
+                Array.Copy(pBuffer, pResultBuffer, nBufferSize);
+                if (bWhite)
                 {
-                    start = -1;
-                    end = -1;
-                    for (i = 0; i < bufferSize; i++)
+                    int nStart = -1;
+                    for (int i = 0; i < nBufferSize; i++)
                     {
-                        if (pBuffer[i] < threshold)
+                        if (pBuffer[i] < nThreshold)
                         {
-                            if (start < 0)
-                                start = i;
+                            if (nStart < 0)
+                                nStart = i;
                         }
                         else
                         {
-                            if (start > 0 && end < 0)
+                            if (nStart > 0)
                             {
-                                intensity = pBuffer[i];
-                                end = i;
-                                differential = end - start;
-                                if (differential <= size)
+                                byte nIntensity = pBuffer[i];
+                                int nEnd = i;
+                                int nDiff = nEnd - nStart;
+                                if (nDiff <= nSize)
                                 {
-                                    for (int ii = start; ii <= end; ii++)
+                                    for (int ii = nStart; ii <= nEnd; ii++)
                                     {
-                                        pResultBuffer[ii] = intensity;
+                                        pResultBuffer[ii] = nIntensity;
                                     }
                                 }
                             }
-                            start = -1;
-                            end = -1;
+
+                            nStart = -1;
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
                 else
                 {
-                    start = -1;
-                    end = -1;
-                    for (i = 0; i < bufferSize; i++)
+                    int nStart = -1;
+                    for (int i = 0; i < nBufferSize; i++)
                     {
-                        if (pBuffer[i] >= threshold)
+                        if (pBuffer[i] >= nThreshold)
                         {
-                            if (start < 0)
-                                start = i;
+                            if (nStart < 0)
+                                nStart = i;
                         }
                         else
                         {
-                            if (start > 0 && end < 0)
+                            if (nStart > 0)
                             {
-                                intensity = pBuffer[i];
-                                end = i;
-                                differential = end - start;
-                                if (differential <= size)
+                                byte nIntensity = pBuffer[i];
+                                int nEnd = i;
+                                int nDiff = nEnd - nStart;
+                                if (nDiff <= nSize)
                                 {
-                                    for (int ii = start; ii <= end; ii++)
+                                    for (int ii = nStart; ii <= nEnd; ii++)
                                     {
-                                        pResultBuffer[ii] = intensity;
+                                        pResultBuffer[ii] = nIntensity;
                                     }
                                 }
                             }
-                            start = -1;
-                            end = -1;
+
+                            nStart = -1;
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            public static YoonImage FillInside2D(YoonImage pSourceImage, YoonRect2N scanArea, eYoonDir2DMode nDirMode, int nThreshold = 128, bool bFillWhite = true, int nSize = 5)
+            public static YoonImage FillInside2D(YoonImage pSourceImage, YoonRect2N pScanArea, eYoonDir2DMode nDirMode,
+                int nThreshold = 128, bool bFillWhite = true, int nSize = 5)
             {
                 if (pSourceImage.Plane == 1)
                 {
-                    if (nDirMode == eYoonDir2DMode.AxisX)
-                        return new YoonImage(FillHorizontal(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, (byte)nThreshold, bFillWhite, nSize),
-                            pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                    else if (nDirMode == eYoonDir2DMode.AxisY)
-                        return new YoonImage(FillVertical(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, (byte)nThreshold, bFillWhite, nSize),
-                            pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                    else
-                        throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct");
+                    return nDirMode switch
+                    {
+                        eYoonDir2DMode.AxisX => new YoonImage(
+                            FillHorizontal(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea,
+                                (byte) nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                            PixelFormat.Format32bppArgb),
+                        eYoonDir2DMode.AxisY => new YoonImage(
+                            FillVertical(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, (byte) nThreshold,
+                                bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                            PixelFormat.Format32bppArgb),
+                        _ => throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct")
+                    };
+                }
 
-                }
-                else if (pSourceImage.Plane == 4)
+                if (pSourceImage.Plane == 4)
                 {
-                    if (nDirMode == eYoonDir2DMode.AxisX)
-                        return new YoonImage(FillHorizontal(pSourceImage.GetARGBBuffer(), pSourceImage.Width, scanArea, nThreshold, bFillWhite, nSize),
-                            pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                    else if (nDirMode == eYoonDir2DMode.AxisY)
-                        return new YoonImage(FillVertical(pSourceImage.GetARGBBuffer(), pSourceImage.Width, scanArea, nThreshold, bFillWhite, nSize),
-                            pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
-                    else
-                        throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct");
+                    return nDirMode switch
+                    {
+                        eYoonDir2DMode.AxisX => new YoonImage(
+                            FillHorizontal(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pScanArea, nThreshold,
+                                bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                            PixelFormat.Format32bppArgb),
+                        eYoonDir2DMode.AxisY => new YoonImage(
+                            FillVertical(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pScanArea, nThreshold,
+                                bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                            PixelFormat.Format32bppArgb),
+                        _ => throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct")
+                    };
                 }
-                else
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+
+                throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
             }
 
-            //  수평 방향으로 Pixel을 채우는 함수.
-            public static byte[] FillHorizontal(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool isWhite, int size)
+            public static byte[] FillHorizontal(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea, byte nThreshold,
+                bool bWhite, int nSize)
             {
-                if (scanArea == null)
+                if (pScanArea == null)
                     throw new NullReferenceException("[YOONIMAGE EXCEPTION] Scan area has null reference");
-                int i, j;
-                int startX, endX, differX;
-                byte intensity;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                // Fill the white pixel
+                if (bWhite)
                 {
-                    for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                    for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                     {
-                        startX = -1;
-                        endX = -1;
-                        for (i = scanArea.Left; i < scanArea.Right; i++)
+                        int nStartX = -1;
+                        for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                         {
-                            ////  시작 지점이 검은색일 경우. (시작지점의 색으로 채우기를 못함)
-                            if (pBuffer[j * imageWidth + i] < threshold)
+                            // If the start is black
+                            if (pBuffer[j * nImageWidth + i] < nThreshold)
                             {
-                                if (startX < 0)
-                                    startX = i;
+                                if (nStartX < 0)
+                                    nStartX = i;
                             }
-                            ////  시작 지점이  흰색이기 때문에 시작지점의 색으로 채우기 가능.
                             else
                             {
-                                if (startX > scanArea.Left && endX < 0)
+                                if (nStartX > pScanArea.Left)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endX = i;
-                                    differX = endX - startX;
-                                    if (differX <= size)
+                                    byte nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndX = i;
+                                    int nDiffX = nEndX - nStartX;
+                                    if (nDiffX <= nSize)
                                     {
-                                        for (int ii = startX; ii <= endX; ii++)
+                                        for (int ii = nStartX; ii <= nEndX; ii++)
                                         {
-                                            pResultBuffer[j * imageWidth + ii] = intensity;
+                                            pResultBuffer[j * nImageWidth + ii] = nIntensity;
                                         }
                                     }
                                 }
-                                startX = -1;
-                                endX = -1;
+
+                                nStartX = -1;
                             }
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
+                // Fill the black pixel
                 else
                 {
-                    for (j = (int)scanArea.Top; j < scanArea.Bottom; j++)
+                    for (int j = (int) pScanArea.Top; j < pScanArea.Bottom; j++)
                     {
-                        startX = -1;
-                        endX = -1;
-                        for (i = (int)scanArea.Left; i < scanArea.Right; i++)
+                        int nStartX = -1;
+                        for (int i = (int) pScanArea.Left; i < pScanArea.Right; i++)
                         {
-                            ////  시작 지점이 흰색일 경우.  (시작지점의 색으로 채우기를 못함)
-                            if (pBuffer[j * imageWidth + i] >= threshold)
+                            // If the start is white
+                            if (pBuffer[j * nImageWidth + i] >= nThreshold)
                             {
-                                if (startX < 0)
-                                    startX = i;
+                                if (nStartX < 0)
+                                    nStartX = i;
                             }
-                            ////  시작 지점이 검은색이기 때문에 시작지점 색으로 채우기 가능.
                             else
                             {
-                                //////  단, 처음부터 색을 채워나가는 것은 막아야한다.
-                                if (startX > scanArea.Left && endX < 0)
+                                // Do not fill the black pixel from beginning
+                                if (nStartX > pScanArea.Left)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endX = i;
-                                    differX = endX - startX;
-                                    if (differX <= size)
+                                    int nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndX = i;
+                                    int nDiffX = nEndX - nStartX;
+                                    if (nDiffX <= nSize)
                                     {
-                                        for (int ii = startX; ii <= endX; ii++)
+                                        for (int ii = nStartX; ii <= nEndX; ii++)
                                         {
-                                            pResultBuffer[j * imageWidth + ii] = 0;
+                                            pResultBuffer[j * nImageWidth + ii] = 0;
                                         }
                                     }
                                 }
-                                startX = -1;
-                                endX = -1;
+
+                                nStartX = -1;
                             }
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  수평 방향으로 Pixel을 채우는 함수.
-            public static int[] FillHorizontal(int[] pBuffer, int imageWidth, YoonRect2N scanArea, int threshold, bool isWhite, int size)
+            public static int[] FillHorizontal(int[] pBuffer, int nImageWidth, YoonRect2N pScanArea, int nThreshold,
+                bool bWhite, int nSize)
             {
-                if (scanArea == null)
+                if (pScanArea == null)
                     throw new NullReferenceException("[YOONIMAGE EXCEPTION] Scan area has null reference");
-                int i, j;
-                int startX, endX, differX;
-                int intensity;
                 int[] pResultBuffer = new int[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                if (bWhite)
                 {
-                    for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                    for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                     {
-                        startX = -1;
-                        endX = -1;
-                        for (i = scanArea.Left; i < scanArea.Right; i++)
+                        int nStartX = -1;
+                        for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                         {
-                            ////  시작 지점이 검은색일 경우. (시작지점의 색으로 채우기를 못함)
-                            if (pBuffer[j * imageWidth + i] < threshold)
+                            if (pBuffer[j * nImageWidth + i] < nThreshold)
                             {
-                                if (startX < 0)
-                                    startX = i;
+                                if (nStartX < 0)
+                                    nStartX = i;
                             }
-                            ////  시작 지점이  흰색이기 때문에 시작지점의 색으로 채우기 가능.
                             else
                             {
-                                if (startX > scanArea.Left && endX < 0)
+                                if (nStartX > pScanArea.Left)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endX = i;
-                                    differX = endX - startX;
-                                    if (differX <= size)
+                                    int nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndX = i;
+                                    int nDiffX = nEndX - nStartX;
+                                    if (nDiffX <= nSize)
                                     {
-                                        for (int ii = startX; ii <= endX; ii++)
+                                        for (int ii = nStartX; ii <= nEndX; ii++)
                                         {
-                                            pResultBuffer[j * imageWidth + ii] = intensity;
+                                            pResultBuffer[j * nImageWidth + ii] = nIntensity;
                                         }
                                     }
                                 }
-                                startX = -1;
-                                endX = -1;
+
+                                nStartX = -1;
                             }
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
                 else
                 {
-                    for (j = (int)scanArea.Top; j < scanArea.Bottom; j++)
+                    for (int j = (int) pScanArea.Top; j < pScanArea.Bottom; j++)
                     {
-                        startX = -1;
-                        endX = -1;
-                        for (i = (int)scanArea.Left; i < scanArea.Right; i++)
+                        int nStartX = -1;
+                        for (int i = (int) pScanArea.Left; i < pScanArea.Right; i++)
                         {
-                            ////  시작 지점이 흰색일 경우.  (시작지점의 색으로 채우기를 못함)
-                            if (pBuffer[j * imageWidth + i] >= threshold)
+                            if (pBuffer[j * nImageWidth + i] >= nThreshold)
                             {
-                                if (startX < 0)
-                                    startX = i;
+                                if (nStartX < 0)
+                                    nStartX = i;
                             }
-                            ////  시작 지점이 검은색이기 때문에 시작지점 색으로 채우기 가능.
                             else
                             {
-                                //////  단, 처음부터 색을 채워나가는 것은 막아야한다.
-                                if (startX > scanArea.Left && endX < 0)
+                                if (nStartX > pScanArea.Left)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endX = i;
-                                    differX = endX - startX;
-                                    if (differX <= size)
+                                    int nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndX = i;
+                                    int nDiffX = nEndX - nStartX;
+                                    if (nDiffX <= nSize)
                                     {
-                                        for (int ii = startX; ii <= endX; ii++)
+                                        for (int ii = nStartX; ii <= nEndX; ii++)
                                         {
-                                            pResultBuffer[j * imageWidth + ii] = 0;
+                                            pResultBuffer[j * nImageWidth + ii] = 0;
                                         }
                                     }
                                 }
-                                startX = -1;
-                                endX = -1;
+
+                                nStartX = -1;
                             }
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  수직 방향으로 Pixel을 채우는 함수.
-            public static byte[] FillVertical(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool isWhite, int size)
+            public static byte[] FillVertical(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea, byte nThreshold, bool bWhite, int nSize)
             {
-                if (scanArea == null)
+                if (pScanArea == null)
                     throw new NullReferenceException("[YOONIMAGE EXCEPTION] Scan area has null reference");
-                int i, j;
-                int startY, endY, differY;
-                byte intensity;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                if (bWhite)
                 {
-                    for (i = scanArea.Left; i < scanArea.Right; i++)
+                    for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                     {
-                        startY = -1;
-                        endY = -1;
-                        for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                        int nStartY = -1;
+                        for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                         {
-                            if (pBuffer[j * imageWidth + i] < threshold)
+                            if (pBuffer[j * nImageWidth + i] < nThreshold)
                             {
-                                if (startY < 0)
-                                    startY = j;
+                                if (nStartY < 0)
+                                    nStartY = j;
                             }
                             else
                             {
-                                if (startY > scanArea.Top && endY < 0)
+                                if (nStartY > pScanArea.Top)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endY = j;
-                                    differY = endY - startY;
-                                    if (differY <= size)
+                                    byte nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndY = j;
+                                    int nDiffY = nEndY - nStartY;
+                                    if (nDiffY <= nSize)
                                     {
-                                        for (int jj = startY; jj <= endY; jj++)
+                                        for (int jj = nStartY; jj <= nEndY; jj++)
                                         {
-                                            pResultBuffer[jj * imageWidth + i] = intensity;
+                                            pResultBuffer[jj * nImageWidth + i] = nIntensity;
                                         }
                                     }
                                 }
-                                startY = -1;
-                                endY = -1;
+                                nStartY = -1;
                             }
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
                 else
                 {
-                    for (i = scanArea.Left; i < scanArea.Right; i++)
+                    for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                     {
-                        startY = -1;
-                        endY = -1;
-                        for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                        int nStartY = -1;
+                        for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                         {
-                            if (pBuffer[j * imageWidth + i] >= threshold)
+                            if (pBuffer[j * nImageWidth + i] >= nThreshold)
                             {
-                                if (startY < 0)
-                                    startY = j;
+                                if (nStartY < 0)
+                                    nStartY = j;
                             }
                             else
                             {
-                                if (startY > scanArea.Top && endY < 0)
+                                if (nStartY > pScanArea.Top)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endY = j;
-                                    differY = endY - startY;
-                                    if (differY <= size)
+                                    byte nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndY = j;
+                                    int nDiffY = nEndY - nStartY;
+                                    if (nDiffY <= nSize)
                                     {
-                                        for (int jj = startY; jj <= endY; jj++)
+                                        for (int jj = nStartY; jj <= nEndY; jj++)
                                         {
-                                            pResultBuffer[jj * imageWidth + i] = intensity;
+                                            pResultBuffer[jj * nImageWidth + i] = nIntensity;
                                         }
                                     }
                                 }
-                                startY = -1;
-                                endY = -1;
+                                nStartY = -1;
                             }
                         }
                     }
@@ -1819,47 +1779,42 @@ namespace YoonFactory.Image
                 return pResultBuffer;
             }
 
-            //  수직 방향으로 Pixel을 채우는 함수.
-            public static int[] FillVertical(int[] pBuffer, int imageWidth, YoonRect2N scanArea, int threshold, bool isWhite, int size)
+            public static int[] FillVertical(int[] pBuffer, int nImageWidth, YoonRect2N pScanArea, int nThreshold,
+                bool bWhite, int nSize)
             {
-                if (scanArea == null)
+                if (pScanArea == null)
                     throw new NullReferenceException("[YOONIMAGE EXCEPTION] Scan area has null reference");
-                int i, j;
-                int startY, endY, differY;
-                int intensity;
                 int[] pResultBuffer = new int[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  흰색으로 채울 경우.
-                if (isWhite)
+                if (bWhite)
                 {
-                    for (i = scanArea.Left; i < scanArea.Right; i++)
+                    for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                     {
-                        startY = -1;
-                        endY = -1;
-                        for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                        int nStartY = -1;
+                        for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                         {
-                            if (pBuffer[j * imageWidth + i] < threshold)
+                            if (pBuffer[j * nImageWidth + i] < nThreshold)
                             {
-                                if (startY < 0)
-                                    startY = j;
+                                if (nStartY < 0)
+                                    nStartY = j;
                             }
                             else
                             {
-                                if (startY > scanArea.Top && endY < 0)
+                                if (nStartY > pScanArea.Top)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endY = j;
-                                    differY = endY - startY;
-                                    if (differY <= size)
+                                    int nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndY = j;
+                                    int nDiffY = nEndY - nStartY;
+                                    if (nDiffY <= nSize)
                                     {
-                                        for (int jj = startY; jj <= endY; jj++)
+                                        for (int jj = nStartY; jj <= nEndY; jj++)
                                         {
-                                            pResultBuffer[jj * imageWidth + i] = intensity;
+                                            pResultBuffer[jj * nImageWidth + i] = nIntensity;
                                         }
                                     }
                                 }
-                                startY = -1;
-                                endY = -1;
+
+                                nStartY = -1;
                             }
                         }
                     }
@@ -1867,142 +1822,142 @@ namespace YoonFactory.Image
                 ////  검은색으로 채울 경우.
                 else
                 {
-                    for (i = scanArea.Left; i < scanArea.Right; i++)
+                    for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                     {
-                        startY = -1;
-                        endY = -1;
-                        for (j = scanArea.Top; j < scanArea.Bottom; j++)
+                        int nStartY = -1;
+                        for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                         {
-                            if (pBuffer[j * imageWidth + i] >= threshold)
+                            if (pBuffer[j * nImageWidth + i] >= nThreshold)
                             {
-                                if (startY < 0)
-                                    startY = j;
+                                if (nStartY < 0)
+                                    nStartY = j;
                             }
                             else
                             {
-                                if (startY > scanArea.Top && endY < 0)
+                                if (nStartY > pScanArea.Top)
                                 {
-                                    intensity = pBuffer[j * imageWidth + i];
-                                    endY = j;
-                                    differY = endY - startY;
-                                    if (differY <= size)
+                                    int nIntensity = pBuffer[j * nImageWidth + i];
+                                    int nEndY = j;
+                                    int nDiffY = nEndY - nStartY;
+                                    if (nDiffY <= nSize)
                                     {
-                                        for (int jj = startY; jj <= endY; jj++)
+                                        for (int jj = nStartY; jj <= nEndY; jj++)
                                         {
-                                            pResultBuffer[jj * imageWidth + i] = intensity;
+                                            pResultBuffer[jj * nImageWidth + i] = nIntensity;
                                         }
                                     }
                                 }
-                                startY = -1;
-                                endY = -1;
+
+                                nStartY = -1;
                             }
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
         }
 
-        // 객체 찾기
-        public static class ObjectDetection
+        public static class Blob
         {
-            //  최대 크기 객체 찾기.
-            public static IYoonObject FindMaxObject(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false)
+            public static IYoonObject FindMaxBlob(YoonImage pSourceImage, YoonRect2N pScanArea, byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return FindMaxObject(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
+                return FindMaxBlob(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, nThreshold, bWhite);
             }
 
-            public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
+            public static IYoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, YoonRect2N pScanArea,
+                byte nThreshold, bool bWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
-                YoonRect2N maxArea;
-                YoonImage maxImage = new YoonImage(1, 1, 1);
-                int maxLen = 0;
-                int maxLabel = 0;
-                int width, height, len;
-                double maxScore = 0.0;
-                ////  Object 찾기 작
-                ObjectList<YoonRect2N> pListObjectInfo = FindObjects(pBuffer, imageWidth, scanArea, threshold, bWhite);
-                maxLen = 0;
-                maxArea = new YoonRect2N(0, 0, 0, 0);
+                YoonImage pMaxImage = new YoonImage(1, 1, 1);
+                int nMaxLength = 0;
+                int nMaxLabel = 0;
+                int nWidth, nHeight, nLength;
+                double dMaxScore = 0.0;
+                ObjectList<YoonRect2N> pListObjectInfo =
+                    FindBlobs(pBuffer, nImageWidth, pScanArea, nThreshold, bWhite);
+                YoonRect2N pMaxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
                 {
-                    width = pListObjectInfo[iObject].Object.Width;
-                    height = pListObjectInfo[iObject].Object.Height;
-                    len = pListObjectInfo[iObject].PixelCount;
-                    ////  정사각에 가까운 Object만 취급함.
+                    nWidth = pListObjectInfo[iObject].Object.Width;
+                    nHeight = pListObjectInfo[iObject].Object.Height;
+                    nLength = pListObjectInfo[iObject].PixelCount;
+                    // Only count the square rect blob
                     if (bSquareOnly)
                     {
-                        if (width > 3 * height || height > 3 * width)
+                        if (nWidth > 3 * nHeight || nHeight > 3 * nWidth)
                         {
                             pListObjectInfo.RemoveAt(iObject);
                             continue;
                         }
                     }
-                    ////  시작지점이 정상적(양수)인 경우만 취급함.
+
+                    // Only count the showing whole blob in image
                     if (bNormalOnly)
                     {
-                        int diffLeft = pListObjectInfo[iObject].Object.Left;
-                        int diffTop = pListObjectInfo[iObject].Object.Top;
-                        if (diffLeft <= 1 || diffTop <= 1)
+                        int nDiffLeft = pListObjectInfo[iObject].Object.Left;
+                        int nDiffTop = pListObjectInfo[iObject].Object.Top;
+                        if (nDiffLeft <= 1 || nDiffTop <= 1)
                         {
                             pListObjectInfo.RemoveAt(iObject);
                             continue;
                         }
                     }
-                    ////  발견된 object의 길이가 최대치일 때.
-                    if (len > maxLen)
+
+                    if (nLength > nMaxLength)
                     {
-                        maxLen = len;
-                        maxLabel = pListObjectInfo[iObject].Label;
-                        maxScore = pListObjectInfo[iObject].Score;
-                        maxImage = pListObjectInfo[iObject].ObjectImage;
-                        maxArea.CenterPos.X = scanArea.Left + pListObjectInfo[iObject].Object.Left + pListObjectInfo[iObject].Object.Width / 2;
-                        maxArea.CenterPos.Y = scanArea.Top + pListObjectInfo[iObject].Object.Top + pListObjectInfo[iObject].Object.Height / 2;
-                        maxArea.Width = pListObjectInfo[iObject].Object.Right - pListObjectInfo[iObject].Object.Left;
-                        maxArea.Height = pListObjectInfo[iObject].Object.Bottom - pListObjectInfo[iObject].Object.Top;
+                        nMaxLength = nLength;
+                        nMaxLabel = pListObjectInfo[iObject].Label;
+                        dMaxScore = pListObjectInfo[iObject].Score;
+                        pMaxImage = pListObjectInfo[iObject].ObjectImage;
+                        pMaxArea.CenterPos.X = pScanArea.Left + pListObjectInfo[iObject].Object.Left +
+                                               pListObjectInfo[iObject].Object.Width / 2;
+                        pMaxArea.CenterPos.Y = pScanArea.Top + pListObjectInfo[iObject].Object.Top +
+                                               pListObjectInfo[iObject].Object.Height / 2;
+                        pMaxArea.Width = pListObjectInfo[iObject].Object.Right - pListObjectInfo[iObject].Object.Left;
+                        pMaxArea.Height = pListObjectInfo[iObject].Object.Bottom - pListObjectInfo[iObject].Object.Top;
                     }
                 }
-                return new YoonObject<YoonRect2N>(maxLabel, maxArea, (YoonImage)maxImage.Clone(), maxScore, maxLen);
+
+                return new YoonObject<YoonRect2N>(nMaxLabel, pMaxArea, (YoonImage) pMaxImage.Clone(), dMaxScore,
+                    nMaxLength);
             }
 
-            //  최대 크기 객체 찾기.
-            public static IYoonObject FindMaxObject(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
+            public static IYoonObject FindMaxBlob(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return FindMaxObject(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold, bWhite);
+                return FindMaxBlob(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold,
+                    bWhite);
             }
 
-            public static IYoonObject FindMaxObject(byte[] pBuffer, int imageWidth, int imageHeight, byte threshold, bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
+            public static IYoonObject FindMaxBlob(byte[] pBuffer, int nImageWidth, int imageHeight, byte nThreshold,
+                bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
-                YoonRect2N maxArea;
-                int width, height, len;
-                int nOrder, maxLen;
-                ////  객체 찾기. 찾은 객체 정보는 m_objectInfo에 저장.
-                ObjectList<YoonRect2N> pListObjectInfo = FindObjects(pBuffer, imageWidth, imageHeight, threshold, isWhite);
+                // Save found blobs as list
+                ObjectList<YoonRect2N> pListObjectInfo =
+                    FindBlobs(pBuffer, nImageWidth, imageHeight, nThreshold, isWhite);
                 if (pListObjectInfo.Count == 0)
                     throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Find Object List is empty");
-                nOrder = 0;
-                maxLen = 0;
-                maxArea = new YoonRect2N(0, 0, 0, 0);
+                int nOrder = 0;
+                int nMaxLength = 0;
+                YoonRect2N pRect = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
                 {
 
-                    width = pListObjectInfo[iObject].Object.Width;
-                    height = pListObjectInfo[iObject].Object.Height;
-                    len = pListObjectInfo[iObject].PixelCount;
-                    ////  정사각에 가까운 Object만 취급함.
+                    int nWidth = pListObjectInfo[iObject].Object.Width;
+                    int nHeight = pListObjectInfo[iObject].Object.Height;
+                    int nLength = pListObjectInfo[iObject].PixelCount;
                     if (bSquareOnly)
                     {
-                        if (width > 3 * height || height > 3 * width)
+                        if (nWidth > 3 * nHeight || nHeight > 3 * nWidth)
                         {
                             pListObjectInfo.RemoveAt(iObject);
                             continue;
                         }
                     }
-                    ////  시작지점이 정상적(양수)인 경우만 취급함.
+
                     if (bNormalOnly)
                     {
                         int diffLeft = pListObjectInfo[iObject].Object.Left;
@@ -2013,123 +1968,132 @@ namespace YoonFactory.Image
                             continue;
                         }
                     }
-                    if (len > maxLen)
+
+                    if (nLength > nMaxLength)
                     {
-                        maxLen = len;
+                        nMaxLength = nLength;
                         nOrder = iObject;
                     }
                 }
+
                 return pListObjectInfo[nOrder];
             }
 
-            //  객체 찾기.
-            public static ObjectList<YoonRect2N> FindObjects(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128, bool bWhite = false)
+            public static ObjectList<YoonRect2N> FindBlobs(YoonImage pSourceImage, YoonRect2N scanArea,
+                byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return FindObjects(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
+                return FindBlobs(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
             }
 
-            public static ObjectList<YoonRect2N> FindObjects(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindBlobs(byte[] pBuffer, int imageWidth, YoonRect2N scanArea,
+                byte nThreshold, bool bWhite)
             {
-                YoonVector2N startPos, resultPos;
-                ObjectList<YoonRect2N> pListResult;
-                int labelNo = 0;
-                int width = scanArea.Width;
-                int height = scanArea.Height;
-                if (threshold < 10) threshold = 10;
-                byte[] pTempBuffer = new byte[width * height];
-                startPos = new YoonVector2N(0, 0);
-                resultPos = new YoonVector2N();
-                pListResult = new ObjectList<YoonRect2N>();
-                //// 임시 Buffer 상에 원본 Buffer 복사.  (일부 복사)
-                for (int j = 0; j < height; j++)
+                int nLabelNo = 0;
+                int nWidth = scanArea.Width;
+                int nHeight = scanArea.Height;
+                if (nThreshold < 10) nThreshold = 10;
+                byte[] pTempBuffer = new byte[nWidth * nHeight];
+                YoonVector2N pStartVector = new YoonVector2N(0, 0);
+                ObjectList<YoonRect2N> pListResult = new ObjectList<YoonRect2N>();
+                // Copy the source buffer into the temporary buffer
+                for (int j = 0; j < nHeight; j++)
                 {
                     int y = scanArea.Top + j;
-                    for (int i = 0; i < width; i++)
+                    for (int i = 0; i < nWidth; i++)
                     {
                         int x = scanArea.Left + i;
-                        pTempBuffer[j * width + i] = pBuffer[y * imageWidth + x];
+                        pTempBuffer[j * nWidth + i] = pBuffer[y * imageWidth + x];
                     }
                 }
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)0);  // white object를 찾기 위함.
-                else pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)255);    // black object를 찾기 위함.
-                ////  Object를 전부 찾을 때까지 과정을 반복한다.
+
+                // Erase the boundary of temporary buffer
+                pTempBuffer = bWhite
+                    ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
+                    : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
+                // Repeat the function until all blob are found
                 while (true)
                 {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, eYoonDir2D.Right, startPos, threshold, isWhite) as YoonVector2N;
-                    //////  object 찾기 결과 끝에 도달한 경우...
-                    if (resultPos.X == -1 && resultPos.Y == -1)
+                    // Get start position
+                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right,
+                        pStartVector, nThreshold, bWhite) as YoonVector2N;
+                    Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
+                    // If the scanner is stop on the boundary
+                    if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
-                    //////  1 Pixel 이상의 Object를 Bind 한다.
-                    YoonObject<YoonRect2N> pObject = ProcessBind(pTempBuffer, width, height, eYoonDir2D.Right, resultPos, threshold, isWhite) as YoonObject<YoonRect2N>;
+                    // Bind the blob
+                    YoonObject<YoonRect2N> pObject =
+                        ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
+                            bWhite) as YoonObject<YoonRect2N>;
+                    Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 || pObject.Object.Bottom == 0)
+                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 ||
+                        pObject.Object.Bottom == 0)
                         break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 || pObject.Object.Bottom == -1)
+                    // Erase the rect when the blob is constructed only one pixel
+                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 ||
+                        pObject.Object.Bottom == -1)
                         continue;
-                    ////// 찾은 영역을 List 상에 저장한다.
+                    // Save the blob in the list
                     if (pListResult.Count < MAX_OBJECT)
                     {
-                        pObject.Label = labelNo++;
+                        pObject.Label = nLabelNo++;
                         pListResult.Add(pObject);
                     }
-                    ////// Start Pos를 Rect 끝으로 재조정한다
-                    startPos = pObject.Object.BottomRight.Clone() as YoonVector2N + new YoonVector2N(1, 1); // Buffer
+
+                    // Control the start vector to the end of these sequence
+                    pStartVector = (YoonVector2N) pObject.Object.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
+
                 return pListResult;
             }
 
-            //  객체 찾기.
-            public static ObjectList<YoonRect2N> FindObjects(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
+            public static ObjectList<YoonRect2N> FindBlobs(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return FindObjects(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold, bWhite);
+                return FindBlobs(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold, bWhite);
             }
 
-            public static ObjectList<YoonRect2N> FindObjects(byte[] pBuffer, int width, int height, byte threshold, bool isWhite)
+            public static ObjectList<YoonRect2N> FindBlobs(byte[] pBuffer, int nWidth, int nHeight, byte nThreshold,
+                bool bWhite)
             {
-                YoonVector2N startPos, resultPos;
                 ObjectList<YoonRect2N> pListResult = new ObjectList<YoonRect2N>();
-                int labelNo = 0;
-                if (threshold < 10) threshold = 10;
-                byte[] pTempBuffer = new byte[width * height];
-                startPos = new YoonVector2N(0, 0);
-                resultPos = new YoonVector2N();
-                //// 임시 Buffer 상에 원본 Buffer 복사.   (전체 복사)
+                int nLabelNo = 0;
+                if (nThreshold < 10) nThreshold = 10;
+                byte[] pTempBuffer = new byte[nWidth * nHeight];
+                YoonVector2N pStartVector = new YoonVector2N(0, 0);
                 pBuffer.CopyTo(pTempBuffer, 0);
-                ////  Temp Buffer의 테두리를 지운다.
-                if (isWhite) pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)0);  // white object를 찾기 위함.
-                else pTempBuffer = Fill.FillBound(pTempBuffer, width, height, (byte)255);    // black object를 찾기 위함.
-                ////  Object를 전부 찾을 때까지 과정을 반복한다.
+                pTempBuffer = bWhite
+                    ? Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 0)
+                    : Fill.FillBound(pTempBuffer, nWidth, nHeight, (byte) 255);
                 while (true)
                 {
-                    //////  Object 시작지점을 가져온다.
-                    resultPos = Scanner.Scan2D(pTempBuffer, width, height, eYoonDir2D.Right, startPos, threshold, isWhite) as YoonVector2N;
-                    //////  object 찾기 결과 끝에 도달한 경우...
-                    if (resultPos.X == -1 && resultPos.Y == -1)
+                    YoonVector2N pResultVector = Scanner.Scan2D(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right,
+                        pStartVector, nThreshold, bWhite) as YoonVector2N;
+                    Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
+                    if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
-                    //////  1 Pixel 이상의 Object를 Bind 하다.
-                    YoonObject<YoonRect2N> pObject = ProcessBind(pTempBuffer, width, height, eYoonDir2D.Right, resultPos, threshold, isWhite) as YoonObject<YoonRect2N>;
-                    //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 || pObject.Object.Bottom == 0)
+                    YoonObject<YoonRect2N> pObject =
+                        ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
+                            bWhite) as YoonObject<YoonRect2N>;
+                    Debug.Assert(pObject != null, nameof(pObject) + " != null");
+                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 ||
+                        pObject.Object.Bottom == 0)
                         break;
-                    ////// 하나의 점으로 구성된 경우 저장할 Rect를 지운다.
-                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 || pObject.Object.Bottom == -1)
+                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 ||
+                        pObject.Object.Bottom == -1)
                         continue;
-                    ////// 찾은 영역을 List 상에 저장한다.
                     if (pListResult.Count < MAX_OBJECT)
                     {
-                        pObject.Label = labelNo++;
+                        pObject.Label = nLabelNo++;
                         pListResult.Add(pObject);
                     }
-                    ////// Start Pos를 Rect 끝으로 재조정한다
-                    startPos = pObject.Object.BottomRight.Clone() as YoonVector2N + new YoonVector2N(1, 1); // Buffer
+
+                    pStartVector = (YoonVector2N) pObject.Object.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
+
                 return pListResult;
             }
 
@@ -2145,22 +2109,22 @@ namespace YoonFactory.Image
                 Finish,
             }
 
-            private static IYoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir, YoonVector2N vecStart, byte nThreshold, bool bWhite)
+            private static IYoonObject ProcessBind(byte[] pBuffer, int nWidth, int nHeight, eYoonDir2D nDir, YoonVector2N pStartVector, byte nThreshold, bool bWhite)
             {
-                int pixelCount = 0;
-                int blankCount = 0;
+                int nPixelCount = 0;
+                int nBlackCount = 0;
                 bool bRun = true;
-                YoonRect2N resultRect = new YoonRect2N(vecStart.X, vecStart.Y, 0, 0);
-                eYoonDir2D dirSearch = nDir;
-                eYoonDir2D dirDefault = nDir;
+                YoonRect2N pResultRect = new YoonRect2N(pStartVector.X, pStartVector.Y, 0, 0);
+                eYoonDir2D nDirSearch = nDir;
+                eYoonDir2D nDirDefault = nDir;
                 eYoonDir2DMode nDirMode = eYoonDir2DMode.Clock4;
                 eYoonDir2DMode nRotateMode = eYoonDir2DMode.AxisX;
-                YoonVector2N vecCurrent = new YoonVector2N(vecStart);
-                eYoonStepBinding jobStep = eYoonStepBinding.Init;
-                eYoonStepBinding jobStepBk = jobStep;
+                YoonVector2N pCurrentVector = new YoonVector2N(pStartVector);
+                eYoonStepBinding nJobStep = eYoonStepBinding.Init;
+                eYoonStepBinding nJobStepBK = nJobStep;
                 while (bRun)
                 {
-                    switch(jobStep)
+                    switch(nJobStep)
                     {
                         case eYoonStepBinding.Init:
                             switch (nDir)
@@ -2168,84 +2132,84 @@ namespace YoonFactory.Image
                                 case eYoonDir2D.Top:
                                     nRotateMode = eYoonDir2DMode.AxisY;
                                     nDirMode = eYoonDir2DMode.Clock4;
-                                    jobStep = eYoonStepBinding.Go;
+                                    nJobStep = eYoonStepBinding.Go;
                                     break;
                                 case eYoonDir2D.Right:
                                     nRotateMode = eYoonDir2DMode.AxisX;
                                     nDirMode = eYoonDir2DMode.Clock4;
-                                    jobStep = eYoonStepBinding.Go;
+                                    nJobStep = eYoonStepBinding.Go;
                                     break;
                                 case eYoonDir2D.Bottom:
                                     nRotateMode = eYoonDir2DMode.AxisY;
                                     nDirMode = eYoonDir2DMode.Clock4;
-                                    jobStep = eYoonStepBinding.Go;
+                                    nJobStep = eYoonStepBinding.Go;
                                     break;
                                 case eYoonDir2D.Left:
                                     nRotateMode = eYoonDir2DMode.AxisX;
                                     nDirMode = eYoonDir2DMode.AntiClock4;
-                                    jobStep = eYoonStepBinding.Go;
+                                    nJobStep = eYoonStepBinding.Go;
                                     break;
                                 default:
-                                    jobStep = eYoonStepBinding.Error;
+                                    nJobStep = eYoonStepBinding.Error;
                                     break;
                             }
                             break;
                         case eYoonStepBinding.Check:
-                            byte value = pBuffer[vecCurrent.Y * nWidth + vecCurrent.X];
+                            byte value = pBuffer[pCurrentVector.Y * nWidth + pCurrentVector.X];
                             if (bWhite && value >= nThreshold)
-                                jobStep = eYoonStepBinding.Stack;
+                                nJobStep = eYoonStepBinding.Stack;
                             else if (!bWhite && value <= nThreshold)
-                                jobStep = eYoonStepBinding.Stack;
+                                nJobStep = eYoonStepBinding.Stack;
                             else
                             {
-                                if (jobStepBk == eYoonStepBinding.Stack)
-                                    jobStep = eYoonStepBinding.Rotate;
-                                else if (jobStepBk == eYoonStepBinding.Ignore)
-                                    jobStep = eYoonStepBinding.Ignore;
+                                if (nJobStepBK == eYoonStepBinding.Stack)
+                                    nJobStep = eYoonStepBinding.Rotate;
+                                else if (nJobStepBK == eYoonStepBinding.Ignore)
+                                    nJobStep = eYoonStepBinding.Ignore;
                                 else
-                                    jobStep = eYoonStepBinding.Error;
+                                    nJobStep = eYoonStepBinding.Error;
                             }
                             break;
                         case eYoonStepBinding.Go:
-                            vecCurrent.Move(dirSearch);
-                            jobStep = eYoonStepBinding.Check;
+                            pCurrentVector.Move(nDirSearch);
+                            nJobStep = eYoonStepBinding.Check;
                             break;
                         case eYoonStepBinding.Ignore:
-                            jobStepBk = jobStep;
-                            if (blankCount++ >= resultRect.Width)
-                                jobStep = eYoonStepBinding.Finish;
+                            nJobStepBK = nJobStep;
+                            if (nBlackCount++ >= pResultRect.Width)
+                                nJobStep = eYoonStepBinding.Finish;
                             else
-                                jobStep = eYoonStepBinding.Go;
+                                nJobStep = eYoonStepBinding.Go;
                             break;
                         case eYoonStepBinding.Stack:
-                            jobStepBk = jobStep;
-                            blankCount = 0;
-                            pixelCount++;
-                            if (vecCurrent.X < resultRect.Left)
-                                resultRect.CenterPos.X = vecCurrent.X + resultRect.Width / 2;
-                            if (vecCurrent.X > resultRect.Right)
-                                resultRect.Width = vecCurrent.X - resultRect.Left;
-                            if (vecCurrent.Y < resultRect.Top)
-                                resultRect.CenterPos.Y = vecCurrent.Y + resultRect.Height / 2;
-                            if (vecCurrent.Y > resultRect.Bottom)
-                                resultRect.Height = vecCurrent.Y - resultRect.Top;
-                            if (vecCurrent.X == vecStart.X && vecCurrent.Y == vecStart.Y)
-                                jobStep = eYoonStepBinding.Finish;
+                            nJobStepBK = nJobStep;
+                            nBlackCount = 0;
+                            nPixelCount++;
+                            if (pCurrentVector.X < pResultRect.Left)
+                                pResultRect.CenterPos.X = pCurrentVector.X + pResultRect.Width / 2;
+                            if (pCurrentVector.X > pResultRect.Right)
+                                pResultRect.Width = pCurrentVector.X - pResultRect.Left;
+                            if (pCurrentVector.Y < pResultRect.Top)
+                                pResultRect.CenterPos.Y = pCurrentVector.Y + pResultRect.Height / 2;
+                            if (pCurrentVector.Y > pResultRect.Bottom)
+                                pResultRect.Height = pCurrentVector.Y - pResultRect.Top;
+                            if (pCurrentVector.X == pStartVector.X && pCurrentVector.Y == pStartVector.Y)
+                                nJobStep = eYoonStepBinding.Finish;
                             else
-                                jobStep = eYoonStepBinding.Go;
+                                nJobStep = eYoonStepBinding.Go;
                             break;
                         case eYoonStepBinding.Rotate:
-                            dirSearch = dirSearch.Go(nDirMode);
-                            if (dirSearch == dirDefault.Go(nRotateMode))
+                            nDirSearch = nDirSearch.Go(nDirMode);
+                            if (nDirSearch == nDirDefault.Go(nRotateMode))
                             {
-                                dirDefault = dirSearch;
-                                jobStep = eYoonStepBinding.Ignore;
+                                nDirDefault = nDirSearch;
+                                nJobStep = eYoonStepBinding.Ignore;
                             }
                             else
-                                jobStep = eYoonStepBinding.Go;
+                                nJobStep = eYoonStepBinding.Go;
                             break;
                         case eYoonStepBinding.Error:
-                            resultRect = new YoonRect2N(-1, -1, 0, 0);
+                            pResultRect = new YoonRect2N(-1, -1, 0, 0);
                             bRun = false;
                             break;
                         case eYoonStepBinding.Finish:
@@ -2254,50 +2218,50 @@ namespace YoonFactory.Image
                     }
                 }
                 YoonImage pResultImage;
-                if (resultRect.CenterPos.X == -1 && resultRect.CenterPos.Y == -1)
+                if (pResultRect.CenterPos.X == -1 && pResultRect.CenterPos.Y == -1)
                     pResultImage = new YoonImage(1, 1, 1);
                 else
                 {
-                    byte[] pBufferCrop = new byte[resultRect.Width * resultRect.Height];
-                    for (int iY = 0; iY < resultRect.Height; iY++)
+                    byte[] pBufferCrop = new byte[pResultRect.Width * pResultRect.Height];
+                    for (int iY = 0; iY < pResultRect.Height; iY++)
                     {
-                        int iYSource = iY + resultRect.Top;
-                        for (int iX = 0; iX < resultRect.Width; iX++)
+                        int iYSource = iY + pResultRect.Top;
+                        for (int iX = 0; iX < pResultRect.Width; iX++)
                         {
-                            int iXSource = iX + resultRect.Left;
-                            pBufferCrop[iY * resultRect.Width + iX] = pBuffer[iYSource * nWidth + iXSource];
+                            int iXSource = iX + pResultRect.Left;
+                            pBufferCrop[iY * pResultRect.Width + iX] = pBuffer[iYSource * nWidth + iXSource];
                         }
                     }
-                    pResultImage = new YoonImage(pBufferCrop, resultRect.Width, resultRect.Height, PixelFormat.Format8bppIndexed);
+                    pResultImage = new YoonImage(pBufferCrop, pResultRect.Width, pResultRect.Height, PixelFormat.Format8bppIndexed);
                 }
-                return new YoonObject<YoonRect2N>(0, resultRect, pResultImage, pixelCount);
+                return new YoonObject<YoonRect2N>(0, pResultRect, pResultImage, nPixelCount);
             }
         }
 
-        // Pixel 이진화
         public static class Binary
         {
-            public static YoonImage Binarize(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold)
+            public static YoonImage Binarize(YoonImage pSourceImage, YoonRect2N pScanArea, byte nThreshold)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold),
+                return new YoonImage(Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, nThreshold),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Binarize(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea, byte threshold)
+            public static byte[] Binarize(byte[] pBuffer, int nBufferWidth, YoonRect2N pScanArea, byte nThreshold)
             {
                 byte[] pResultBuffer = new byte[pBuffer.Length];
-                for (int j = scanArea.Top; j < scanArea.Bottom; j++)
+                for (int j = pScanArea.Top; j < pScanArea.Bottom; j++)
                 {
-                    for (int i = scanArea.Left; i < scanArea.Right; i++)
+                    for (int i = pScanArea.Left; i < pScanArea.Right; i++)
                     {
-                        if (pBuffer[j * bufferWidth + i] < threshold)
-                            pResultBuffer[j * bufferWidth + i] = 0;
+                        if (pBuffer[j * nBufferWidth + i] < nThreshold)
+                            pResultBuffer[j * nBufferWidth + i] = 0;
                         else
-                            pResultBuffer[j * bufferWidth + i] = 255;
+                            pResultBuffer[j * nBufferWidth + i] = 255;
                     }
                 }
+
                 return pResultBuffer;
             }
 
@@ -2305,51 +2269,52 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold),
+                return new YoonImage(
+                    Binarize(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nThreshold),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Binarize(byte[] pBuffer, int bufferWidth, int bufferHeight, byte threshold)
+            public static byte[] Binarize(byte[] pBuffer, int nBufferWidth, int nBufferHeight, byte nThreshold)
             {
-                int sum = 0;
-                int count = 0;
-                byte tempThreshold = threshold;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
-                ////  threshold 값 보정.
-                if (threshold < 1)
+                int nSum = 0;
+                int nCount = 0;
+                byte nTempThreshold = nThreshold;
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
+                // Adjust threshold
+                if (nThreshold < 1)
                 {
-                    for (int j = 0; j < bufferHeight; j++)
+                    for (int j = 0; j < nBufferHeight; j++)
                     {
-                        for (int i = 0; i < bufferWidth; i++)
+                        for (int i = 0; i < nBufferWidth; i++)
                         {
-                            sum += pBuffer[j * bufferWidth + i];
-                            count++;
+                            nSum += pBuffer[j * nBufferWidth + i];
+                            nCount++;
                         }
                     }
-                    if (count < 1)
-                        tempThreshold = 255;
+
+                    if (nCount < 1)
+                        nTempThreshold = 255;
                     else
-                        tempThreshold = (byte)(sum / count + 20);
+                        nTempThreshold = (byte) (nSum / nCount + 20);
                 }
-                ////  이진화.
-                for (int j = 0; j < bufferHeight; j++)
+
+                for (int j = 0; j < nBufferHeight; j++)
                 {
-                    for (int i = 0; i < bufferWidth; i++)
+                    for (int i = 0; i < nBufferWidth; i++)
                     {
-                        if (pBuffer[j * bufferWidth + i] < tempThreshold)
-                            pResultBuffer[j * bufferWidth + i] = 0;
+                        if (pBuffer[j * nBufferWidth + i] < nTempThreshold)
+                            pResultBuffer[j * nBufferWidth + i] = 0;
                         else
-                            pResultBuffer[j * bufferWidth + i] = 255;
+                            pResultBuffer[j * nBufferWidth + i] = 255;
                     }
                 }
+
                 return pResultBuffer;
             }
         }
 
-        // 영상 침식/ 팽창
         public static class Morphology
         {
-            //  침식 연산.
             public static YoonImage Erosion(YoonImage pSourceImage)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
@@ -2366,77 +2331,73 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Erosion(byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static byte[] Erosion(byte[] pBuffer, int nBufferWidth, int nBufferHeight)
             {
-                int i, j, x, y;
-                int posX, posY;
-                int value, minValue;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  침식 연산용 Masking.
-                for (y = 0; y < bufferHeight - 2; y++)
+                // Masking for erosion
+                for (int y = 0; y < nBufferHeight - 2; y++)
                 {
-                    for (x = 0; x < bufferWidth - 2; x++)
+                    for (int x = 0; x < nBufferWidth - 2; x++)
                     {
-                        minValue = 100000;
-                        //////  주변의 아홉개 IYoonVector 中 최소 Gray Level 산출.
-                        for (j = 0; j < 3; j++)
+                        int nPosX, nPosY;
+                        byte nMinValue = 255;
+                        // Find the minimum gray level of peripheral points
+                        for (int j = 0; j < 3; j++)
                         {
-                            for (i = 0; i < 3; i++)
+                            for (int i = 0; i < 3; i++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                value = pBuffer[posY * bufferWidth + posX];
-                                if (value < minValue)
-                                    minValue = value;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                byte nValue = pBuffer[nPosY * nBufferWidth + nPosX];
+                                if (nValue < nMinValue)
+                                    nMinValue = nValue;
                             }
                         }
-                        //////  다음 IYoonVector에 해당 Gray Level 대입.
-                        posX = x + 1;
-                        posY = y + 1;
-                        pResultBuffer[posY * bufferWidth + posX] = (byte)minValue;
+
+                        nPosX = x + 1;
+                        nPosY = y + 1;
+                        pResultBuffer[nPosY * nBufferWidth + nPosX] = nMinValue;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            public static byte[] Erosion(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            public static byte[] Erosion(byte[] pBuffer, int nBufferWidth, YoonRect2N scanArea)
             {
-                int i, j, x, y;
-                int posX, posY;
-                int value, minValue;
-                int scanWidth = scanArea.Width;
-                int scanHeight = scanArea.Height;
+                int nScanWidth = scanArea.Width;
+                int nScanHeight = scanArea.Height;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
-                for (j = 0; j < scanHeight; j++)
-                    for (i = 0; i < scanWidth; i++)
-                        pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + scanArea.Left + i];
-                ////  침식 연산용 Masking.
-                for (y = 0; y < scanHeight - 2; y++)
+                byte[] pTempBuffer = new byte[nScanWidth * nScanHeight];
+                for (int j = 0; j < nScanHeight; j++)
+                for (int i = 0; i < nScanWidth; i++)
+                    pTempBuffer[j * nScanWidth + i] = pBuffer[(scanArea.Top + j) * nBufferWidth + scanArea.Left + i];
+                for (int y = 0; y < nScanHeight - 2; y++)
                 {
-                    for (x = 0; x < scanWidth - 2; x++)
+                    for (int x = 0; x < nScanWidth - 2; x++)
                     {
-                        minValue = 100000;
-                        //////  주변의 아홉개 IYoonVector 中 최소 Gray Level 산출.
-                        for (j = 0; j < 3; j++)
+                        int nPosX, nPosY;
+                        byte nMinValue = 255;
+                        for (int j = 0; j < 3; j++)
                         {
-                            for (i = 0; i < 3; i++)
+                            for (int i = 0; i < 3; i++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                value = pTempBuffer[posY * bufferWidth + posX];
-                                if (value < minValue)
-                                    minValue = value;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                byte nValue = pTempBuffer[nPosY * nBufferWidth + nPosX];
+                                if (nValue < nMinValue)
+                                    nMinValue = nValue;
                             }
                         }
-                        //////  다음 IYoonVector에 해당 Gray Level 대입.
-                        posX = scanArea.Left + x + 1;
-                        posY = scanArea.Top + y + 1;
-                        pResultBuffer[posY * bufferWidth + posX] = (byte)minValue;
+
+                        nPosX = scanArea.Left + x + 1;
+                        nPosY = scanArea.Top + y + 1;
+                        pResultBuffer[nPosY * nBufferWidth + nPosX] = nMinValue;
                     }
                 }
+
                 return pResultBuffer;
             }
 
@@ -2444,7 +2405,8 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(ErosionAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
+                return new YoonImage(
+                    ErosionAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
@@ -2452,7 +2414,8 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(ErosionAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nMophSize),
+                return new YoonImage(
+                    ErosionAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nMophSize),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
@@ -2464,131 +2427,123 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int nBufferWidth, int nBufferHeight)
             {
-                int i, j, x, y;
-                int posX, posY;
-                int sum;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
-                byte[,] mask = new byte[3, 3] { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } };
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
+                byte[,] pMask = new byte[3, 3] {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}};
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                for (y = 0; y < bufferHeight - 2; y++)
+                for (int y = 0; y < nBufferHeight - 2; y++)
                 {
-                    for (x = 0; x < bufferWidth - 2; x++)
+                    for (int x = 0; x < nBufferWidth - 2; x++)
                     {
-                        sum = 0;
-                        //////  주변이 모두 흰색일 경우에만 흰색(255)으로 표시할 수 있음.
-                        for (i = 0; i < 3; i++)
+                        int nPosX, nPosY;
+                        int nSum = 0;
+                        // Fill the white when whole peripheral pixels is white
+                        for (int i = 0; i < 3; i++)
                         {
-                            for (j = 0; j < 3; j++)
+                            for (int j = 0; j < 3; j++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                if (pBuffer[posY * bufferWidth + posX] == mask[i, j])
-                                    sum++;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pBuffer[nPosY * nBufferWidth + nPosX] == pMask[i, j])
+                                    nSum++;
                             }
                         }
-                        //////  다음 IYoonVector에 침식 Gray Level 결과 대입.
-                        posX = x + 1;
-                        posY = y + 1;
-                        if (sum == 9)
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+
+                        nPosX = x + 1;
+                        nPosY = y + 1;
+                        if (nSum == 9)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  size 조정 가능한 침식 연산.
-            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight, int size)
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int nBufferWidth, int nBufferHeight, int size)
             {
-                bool isBlack;
-                int i, j, x, y;
-                int posX, posY;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                //// 침식 연산 Masking 작업.
-                for (y = 0; y < bufferHeight - size; y++)
+                for (int y = 0; y < nBufferHeight - size; y++)
                 {
-                    for (x = 0; x < bufferWidth - size; x++)
+                    for (int x = 0; x < nBufferWidth - size; x++)
                     {
-                        isBlack = false;
-                        //////  가상 Masking과 비교.
-                        for (i = 0; i < size; i++)
+                        int nPosX, nPosY;
+                        bool bBlack = false;
+                        // Compare with virtual mask
+                        for (int i = 0; i < size; i++)
                         {
-                            for (j = 0; j < size; j++)
+                            for (int j = 0; j < size; j++)
                             {
-                                //////  주변의 Pixel들中 하나라도 검은색이면 검은색(0)임.
-                                posX = x + i;
-                                posY = y + j;
-                                if (pBuffer[(y + j) * bufferWidth + (x + i)] == 0)
+                                // Check the peripheral pixels
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pBuffer[(y + j) * nBufferWidth + (x + i)] == 0)
                                 {
-                                    isBlack = true;
+                                    bBlack = true;
                                     break;
                                 }
                             }
                         }
-                        //////  다음 IYoonVector에 침식 판단 결과 대입.
-                        posX = x + size / 2;
-                        posY = y + size / 2;
-                        if (isBlack)
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+
+                        nPosX = x + size / 2;
+                        nPosY = y + size / 2;
+                        if (bBlack)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            public static byte[] ErosionAsBinary(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            public static byte[] ErosionAsBinary(byte[] pBuffer, int nBufferWidth, YoonRect2N pScanArea)
             {
-                int x, y, i, j;
-                int posX, posY;
-                int sum;
-                int scanWidth = scanArea.Width;
-                int scanHeight = scanArea.Height;
+                int nScanWidth = pScanArea.Width;
+                int nScanHeight = pScanArea.Height;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
-                byte[,] mask = new byte[3, 3] { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } };
-                for (j = 0; j < scanHeight; j++)
-                    for (i = 0; i < scanWidth; i++)
-                        pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + scanArea.Left + i];
-                ////  침식 연산 Masking 작업.
-                for (y = 0; y < scanHeight - 2; y++)
+                byte[] pTempBuffer = new byte[nScanWidth * nScanHeight];
+                byte[,] pMask = new byte[3, 3] {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}};
+                for (int j = 0; j < nScanHeight; j++)
+                for (int i = 0; i < nScanWidth; i++)
+                    pTempBuffer[j * nScanWidth + i] = pBuffer[(pScanArea.Top + j) * nBufferWidth + pScanArea.Left + i];
+                for (int y = 0; y < nScanHeight - 2; y++)
                 {
-                    for (x = 0; x < scanWidth - 2; x++)
+                    for (int x = 0; x < nScanWidth - 2; x++)
                     {
-                        sum = 0;
-                        //////  주변이 모두 흰색일 경우에만 흰색(255)으로 표시할 수 있음.
-                        for (i = 0; i < 3; i++)
+                        int nSum = 0;
+                        int nPosX, nPosY;
+                        for (int i = 0; i < 3; i++)
                         {
-                            for (j = 0; j < 3; j++)
+                            for (int j = 0; j < 3; j++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                if (pTempBuffer[posY * scanWidth + posX] == mask[i, j])
-                                    sum++;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pTempBuffer[nPosY * nScanWidth + nPosX] == pMask[i, j])
+                                    nSum++;
                             }
                         }
-                        //////  다음 IYoonVector에 침식 Gray Level 결과 대입.
-                        posX = scanArea.Left + x + 1;
-                        posY = scanArea.Top + y + 1;
-                        if (sum == 9)
+
+                        nPosX = pScanArea.Left + x + 1;
+                        nPosY = pScanArea.Top + y + 1;
+                        if (nSum == 9)
                         {
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         }
                         else
                         {
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                         }
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  팽장 연산.
             public static YoonImage Dilation(YoonImage pSourceImage)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
@@ -2597,85 +2552,81 @@ namespace YoonFactory.Image
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static YoonImage Dilation(YoonImage pSourceImage, YoonRect2N scanArea)
+            public static YoonImage Dilation(YoonImage pSourceImage, YoonRect2N pScanArea)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(Dilation(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea),
+                return new YoonImage(Dilation(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] Dilation(byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static byte[] Dilation(byte[] pBuffer, int nBufferWidth, int nBufferHeight)
             {
-                int i, j, x, y;
-                int posX, posY;
-                int value, maxValue;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  팽창 연산 Masking 작업.
-                for (y = 0; y < bufferHeight - 2; y++)
+                // Masking for dilation
+                for (int y = 0; y < nBufferHeight - 2; y++)
                 {
-                    for (x = 0; x < bufferWidth - 2; x++)
+                    for (int x = 0; x < nBufferWidth - 2; x++)
                     {
-                        maxValue = 0;
-                        //////  주변의 아홉개 IYoonVector 中 최대 Gray Level 산출.
-                        for (j = 0; j < 3; j++)
+                        int nPosX, nPosY;
+                        int nMaxValue = 0;
+                        // Find the max gray level within peripheral points
+                        for (int j = 0; j < 3; j++)
                         {
-                            for (i = 0; i < 3; i++)
+                            for (int i = 0; i < 3; i++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                value = pBuffer[posY * bufferWidth + posX];
-                                if (value > maxValue)
-                                    maxValue = value;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                int nValue = pBuffer[nPosY * nBufferWidth + nPosX];
+                                if (nValue > nMaxValue)
+                                    nMaxValue = nValue;
                             }
                         }
-                        //////  다음 IYoonVector에 해당 Gray Level 대입.
-                        posX = x + 1;
-                        posY = y + 1;
-                        pBuffer[posY * bufferWidth + posX] = (byte)maxValue;
+
+                        nPosX = x + 1;
+                        nPosY = y + 1;
+                        pBuffer[nPosY * nBufferWidth + nPosX] = (byte) nMaxValue;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            public static byte[] Dilation(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            public static byte[] Dilation(byte[] pBuffer, int nBufferWidth, YoonRect2N pScanArea)
             {
-                int i, j, x, y;
-                int posX, posY;
-                int value, maxValue;
-                int scanWidth = scanArea.Width;
-                int scanHeight = scanArea.Height;
+                int nScanWidth = pScanArea.Width;
+                int nScanHeight = pScanArea.Height;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                byte[] pTempBuffer = new byte[scanWidth * scanHeight];
-                for (j = 0; j < scanHeight; j++)
-                    for (i = 0; i < scanWidth; i++)
-                        pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + scanArea.Left + i];
-                ////  침식 연산용 Masking
-                for (y = 0; y < scanHeight - 2; y++)
+                byte[] pTempBuffer = new byte[nScanWidth * nScanHeight];
+                for (int j = 0; j < nScanHeight; j++)
+                for (int i = 0; i < nScanWidth; i++)
+                    pTempBuffer[j * nScanWidth + i] = pBuffer[(pScanArea.Top + j) * nBufferWidth + pScanArea.Left + i];
+                for (int y = 0; y < nScanHeight - 2; y++)
                 {
-                    for (x = 0; x < scanWidth - 2; x++)
+                    for (int x = 0; x < nScanWidth - 2; x++)
                     {
-                        maxValue = 0;
-                        //////  주변의 아홉개 IYoonVector 中 최대 Gray Level 산출.
-                        for (j = 0; j < 3; j++)
+                        int nPosX, nPosY;
+                        int nMaxValue = 0;
+                        for (int j = 0; j < 3; j++)
                         {
-                            for (i = 0; i < 3; i++)
+                            for (int i = 0; i < 3; i++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                value = pBuffer[posY * bufferWidth + posX];
-                                if (value > maxValue)
-                                    maxValue = value;
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                int nValue = pBuffer[nPosY * nBufferWidth + nPosX];
+                                if (nValue > nMaxValue)
+                                    nMaxValue = nValue;
                             }
                         }
-                        //////  다음 IYoonVector에 해당 Gray Level 대입.
-                        posX = scanArea.Left + x + 1;
-                        posY = scanArea.Top + y + 1;
-                        pBuffer[posY * bufferWidth + posX] = (byte)maxValue;
+
+                        nPosX = pScanArea.Left + x + 1;
+                        nPosY = pScanArea.Top + y + 1;
+                        pBuffer[nPosY * nBufferWidth + nPosX] = (byte) nMaxValue;
                     }
                 }
+
                 return pResultBuffer;
             }
 
@@ -2683,414 +2634,418 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
+                return new YoonImage(
+                    DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static YoonImage DilationAsBinary(YoonImage pSourceImage, int nMophSize)
+            public static YoonImage DilationAsBinary(YoonImage pSourceImage, int nFilterSize)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nMophSize),
+                return new YoonImage(
+                    DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        nFilterSize),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static YoonImage DilationAsBinary(YoonImage pSourceImage, YoonRect2N scanArea)
+            public static YoonImage DilationAsBinary(YoonImage pSourceImage, YoonRect2N pScanArea)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea),
+                return new YoonImage(DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static YoonImage DilationAsBinary(YoonImage pSourceImage, YoonRect2N scanArea, int nMophSize)
+            public static YoonImage DilationAsBinary(YoonImage pSourceImage, YoonRect2N pScanArea, int nFilterSize)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
-                return new YoonImage(DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, scanArea, nMophSize),
+                return new YoonImage(
+                    DilationAsBinary(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, pScanArea,
+                        nFilterSize),
                     pSourceImage.Width, pSourceImage.Height, PixelFormat.Format8bppIndexed);
             }
 
-            public static byte[] DilationAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight)
+            public static byte[] DilationAsBinary(byte[] pBuffer, int nBufferWidth, int nBufferHeight)
             {
-                int i, j, x, y;
-                int posX, posY;
-                bool isWhite;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                for (y = 0; y < bufferHeight - 2; y++)
+                for (int y = 0; y < nBufferHeight - 2; y++)
                 {
-                    for (x = 0; x < bufferWidth - 2; x++)
+                    for (int x = 0; x < nBufferWidth - 2; x++)
                     {
-                        isWhite = false;
-                        for (i = 0; i < 3; i++)
+                        int nPosX, nPosY;
+                        bool bWhite = false;
+                        for (int i = 0; i < 3; i++)
                         {
-                            for (j = 0; j < 3; j++)
+                            for (int j = 0; j < 3; j++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                if (pBuffer[posY * bufferWidth + posX] > 0)
-                                {
-                                    isWhite = true;
-                                    break;
-                                }
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pBuffer[nPosY * nBufferWidth + nPosX] <= 0) continue;
+                                bWhite = true;
+                                break;
                             }
-                            if (isWhite) break;
+
+                            if (bWhite) break;
                         }
-                        posX = x + 1;
-                        posY = y + 1;
-                        if (isWhite)
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+
+                        nPosX = x + 1;
+                        nPosY = y + 1;
+                        if (bWhite)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            public static byte[] DilationAsBinary(byte[] pBuffer, int bufferWidth, YoonRect2N scanArea)
+            public static byte[] DilationAsBinary(byte[] pBuffer, int nBufferWidth, YoonRect2N pScanArea)
             {
-                int i, j, x, y;
-                int posX, posY;
-                bool isWhite;
-                int scanWidth = scanArea.Width;
-                int scanHeight = scanArea.Height;
+                int scanWidth = pScanArea.Width;
+                int scanHeight = pScanArea.Height;
                 byte[] pResultBuffer = new byte[pBuffer.Length];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
                 byte[] pTempBuffer = new byte[scanWidth * scanHeight];
-                for (j = 0; j < scanHeight; j++)
-                    for (i = 0; i < scanWidth; i++)
-                        pTempBuffer[j * scanWidth + i] = pBuffer[(scanArea.Top + j) * bufferWidth + (scanArea.Left + i)];
-                ////  팽창 연산 Masking 작업.
-                for (y = 0; y < scanHeight - 2; y++)
+                for (int j = 0; j < scanHeight; j++)
+                for (int i = 0; i < scanWidth; i++)
+                    pTempBuffer[j * scanWidth + i] = pBuffer[(pScanArea.Top + j) * nBufferWidth + (pScanArea.Left + i)];
+                for (int y = 0; y < scanHeight - 2; y++)
                 {
-                    for (x = 0; x < scanWidth - 2; x++)
+                    for (int x = 0; x < scanWidth - 2; x++)
                     {
-                        isWhite = false;
-                        for (i = 0; i < 3; i++)
+                        int nPosX, nPosY;
+                        bool bWhite = false;
+                        for (int i = 0; i < 3; i++)
                         {
-                            for (j = 0; j < 3; j++)
+                            for (int j = 0; j < 3; j++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                if (pTempBuffer[posY * scanWidth + posX] > 0)
-                                {
-                                    isWhite = true;
-                                    break;
-                                }
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pTempBuffer[nPosY * scanWidth + nPosX] <= 0) continue;
+                                bWhite = true;
+                                break;
                             }
-                            if (isWhite) break;
+
+                            if (bWhite) break;
                         }
-                        posX = scanArea.Left + (x + 1);
-                        posY = scanArea.Top + (y + 1);
-                        if (isWhite)
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+
+                        nPosX = pScanArea.Left + (x + 1);
+                        nPosY = pScanArea.Top + (y + 1);
+                        if (bWhite)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  size 조정 가능한 팽창 연산.
-            public static byte[] DilationAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight, int size)
+            public static byte[] DilationAsBinary(byte[] pBuffer, int nBufferWidth, int nBufferHeight, int size)
             {
-                int i, j, x, y;
-                int posX, posY;
-                bool isWhite;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 Array.Copy(pBuffer, pResultBuffer, pBuffer.Length);
-                ////  Buffer 영역 팽창 연산 Masking 작업.
-                for (y = 0; y < bufferHeight - size; y++)
+                for (int y = 0; y < nBufferHeight - size; y++)
                 {
-                    for (x = 0; x < bufferWidth - size; x++)
+                    for (int x = 0; x < nBufferWidth - size; x++)
                     {
-                        isWhite = false;
-                        for (i = 0; i < size; i++)
+                        int nPosX, nPosY;
+                        bool bWhite = false;
+                        for (int i = 0; i < size; i++)
                         {
-                            for (j = 0; j < size; j++)
+                            for (int j = 0; j < size; j++)
                             {
-                                posX = x + i;
-                                posY = y + j;
-                                if (pResultBuffer[posY * bufferWidth + posX] > 0)
+                                nPosX = x + i;
+                                nPosY = y + j;
+                                if (pResultBuffer[nPosY * nBufferWidth + nPosX] > 0)
                                 {
-                                    isWhite = true;
+                                    bWhite = true;
                                     break;
                                 }
                             }
-                            if (isWhite) break;
+
+                            if (bWhite) break;
                         }
-                        posX = x + size / 2;
-                        posY = y + size / 2;
-                        if (isWhite)
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+
+                        nPosX = x + size / 2;
+                        nPosY = y + size / 2;
+                        if (bWhite)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                     }
                 }
+
                 return pResultBuffer;
             }
 
-            //  Filter 테두리 형태로 팽창 검사.
-            public static byte[] DilationAsBinary(byte[] pBuffer, int bufferWidth, int bufferHeight, YoonRect2N scanArea, int size)
+            public static byte[] DilationAsBinary(byte[] pBuffer, int nBufferWidth, int nBufferHeight,
+                YoonRect2N pScanArea, int nSize)
             {
-                int i, j, i1, j1, i2, j2;
-                int x, y;
-                int posX, posY;
-                bool isWhite;
-                byte[] pResultBuffer = new byte[bufferWidth * bufferHeight];
+                byte[] pResultBuffer = new byte[nBufferWidth * nBufferHeight];
                 pBuffer.CopyTo(pResultBuffer, 0);
                 ////  테두리 부분(0, size-1)만 따로 검사.
-                for (y = scanArea.Top; y < scanArea.Bottom - size; y++)
+                for (int y = pScanArea.Top; y < pScanArea.Bottom - nSize; y++)
                 {
-                    for (x = scanArea.Left; x < scanArea.Right - size; x++)
+                    for (int x = pScanArea.Left; x < pScanArea.Right - nSize; x++)
                     {
-                        isWhite = false;
-                        j1 = 0;
-                        j2 = size - 1;
-                        for (i = 0; i < size; i++)
+                        bool bWhite = false;
+                        int j1 = 0;
+                        int j2 = nSize - 1;
+                        for (int i = 0; i < nSize; i++)
                         {
-                            if (pBuffer[(y + j1) * bufferWidth + (x + i)] > 0 || pBuffer[(y + j2) * bufferWidth + (x + i)] > 0)
+                            if (pBuffer[(y + j1) * nBufferWidth + (x + i)] > 0 ||
+                                pBuffer[(y + j2) * nBufferWidth + (x + i)] > 0)
                             {
-                                isWhite = true;
+                                bWhite = true;
                                 break;
                             }
                         }
-                        i1 = 0;
-                        i2 = size - 1;
-                        for (j = 0; j < size; j++)
+
+                        int i1 = 0;
+                        int i2 = nSize - 1;
+                        for (int j = 0; j < nSize; j++)
                         {
-                            if (isWhite) break;
-                            if (pBuffer[(y + j) * bufferWidth + (x + i1)] > 0 || pBuffer[(y + j) * bufferWidth + (x + i2)] > 0)
+                            if (bWhite) break;
+                            if (pBuffer[(y + j) * nBufferWidth + (x + i1)] > 0 ||
+                                pBuffer[(y + j) * nBufferWidth + (x + i2)] > 0)
                             {
-                                isWhite = true;
+                                bWhite = true;
                                 break;
                             }
                         }
-                        posX = x + size / 2;
-                        posY = y + size / 2;
-                        if (isWhite)
-                            pResultBuffer[posY * bufferWidth + posX] = 255;
+
+                        int nPosX = x + nSize / 2;
+                        int nPosY = y + nSize / 2;
+                        if (bWhite)
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 255;
                         else
-                            pResultBuffer[posY * bufferWidth + posX] = 0;
+                            pResultBuffer[nPosY * nBufferWidth + nPosX] = 0;
                     }
                 }
+
                 return pResultBuffer;
             }
         }
 
-        // 검사 객체 정렬
         public static class Sort
         {
-            //  일반 Rect 인자들을 정렬(Sorting).
             public static void SortRects(ref List<YoonRect2N> pList, eYoonDir2D direction)
             {
-                int minCount, diffValue, height, count;
                 YoonRect2N pRectMin, pRectCurr, pRectTemp;
-                count = pList.Count;
-                minCount = 0;
-                diffValue = 0;
-                height = 0;
-                for (int i = 0; i < count - 1; i++)
+                int nCount = pList.Count;
+                for (int i = 0; i < nCount - 1; i++)
                 {
-                    minCount = i;
-                    for (int j = i + 1; j < count; j++)
+                    int nMinCount = i;
+                    for (int j = i + 1; j < nCount; j++)
                     {
-                        pRectMin = pList[minCount];
+                        pRectMin = pList[nMinCount];
                         pRectCurr = pList[j];
+                        int nDiff = 0;
+                        int nHeight = 0;
+                        // Height difference takes precedence then the width difference
                         switch (direction)
                         {
                             case eYoonDir2D.TopLeft:
-                                diffValue = (int)Math.Abs((float)pRectMin.Top - (float)pRectCurr.Top);
-                                height = pRectMin.Bottom - pRectMin.Top;
-                                //////  높이차가 있는 경우 Top 우선, 없는 경우 왼쪽 우선.
-                                if (diffValue <= height / 2)
+                                nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                                nHeight = pRectMin.Bottom - pRectMin.Top;
+                                if (nDiff <= nHeight / 2)
                                 {
                                     if (pRectCurr.Left < pRectMin.Left)
-                                        minCount = j;
+                                        nMinCount = j;
                                 }
                                 else
                                 {
                                     if (pRectCurr.Top < pRectMin.Top)
-                                        minCount = j;
+                                        nMinCount = j;
                                 }
+
                                 break;
                             case eYoonDir2D.TopRight:
-                                diffValue = (int)Math.Abs((float)pRectMin.Top - (float)pRectCurr.Top);
-                                height = pRectMin.Bottom - pRectMin.Top;
-                                //////  높이차가 있는 경우 Top 우선, 없는 경우 오른쪽 우선.
-                                if (diffValue <= height / 2)
+                                nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                                nHeight = pRectMin.Bottom - pRectMin.Top;
+                                if (nDiff <= nHeight / 2)
                                 {
                                     if (pRectCurr.Right > pRectMin.Right)
-                                        minCount = j;
+                                        nMinCount = j;
                                 }
                                 else
                                 {
                                     if (pRectCurr.Top < pRectMin.Top)
-                                        minCount = j;
+                                        nMinCount = j;
                                 }
+
                                 break;
                             case eYoonDir2D.Left:
                                 if (pRectCurr.Left < pRectMin.Left)
-                                    minCount = j;
+                                    nMinCount = j;
                                 break;
                             case eYoonDir2D.Right:
                                 if (pRectCurr.Right > pRectMin.Right)
-                                    minCount = j;
+                                    nMinCount = j;
                                 break;
-                            default:  // 좌상측 정렬과 같음.
-                                diffValue = (int)Math.Abs((float)pRectMin.Top - (float)pRectCurr.Top);
-                                height = pRectMin.Bottom - pRectMin.Top;
-                                //////  높이차가 있는 경우 Top 우선, 없는 경우 왼쪽 우선.
-                                if (diffValue <= height / 2)
+                            default: // Top-Left default
+                                nDiff = Math.Abs(pRectMin.Top - pRectCurr.Top);
+                                nHeight = pRectMin.Bottom - pRectMin.Top;
+                                if (nDiff <= nHeight / 2)
                                     continue;
                                 if (pRectCurr.Left < pRectMin.Left)
-                                    minCount = j;
+                                    nMinCount = j;
                                 break;
                         }
                     }
-                    pRectMin = pList[minCount] as YoonRect2N;
-                    pRectCurr = pList[i] as YoonRect2N;
-                    ////  (순서상 맨 앞이었던)현재 Rect를 백업(tempRect)하고 최소값의 Rect를 삽입한다.
-                    ////  최소값의 Rect가 있었던 주소(*)에 현재 Rect를 삽입한다.
-                    pRectTemp = new YoonRect2N(pRectCurr.CenterPos.X, pRectCurr.CenterPos.Y, pRectCurr.Width, pRectCurr.Height);
-                    pList[i] = new YoonRect2N(pRectMin.CenterPos.X, pRectMin.CenterPos.Y, pRectMin.Width, pRectMin.Height);
-                    pList[minCount] = pRectTemp;
+
+                    pRectMin = pList[nMinCount];
+                    pRectCurr = pList[i];
+                    // Back up the current rectangle and insert the minimum rectangle
+                    pRectTemp = new YoonRect2N(pRectCurr.CenterPos.X, pRectCurr.CenterPos.Y, pRectCurr.Width,
+                        pRectCurr.Height);
+                    pList[i] = new YoonRect2N(pRectMin.CenterPos.X, pRectMin.CenterPos.Y, pRectMin.Width,
+                        pRectMin.Height);
+                    pList[nMinCount] = pRectTemp;
                 }
             }
 
-            //  사각형(또는 영역)들을 정렬시키는 함수.
             public static void CombineRects(ref List<YoonRect2N> pList)
             {
-                int i, j;
-                bool isCombine;
-                int totalCount;
-                YoonRect2N pRect1, pRect2;
-                List<YoonRect2N> pListTemp;
-                YoonRect2N combineRect;
-                isCombine = false;
-                pRect1 = new YoonRect2N();
-                pListTemp = new List<YoonRect2N>();
-                totalCount = pList.Count;
-                if (totalCount <= 1) return;
-                ////  원본(rect1)을 복사(rect2)해서 List에 넣은 後 삭제한다.
+                bool bCombine = false;
+                YoonRect2N pRect1 = new YoonRect2N();
+                List<YoonRect2N> pListTemp = new List<YoonRect2N>();
+                int nTotalCount = pList.Count;
+                if (nTotalCount <= 1) return;
+                // Copy the original list, then clear that
                 pListTemp = pList.GetRange(0, pList.Count);
                 pList.Clear();
-                ////  모든 사각형들을 전수 조사해가며 서로 겹치는 사각형이 있는지 찾는다.
-                for (i = 0; i < totalCount; i++)
+                // Find all of squares to overlap
+                for (int i = 0; i < nTotalCount; i++)
                 {
                     pRect1 = pListTemp[i];
-                    combineRect = new YoonRect2N(0, 0, 0, 0);
+                    YoonRect2N pCombineRect = new YoonRect2N(0, 0, 0, 0);
                     if (pRect1.Width == 0)
                         continue;
-                    isCombine = false;
-                    for (j = 0; j < totalCount; j++)
+                    bCombine = false;
+                    for (int j = 0; j < nTotalCount; j++)
                     {
                         if (i == j) continue;
-                        pRect2 = pListTemp[j] as YoonRect2N;
+                        YoonRect2N pRect2 = pListTemp[j] as YoonRect2N;
                         if (pRect2.Width == 0)
                             continue;
-                        //////  Rect1와 Rect2가 겹치거나 속해지는 경우...
+                        // Overlap two rectangles
                         if ((pRect1.Left > pRect2.Left) && (pRect1.Left < pRect2.Right))
                         {
                             if ((pRect1.Top >= pRect2.Top) && (pRect1.Top <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Bottom >= pRect2.Top) && (pRect1.Bottom <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Top <= pRect2.Top) && (pRect1.Bottom >= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                         }
+
                         if (pRect1.Right > pRect2.Left && pRect1.Right < pRect2.Right)
                         {
                             if ((pRect1.Top >= pRect2.Top) && (pRect1.Top <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Bottom >= pRect2.Top) && (pRect1.Bottom <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Top <= pRect2.Top) && (pRect1.Bottom >= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                         }
+
                         if ((pRect1.Left <= pRect2.Left) && (pRect1.Right >= pRect2.Right))
                         {
                             if ((pRect1.Top >= pRect2.Top) && (pRect1.Top <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Bottom >= pRect2.Top) && (pRect1.Bottom <= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                             if ((pRect1.Top <= pRect2.Top) && (pRect1.Bottom >= pRect2.Bottom))
-                                isCombine = true;
+                                bCombine = true;
                         }
-                        //////  Rect들이 겹쳐지는 경우, 결합 Rect는 둘을 모두 포함한다.
-                        if (isCombine)
+
+                        if (bCombine)
                         {
-                            combineRect.CenterPos.X = (pRect1.Left < pRect2.Left) ? pRect1.CenterPos.X : pRect2.CenterPos.X;
-                            combineRect.Width = (pRect1.Right > pRect2.Right) ? pRect1.Right - combineRect.Left : pRect2.Right - combineRect.Left;
-                            combineRect.CenterPos.Y = (pRect1.Top < pRect2.Top) ? pRect1.CenterPos.Y : pRect2.CenterPos.Y;
-                            combineRect.Height = (pRect1.Bottom > pRect2.Bottom) ? pRect1.Bottom - combineRect.Top : pRect2.Bottom - combineRect.Top;
+                            pCombineRect.CenterPos.X =
+                                (pRect1.Left < pRect2.Left) ? pRect1.CenterPos.X : pRect2.CenterPos.X;
+                            pCombineRect.Width = (pRect1.Right > pRect2.Right)
+                                ? pRect1.Right - pCombineRect.Left
+                                : pRect2.Right - pCombineRect.Left;
+                            pCombineRect.CenterPos.Y =
+                                (pRect1.Top < pRect2.Top) ? pRect1.CenterPos.Y : pRect2.CenterPos.Y;
+                            pCombineRect.Height = (pRect1.Bottom > pRect2.Bottom)
+                                ? pRect1.Bottom - pCombineRect.Top
+                                : pRect2.Bottom - pCombineRect.Top;
                             pListTemp[i] = new YoonRect2N(0, 0, 0, 0);
-                            pListTemp[j] = combineRect;
+                            pListTemp[j] = pCombineRect;
                             break;
                         }
                     }
                 }
-                ////  정렬된 사각형들 中 유효한 사각형들만 재정렬시킨다.
-                for (i = 0; i < totalCount; i++)
+
+                // Sort only valid squares
+                for (int i = 0; i < nTotalCount; i++)
                 {
                     pRect1 = pListTemp[i];
                     if (pRect1.Right != 0)
                     {
-                        pRect2 = new YoonRect2N(pRect1.CenterPos.X, pRect1.CenterPos.Y, pRect1.Width, pRect1.Height);
+                        YoonRect2N pRect2 = new YoonRect2N(pRect1.CenterPos.X, pRect1.CenterPos.Y, pRect1.Width,
+                            pRect1.Height);
                         pList.Add(pRect2);
                     }
                 }
+
                 pListTemp.Clear();
             }
 
-            //  정수 정렬.
             public static void SortIntegers(ref List<int> pList, eYoonDir2DMode direction)
             {
-                int minCount, maxCount;
-                int pMinValue, pMaxValue, pCurrValue, tempValue;
-                int count;
-                count = pList.Count;
-                minCount = 0;
-                maxCount = 0;
-                ////  오름차순(작은수.큰수) 時  정렬
+                int nCount = pList.Count;
+                int nMinCount = 0;
+                int nMaxCount = 0;
+                // Sort ascending
                 if (direction == eYoonDir2DMode.Increase)
                 {
-                    for (int i = 0; i < count - 1; i++)
+                    for (int i = 0; i < nCount - 1; i++)
                     {
-                        minCount = i;
-                        for (int j = i + 1; j < count; j++)
+                        int nMinValue, nCurrValue, nTempValue;
+                        nMinCount = i;
+                        for (int j = i + 1; j < nCount; j++)
                         {
-                            pMinValue = (int)pList[minCount];
-                            pCurrValue = (int)pList[j];
-                            if (pCurrValue < pMinValue)
-                                minCount = j;
+                            nMinValue = pList[nMinCount];
+                            nCurrValue = pList[j];
+                            if (nCurrValue < nMinValue)
+                                nMinCount = j;
                         }
-                        pMinValue = (int)pList[minCount];
-                        pCurrValue = (int)pList[i];
-                        tempValue = pCurrValue;
-                        pList[i] = pMinValue;
-                        pList[minCount] = tempValue;
+
+                        nMinValue = pList[nMinCount];
+                        nCurrValue = pList[i];
+                        nTempValue = nCurrValue;
+                        pList[i] = nMinValue;
+                        pList[nMinCount] = nTempValue;
                     }
                 }
-                ////  내림차순(큰수.작은수) 時 정렬
+                // Sort descending
                 else if (direction == eYoonDir2DMode.Decrease)
                 {
-                    for (int i = 0; i < count - 1; i++)
+                    for (int i = 0; i < nCount - 1; i++)
                     {
-                        maxCount = i;
-                        for (int j = i + 1; j < count; j++)
+                        int nMaxValue, nCurrValue, nTempValue;
+                        nMaxCount = i;
+                        for (int j = i + 1; j < nCount; j++)
                         {
-                            pMaxValue = (int)pList[maxCount];
-                            pCurrValue = (int)pList[j];
-                            if (pCurrValue > pMaxValue)
-                                maxCount = j;
+                            nMaxValue = (int) pList[nMaxCount];
+                            nCurrValue = (int) pList[j];
+                            if (nCurrValue > nMaxValue)
+                                nMaxCount = j;
                         }
-                        pMaxValue = (int)pList[maxCount];
-                        pCurrValue = (int)pList[i];
-                        tempValue = pCurrValue;
-                        pList[i] = pMaxValue;
-                        pList[maxCount] = tempValue;
+
+                        nMaxValue = (int) pList[nMaxCount];
+                        nCurrValue = (int) pList[i];
+                        nTempValue = nCurrValue;
+                        pList[i] = nMaxValue;
+                        pList[nMaxCount] = nTempValue;
                     }
                 }
             }

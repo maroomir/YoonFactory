@@ -1444,7 +1444,7 @@ namespace YoonFactory.Image
 
         private byte[] Scan8bitBuffer(Rectangle pRect)
         {
-            if (Plane != 1)
+            if (Format != PixelFormat.Format8bppIndexed)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot Indexed format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
@@ -1466,7 +1466,7 @@ namespace YoonFactory.Image
 
         private byte[] Scan24bitBuffer(Rectangle pRect)
         {
-            if (Plane != 3)
+            if (Format != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
@@ -1488,7 +1488,7 @@ namespace YoonFactory.Image
 
         private int[] Scan32bitBuffer(Rectangle pRect)
         {
-            if (Plane != 4)
+            if (Format != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
@@ -1510,7 +1510,7 @@ namespace YoonFactory.Image
 
         private byte[,] Scan24bitPlaneBuffer(Rectangle pRect)
         {
-            if (Plane != 3)
+            if (Format != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
@@ -1543,7 +1543,7 @@ namespace YoonFactory.Image
 
         private byte[] Scan24bitPlaneBuffer(Rectangle pRect, int nPlane)
         {
-            if (Plane != 3)
+            if (Format != PixelFormat.Format24bppRgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (nPlane < 0 || nPlane >= Plane)
                 throw new ArgumentException("[YOONIMAGE EXCEPTION] Plane isnot adjust");
@@ -1576,7 +1576,7 @@ namespace YoonFactory.Image
 
         private byte[,] Scan32bitPlaneBuffer(Rectangle pRect)
         {
-            if (Plane != 4)
+            if (Format != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (pRect.X > Bitmap.Width || pRect.Y > Bitmap.Height)
                 throw new ArgumentOutOfRangeException("[YOONIMAGE ERROR] Rect property is out of range");
@@ -1610,7 +1610,7 @@ namespace YoonFactory.Image
 
         private byte[] Scan32bitPlaneBuffer(Rectangle pRect, int nPlane)
         {
-            if (Plane != 4)
+            if (Format != PixelFormat.Format32bppArgb)
                 throw new FormatException("[YOONIMAGE EXCEPTION] Bitmap isnot RGB format");
             if (nPlane < 0 || nPlane >= Plane)
                 throw new ArgumentException("[YOONIMAGE EXCEPTION] Plane isnot adjust");
