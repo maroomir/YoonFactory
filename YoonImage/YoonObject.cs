@@ -14,22 +14,21 @@ namespace YoonFactory
             this.Dispose(false);
         }
 
-        private bool disposed;
+        private bool _disposed;
         public void Dispose()
         {
             this.Dispose(true);
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (this.disposed) return;
+            if (this._disposed) return;
             if (disposing)
             {
-                ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
+                ObjectImage.Dispose();
             }
-            //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
-            this.disposed = true;
+            this._disposed = true;
         }
         #endregion
 
@@ -329,7 +328,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pRect.Equals(Object) &&
-                            pYoonObject.ReferencePosition == ReferencePosition &&
+                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
                             pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
@@ -338,7 +337,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pLine.Equals(Object) &&
-                            pYoonObject.ReferencePosition == ReferencePosition &&
+                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
                             pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
@@ -347,7 +346,7 @@ namespace YoonFactory
                         if (pYoonObject.Label == Label &&
                             pYoonObject.Score == Score &&
                             pVector.Equals(Object) &&
-                            pYoonObject.ReferencePosition == ReferencePosition &&
+                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
                             pYoonObject.ObjectImage == ObjectImage &&
                             pYoonObject.PixelCount == PixelCount)
                             return true;
@@ -362,7 +361,7 @@ namespace YoonFactory
         public override int GetHashCode()
         {
             int hashCode = 258276020;
-            hashCode = hashCode * -1521134295 + disposed.GetHashCode();
+            hashCode = hashCode * -1521134295 + _disposed.GetHashCode();
             hashCode = hashCode * -1521134295 + Label.GetHashCode();
             hashCode = hashCode * -1521134295 + Score.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Object);
@@ -375,7 +374,7 @@ namespace YoonFactory
         public override bool Equals(object obj)
         {
             return obj is YoonObject<T> @object &&
-                   disposed == @object.disposed &&
+                   _disposed == @object._disposed &&
                    Label == @object.Label &&
                    Score == @object.Score &&
                    EqualityComparer<T>.Default.Equals(Object, @object.Object) &&
@@ -389,14 +388,14 @@ namespace YoonFactory
             return Equals(other);
         }
 
-        public static bool operator ==(YoonObject<T> o1, YoonObject<T> o2)
+        public static bool operator ==(YoonObject<T> pObjectSource, YoonObject<T> pObjectOther)
         {
-            return o1?.Equals(o2) == true;
+            return pObjectSource?.Equals(pObjectOther) == true;
         }
 
-        public static bool operator !=(YoonObject<T> o1, YoonObject<T> o2)
+        public static bool operator !=(YoonObject<T> pObjectSource, YoonObject<T> pObjectOther)
         {
-            return !(o1 == o2);
+            return !(pObjectSource == pObjectOther);
         }
     }
 }

@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace YoonFactory.Image
 {
-    public class ObjectList<T> : IDisposable, IList<YoonObject<T>> where T : IYoonFigure
+    public class YoonDataset<T> : IDisposable, IList<YoonObject<T>> where T : IYoonFigure
     {
         #region IDisposable Support
-        ~ObjectList()
+        ~YoonDataset()
         {
             this.Dispose(false);
         }
 
-        private bool disposed;
+        private bool _disposed;
         public void Dispose()
         {
             this.Dispose(true);
@@ -24,15 +24,14 @@ namespace YoonFactory.Image
 
         protected virtual void Dispose(bool disposing)
         {
-            if (this.disposed) return;
+            if (this._disposed) return;
             if (disposing)
             {
-                ////  .Net Framework에 의해 관리되는 리소스를 여기서 정리합니다.
+                m_pListObject?.Clear();
             }
             //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
-            Clear();
             m_pListObject = null;
-            disposed = true;
+            _disposed = true;
         }
         #endregion
 
@@ -91,16 +90,16 @@ namespace YoonFactory.Image
             m_pListObject.CopyTo(array, arrayIndex);
         }
 
-        public ObjectList<T> Clone()
+        public YoonDataset<T> Clone()
         {
             if (m_pListObject == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            ObjectList<T> pList = new ObjectList<T>();
+            YoonDataset<T> pList = new YoonDataset<T>();
             pList.m_pListObject = new List<YoonObject<T>>(m_pListObject);
             return pList;
         }
 
-        public void CopyFrom(ObjectList<T> pList)
+        public void CopyFrom(YoonDataset<T> pList)
         {
             m_pListObject = pList.m_pListObject;
         }
