@@ -39,6 +39,11 @@ namespace YoonFactory
         {
             return X * Y / 2;
         }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
     }
 
     public class YoonTriangle2D : IYoonTriangle, IYoonTriangle2D<double>
@@ -77,6 +82,11 @@ namespace YoonFactory
         public double Area()
         {
             return 0.5 * X * Y;
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
         }
     }
 }

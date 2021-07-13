@@ -241,6 +241,11 @@ namespace YoonFactory
             return hashCode;
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public IYoonVector2D<int> GetPosition(eYoonDir2D nDir)
         {
             return nDir switch
@@ -519,6 +524,11 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 +
                        EqualityComparer<IYoonVector2D<double>>.Default.GetHashCode(BottomRight);
             return hashCode;
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
         }
 
         public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)

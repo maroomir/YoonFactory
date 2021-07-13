@@ -338,6 +338,11 @@ namespace YoonFactory
             return hashCode;
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public YoonVector2D ToVector2D()
         {
             return new YoonVector2D(X, Y);
@@ -734,6 +739,11 @@ namespace YoonFactory
             return hashCode;
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public YoonVector2N ToVector2N()
         {
             return new YoonVector2N((int)X, (int)Y);
@@ -1084,6 +1094,11 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCartesian<double>>.Default.GetHashCode(Cartesian);
             hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
             return hashCode;
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
         }
 
         public static YoonVector3D operator *(YoonMatrix4X4Double pMatrix, YoonVector3D pVector)

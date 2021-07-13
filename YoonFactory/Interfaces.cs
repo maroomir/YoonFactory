@@ -43,7 +43,7 @@ namespace YoonFactory
 
     public interface IYoonFigure
     {
-        //
+        IYoonFigure Clone();
     }
 
     public interface IYoonVector : IYoonFigure

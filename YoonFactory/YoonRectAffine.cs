@@ -255,6 +255,11 @@ namespace YoonFactory
             return hashCode;
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public IYoonVector2D<double> GetPosition(eYoonDir2D nDir)
         {
             return nDir switch

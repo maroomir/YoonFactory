@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace YoonFactory.Image
 {
-    public class YoonDataset<T> : IDisposable, IList<YoonObject<T>> where T : IYoonFigure
+    public class YoonDataset : IDisposable, IList<YoonObject>
     {
         #region IDisposable Support
         ~YoonDataset()
@@ -26,104 +26,149 @@ namespace YoonFactory.Image
         {
             if (this._disposed) return;
             if (disposing)
-            {
-                m_pListObject?.Clear();
-            }
-            //// .NET Framework에 의하여 관리되지 않는 외부 리소스들을 여기서 정리합니다.
-            m_pListObject = null;
+                Clear();
+
+            _pListLabel = null;
+            _pListScore = null;
+            _pListFeature = null;
+            _pListReference = null;
+            _pListImage = null;
+            _pListPixels = null;
             _disposed = true;
         }
         #endregion
 
-        protected List<YoonObject<T>> m_pListObject = new List<YoonObject<T>>();
+        protected List<int> _pListLabel = new List<int>();
+        protected List<double> _pListScore = new List<double>();
+        protected List<IYoonFigure> _pListFeature = new List<IYoonFigure>();
+        protected List<IYoonVector> _pListReference = new List<IYoonVector>();
+        protected List<YoonImage> _pListImage = new List<YoonImage>();
+        protected List<int> _pListPixels = new List<int>();
 
-        public YoonObject<T> this[int index]
+        public YoonObject this[int index]
         {
             get
             {
-                if (m_pListObject == null)
+                if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                    _pListImage == null || _pListPixels == null)
                     throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-                if (index < 0 || index >= m_pListObject.Count)
-                    throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-                return m_pListObject[index];
+                YoonObject pObject = new YoonObject();
+                if (_pListLabel.Count > 0 && index >= 0 && index < _pListLabel.Count)
+                    pObject.Label = _pListLabel[index];
+                if (_pListScore.Count > 0 && index >= 0 && index < _pListScore.Count)
+                    pObject.Score = _pListScore[index];
+                if (_pListFeature.Count > 0 && index >= 0 && index < _pListFeature.Count)
+                    pObject.Feature = _pListFeature[index];
+                if (_pListReference.Count > 0 && index >= 0 && index < _pListReference.Count)
+                    pObject.ReferencePosition = _pListReference[index];
+                if (_pListImage.Count > 0 && index >= 0 && index < _pListImage.Count)
+                    pObject.ObjectImage = (YoonImage) _pListImage[index];
+                if (_pListPixels.Count > 0 && index >= 0 && index < _pListPixels.Count)
+                    pObject.PixelCount = _pListPixels[index];
+                return pObject;
             }
             set
             {
-                if (m_pListObject == null)
+                if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                    _pListImage == null || _pListPixels == null)
                     throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-                if (index < 0 || index >= m_pListObject.Count)
-                    throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-                m_pListObject[index] = value;
+                if (_pListLabel.Count > 0 && index >= 0 && index < _pListLabel.Count)
+                    _pListLabel[index] = value.Label;
+                if (_pListScore.Count > 0 && index >= 0 && index < _pListScore.Count)
+                    _pListScore[index] = value.Score;
+                if (_pListFeature.Count > 0 && index >= 0 && index < _pListFeature.Count)
+                    _pListFeature[index] = value.Feature.Clone();
+                if (_pListReference.Count > 0 && index >= 0 && index < _pListReference.Count)
+                    _pListReference[index] = value.ReferencePosition.Clone();
+                if (_pListImage.Count > 0 && index >= 0 && index < _pListImage.Count)
+                    _pListImage[index] = (YoonImage) value.ObjectImage.Clone();
+                if (_pListPixels.Count > 0 && index >= 0 && index < _pListPixels.Count)
+                    _pListPixels[index] = value.PixelCount;
             }
         }
 
-        public int Count => m_pListObject.Count;
+        public int Count => _pListFeature.Count;
 
-        public bool IsReadOnly => ((ICollection<YoonObject<T>>)m_pListObject).IsReadOnly;
+        public bool IsReadOnly => ((ICollection<YoonObject>)_pListFeature).IsReadOnly;
 
-        public void Add(YoonObject<T> item)
+        public void Add(YoonObject item)
         {
-            if (m_pListObject == null)
+            if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                _pListImage == null || _pListPixels == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            m_pListObject.Add(item);
+            _pListLabel.Add(item.Label);
+            _pListImage.Add(item.ObjectImage);
+            _pListFeature.Add(item.Feature);
+            _pListPixels.Add(item.PixelCount);
+            _pListReference.Add(item.ReferencePosition);
+            _pListScore.Add(item.Score);
         }
 
         public void Clear()
         {
-            if (m_pListObject != null)
-                m_pListObject.Clear();
+            _pListLabel?.Clear();
+            _pListScore?.Clear();
+            _pListFeature?.Clear();
+            _pListReference?.Clear();
+            _pListImage?.Clear();
+            _pListPixels?.Clear();
         }
 
-        public bool Contains(YoonObject<T> item)
+        public bool Contains(YoonObject item)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return m_pListObject.Contains(item);
+            return _pListFeature.Contains(item.Feature) &&
+                   _pListImage.Contains(item.ObjectImage) &&
+                   _pListScore.Contains(item.Score) &&
+                   _pListReference.Contains(item.ReferencePosition) &&
+                   _pListLabel.Contains(item.Label) &&
+                   _pListPixels.Contains(item.PixelCount);
         }
 
         public void CopyTo(YoonObject<T>[] array, int arrayIndex)
         {
-            if (m_pListObject == null || array == null)
+            if (_pListFeature == null || array == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             if (arrayIndex < 0 || arrayIndex >= array.Length)
                 throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-            m_pListObject.CopyTo(array, arrayIndex);
+            _pListFeature.CopyTo(array, arrayIndex);
         }
 
         public YoonDataset<T> Clone()
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             YoonDataset<T> pList = new YoonDataset<T>();
-            pList.m_pListObject = new List<YoonObject<T>>(m_pListObject);
+            pList._pListFeature = new List<YoonObject<T>>(_pListFeature);
             return pList;
         }
 
         public void CopyFrom(YoonDataset<T> pList)
         {
-            m_pListObject = pList.m_pListObject;
+            _pListFeature = pList._pListFeature;
         }
 
         public IEnumerator<YoonObject<T>> GetEnumerator()
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return m_pListObject.GetEnumerator();
+            return _pListFeature.GetEnumerator();
         }
 
         public int IndexOf(YoonObject<T> item)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return m_pListObject.IndexOf(item);
+            return _pListFeature.IndexOf(item);
         }
 
         public YoonObject<T> Search(int nLabel)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             YoonObject<T> pYoonObject = null;
-            foreach (YoonObject<T> pValue in m_pListObject)
+            foreach (YoonObject<T> pValue in _pListFeature)
             {
                 if (pValue.Label == nLabel)
                 {
@@ -139,63 +184,63 @@ namespace YoonFactory.Image
 
         public void Swap(int index1, int index2)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            if (index1 < 0 || index1 >= m_pListObject.Count ||
-                index2 < 0 || index2 >= m_pListObject.Count)
+            if (index1 < 0 || index1 >= _pListFeature.Count ||
+                index2 < 0 || index2 >= _pListFeature.Count)
                 throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-            YoonObject<T> pObject1 = m_pListObject[index1].Clone() as YoonObject<T>;
-            YoonObject<T> pObject2 = m_pListObject[index2].Clone() as YoonObject<T>;
-            m_pListObject[index2] = pObject1;
-            m_pListObject[index1] = pObject2;
+            YoonObject<T> pObject1 = _pListFeature[index1].Clone() as YoonObject<T>;
+            YoonObject<T> pObject2 = _pListFeature[index2].Clone() as YoonObject<T>;
+            _pListFeature[index2] = pObject1;
+            _pListFeature[index1] = pObject2;
         }
 
         public void Insert(int index, YoonObject<T> item)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            if (index < 0 || index >= m_pListObject.Count)
+            if (index < 0 || index >= _pListFeature.Count)
                 throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-            m_pListObject.Insert(index, item);
+            _pListFeature.Insert(index, item);
         }
 
         public bool Remove(YoonObject<T> item)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return m_pListObject.Remove(item);
+            return _pListFeature.Remove(item);
         }
 
         public void RemoveAt(int index)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            if (index < 0 || index >= m_pListObject.Count)
+            if (index < 0 || index >= _pListFeature.Count)
                 throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
             RemoveAt(index);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return m_pListObject.GetEnumerator();
+            return _pListFeature.GetEnumerator();
         }
 
         public void SortLabels(eYoonDir2DMode nMode)
         {
-            if (m_pListObject == null)
+            if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             int iSearch;
             switch (nMode)
             {
                 case eYoonDir2DMode.Increase:
                     int minLabel;
-                    for (int i = 0; i < m_pListObject.Count - 1; i++)
+                    for (int i = 0; i < _pListFeature.Count - 1; i++)
                     {
                         iSearch = i;
-                        for (int j = i + 1; j < m_pListObject.Count; j++)
+                        for (int j = i + 1; j < _pListFeature.Count; j++)
                         {
-                            minLabel = m_pListObject[iSearch].Label;
-                            if (m_pListObject[j].Label < minLabel)
+                            minLabel = _pListFeature[iSearch].Label;
+                            if (_pListFeature[j].Label < minLabel)
                                 iSearch = j;
                         }
                         if (iSearch == i) continue;
@@ -204,13 +249,13 @@ namespace YoonFactory.Image
                     break;
                 case eYoonDir2DMode.Decrease:
                     int maxLabel;
-                    for (int i = 0; i < m_pListObject.Count - 1; i++)
+                    for (int i = 0; i < _pListFeature.Count - 1; i++)
                     {
                         iSearch = i;
-                        for (int j = i + 1; j < m_pListObject.Count; j++)
+                        for (int j = i + 1; j < _pListFeature.Count; j++)
                         {
-                            maxLabel = m_pListObject[iSearch].Label;
-                            if (m_pListObject[j].Label > maxLabel)
+                            maxLabel = _pListFeature[iSearch].Label;
+                            if (_pListFeature[j].Label > maxLabel)
                                 iSearch = j;
                         }
                         if (iSearch == i) continue;
@@ -224,13 +269,13 @@ namespace YoonFactory.Image
 
         public void SortObjects(eYoonDir2D nDir)
         {
-            if (m_pListObject == null || m_pListObject.Count == 0)
+            if (_pListFeature == null || _pListFeature.Count == 0)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            if (m_pListObject[0].Object is YoonRect2N)
+            if (_pListFeature[0].Object is YoonRect2N)
                 SortRect2N(nDir);
-            if (m_pListObject[0].Object is YoonRect2D)
+            if (_pListFeature[0].Object is YoonRect2D)
                 SortRect2D(nDir);
-            if (m_pListObject[0].Object is YoonRectAffine2D)
+            if (_pListFeature[0].Object is YoonRectAffine2D)
                 SortRectAffine2D(nDir);
             else
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] This type is not supported");
@@ -242,13 +287,13 @@ namespace YoonFactory.Image
             int iSearch = 0;
             int nDiff = 0;
             int nHeight = 0;
-            for (int i = 0; i < m_pListObject.Count - 1; i++)
+            for (int i = 0; i < _pListFeature.Count - 1; i++)
             {
                 iSearch = i;
-                for (int j = i + 1; j < m_pListObject.Count; j++)
+                for (int j = i + 1; j < _pListFeature.Count; j++)
                 {
-                    pRectMin = m_pListObject[iSearch].Object as YoonRect2N;
-                    pRectCurr = m_pListObject[j] as YoonRect2N;
+                    pRectMin = _pListFeature[iSearch].Object as YoonRect2N;
+                    pRectCurr = _pListFeature[j] as YoonRect2N;
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
@@ -311,13 +356,13 @@ namespace YoonFactory.Image
             int iSearch = 0;
             double dDiff = 0;
             double dHeight = 0;
-            for (int i = 0; i < m_pListObject.Count - 1; i++)
+            for (int i = 0; i < _pListFeature.Count - 1; i++)
             {
                 iSearch = i;
-                for (int j = i + 1; j < m_pListObject.Count; j++)
+                for (int j = i + 1; j < _pListFeature.Count; j++)
                 {
-                    pRectMin = m_pListObject[iSearch].Object as YoonRect2D;
-                    pRectCurr = m_pListObject[j] as YoonRect2D;
+                    pRectMin = _pListFeature[iSearch].Object as YoonRect2D;
+                    pRectCurr = _pListFeature[j] as YoonRect2D;
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
@@ -380,13 +425,13 @@ namespace YoonFactory.Image
             int iSearch = 0;
             double dDiff = 0;
             double dHeight = 0;
-            for (int i = 0; i < m_pListObject.Count - 1; i++)
+            for (int i = 0; i < _pListFeature.Count - 1; i++)
             {
                 iSearch = i;
-                for (int j = i + 1; j < m_pListObject.Count; j++)
+                for (int j = i + 1; j < _pListFeature.Count; j++)
                 {
-                    pRectMin = m_pListObject[iSearch].Object as YoonRectAffine2D;
-                    pRectCurr = m_pListObject[j] as YoonRectAffine2D;
+                    pRectMin = _pListFeature[iSearch].Object as YoonRectAffine2D;
+                    pRectCurr = _pListFeature[j] as YoonRectAffine2D;
                     switch (nDir)
                     {
                         case eYoonDir2D.TopLeft:
@@ -445,13 +490,13 @@ namespace YoonFactory.Image
 
         public void CombineObjects()
         {
-            if (m_pListObject == null || m_pListObject.Count == 0)
+            if (_pListFeature == null || _pListFeature.Count == 0)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            if (m_pListObject[0].Object is YoonRect2N)
+            if (_pListFeature[0].Object is YoonRect2N)
                 CombineRect2N();
-            if (m_pListObject[0].Object is YoonRect2D)
+            if (_pListFeature[0].Object is YoonRect2D)
                 CombineRect2D();
-            if (m_pListObject[0].Object is YoonRectAffine2D)
+            if (_pListFeature[0].Object is YoonRectAffine2D)
                 CombineRectAffine2D();
             else
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] This type is not supported");
@@ -465,15 +510,15 @@ namespace YoonFactory.Image
             pRect1 = new YoonRect2N();
             ////  원본(rect1)을 복사(rect2)해서 List에 넣은 後 삭제한다.
             List<YoonObject<YoonRect2N>> pListTemp = new List<YoonObject<YoonRect2N>>();
-            foreach (YoonObject<T> pObject in m_pListObject)
+            foreach (YoonObject<T> pObject in _pListFeature)
             {
                 pListTemp.Add(pObject.Clone() as YoonObject<YoonRect2N>);
             }
-            m_pListObject.Clear();
+            _pListFeature.Clear();
             ////  모든 사각형들을 전수 조사해가며 서로 겹치는 사각형이 있는지 찾는다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                pRect1 = pListTemp[i].Object;
+                pRect1 = pListTemp[i].Feature;
                 combineRect = new YoonRect2N(0, 0, 0, 0);
                 if (pRect1.Width == 0)
                     continue;
@@ -481,7 +526,7 @@ namespace YoonFactory.Image
                 for (int j = 0; j < pListTemp.Count; j++)
                 {
                     if (i == j) continue;
-                    pRect2 = pListTemp[j].Object;
+                    pRect2 = pListTemp[j].Feature;
                     if (pRect2.Width == 0)
                         continue;
                     //////  Rect1와 Rect2가 겹치거나 속해지는 경우...
@@ -519,8 +564,8 @@ namespace YoonFactory.Image
                         combineRect.Width = (pRect1.Right > pRect2.Right) ? pRect1.Right - combineRect.Left : pRect2.Right - combineRect.Left;
                         combineRect.CenterPos.Y = (pRect1.Top < pRect2.Top) ? pRect1.CenterPos.Y : pRect2.CenterPos.Y;
                         combineRect.Height = (pRect1.Bottom > pRect2.Bottom) ? pRect1.Bottom - combineRect.Top : pRect2.Bottom - combineRect.Top;
-                        pListTemp[i].Object = new YoonRect2N(0, 0, 0, 0);
-                        pListTemp[j].Object = combineRect;
+                        pListTemp[i].Feature = new YoonRect2N(0, 0, 0, 0);
+                        pListTemp[j].Feature = combineRect;
                         break;
                     }
                 }
@@ -528,12 +573,12 @@ namespace YoonFactory.Image
             ////  정렬된 사각형들 中 유효한 사각형들만 재정렬시킨다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                T pObject = (T)pListTemp[i].Object.Clone();
+                T pObject = (T)pListTemp[i].Feature.Clone();
                 if (pObject is YoonRect2N pRect)
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
+                        _pListFeature.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else
@@ -550,15 +595,15 @@ namespace YoonFactory.Image
             pRect1 = new YoonRect2D();
             ////  원본(rect1)을 복사(rect2)해서 List에 넣은 後 삭제한다.
             List<YoonObject<YoonRect2D>> pListTemp = new List<YoonObject<YoonRect2D>>();
-            foreach (YoonObject<T> pObject in m_pListObject)
+            foreach (YoonObject<T> pObject in _pListFeature)
             {
                 pListTemp.Add(pObject.Clone() as YoonObject<YoonRect2D>);
             }
-            m_pListObject.Clear();
+            _pListFeature.Clear();
             ////  모든 사각형들을 전수 조사해가며 서로 겹치는 사각형이 있는지 찾는다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                pRect1 = pListTemp[i].Object;
+                pRect1 = pListTemp[i].Feature;
                 combineRect = new YoonRect2D(0, 0, 0, 0);
                 if (pRect1.Width == 0)
                     continue;
@@ -566,7 +611,7 @@ namespace YoonFactory.Image
                 for (int j = 0; j < pListTemp.Count; j++)
                 {
                     if (i == j) continue;
-                    pRect2 = pListTemp[j].Object;
+                    pRect2 = pListTemp[j].Feature;
                     if (pRect2.Width == 0)
                         continue;
                     //////  Rect1와 Rect2가 겹치거나 속해지는 경우...
@@ -604,8 +649,8 @@ namespace YoonFactory.Image
                         combineRect.Width = (pRect1.Right > pRect2.Right) ? pRect1.Right - combineRect.Left : pRect2.Right - combineRect.Left;
                         combineRect.CenterPos.Y = (pRect1.Top < pRect2.Top) ? pRect1.CenterPos.Y : pRect2.CenterPos.Y;
                         combineRect.Height = (pRect1.Bottom > pRect2.Bottom) ? pRect1.Bottom - combineRect.Top : pRect2.Bottom - combineRect.Top;
-                        pListTemp[i].Object = new YoonRect2D(0, 0, 0, 0);
-                        pListTemp[j].Object = combineRect;
+                        pListTemp[i].Feature = new YoonRect2D(0, 0, 0, 0);
+                        pListTemp[j].Feature = combineRect;
                         break;
                     }
                 }
@@ -613,12 +658,12 @@ namespace YoonFactory.Image
             ////  정렬된 사각형들 中 유효한 사각형들만 재정렬시킨다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                T pObject = (T)pListTemp[i].Object.Clone();
+                T pObject = (T)pListTemp[i].Feature.Clone();
                 if (pObject is YoonRect2D pRect)
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
+                        _pListFeature.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else
@@ -634,15 +679,15 @@ namespace YoonFactory.Image
             bool isCombine = false;
             ////  원본(rect1)을 복사(rect2)해서 List에 넣은 後 삭제한다.
             List<YoonObject<YoonRectAffine2D>> pListTemp = new List<YoonObject<YoonRectAffine2D>>();
-            foreach (YoonObject<T> pObject in m_pListObject)
+            foreach (YoonObject<T> pObject in _pListFeature)
             {
                 pListTemp.Add(pObject.Clone() as YoonObject<YoonRectAffine2D>);
             }
-            m_pListObject.Clear();
+            _pListFeature.Clear();
             ////  모든 사각형들을 전수 조사해가며 서로 겹치는 사각형이 있는지 찾는다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                pRect1 = pListTemp[i].Object;
+                pRect1 = pListTemp[i].Feature;
                 combineRect = new YoonRectAffine2D(0, 0, 0);
                 if (pRect1.Width == 0)
                     continue;
@@ -650,7 +695,7 @@ namespace YoonFactory.Image
                 for (int j = 0; j < pListTemp.Count; j++)
                 {
                     if (i == j) continue;
-                    pRect2 = pListTemp[j].Object;
+                    pRect2 = pListTemp[j].Feature;
                     if (pRect2.Width == 0)
                         continue;
                     //////  Rect1와 Rect2가 겹치거나 속해지는 경우...
@@ -688,8 +733,8 @@ namespace YoonFactory.Image
                         combineRect.Width = (pRect1.Right > pRect2.Right) ? pRect1.Right - combineRect.Left : pRect2.Right - combineRect.Left;
                         combineRect.CenterPos.Y = (pRect1.Top < pRect2.Top) ? pRect1.CenterPos.Y : pRect2.CenterPos.Y;
                         combineRect.Height = (pRect1.Bottom > pRect2.Bottom) ? pRect1.Bottom - combineRect.Top : pRect2.Bottom - combineRect.Top;
-                        pListTemp[i].Object = new YoonRectAffine2D(0, 0, 0);
-                        pListTemp[j].Object = combineRect;
+                        pListTemp[i].Feature = new YoonRectAffine2D(0, 0, 0);
+                        pListTemp[j].Feature = combineRect;
                         break;
                     }
                 }
@@ -697,12 +742,12 @@ namespace YoonFactory.Image
             ////  정렬된 사각형들 中 유효한 사각형들만 재정렬시킨다.
             for (int i = 0; i < pListTemp.Count; i++)
             {
-                T pObject = (T)pListTemp[i].Object.Clone();
+                T pObject = (T)pListTemp[i].Feature.Clone();
                 if (pObject is YoonRectAffine2D pRect)
                 {
                     if (pRect.Right != 0)
                     {
-                        m_pListObject.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
+                        _pListFeature.Add(new YoonObject<T>(pListTemp[i].Label, pObject, (YoonImage)pListTemp[i].ObjectImage.Clone(), pListTemp[i].Score, pListTemp[i].PixelCount));
                     }
                 }
                 else

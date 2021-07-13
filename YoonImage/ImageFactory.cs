@@ -1981,8 +1981,8 @@ namespace YoonFactory.Image
                 YoonRect2N pMaxArea = new YoonRect2N(0, 0, 0, 0);
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
                 {
-                    nWidth = pListObjectInfo[iObject].Object.Width;
-                    nHeight = pListObjectInfo[iObject].Object.Height;
+                    nWidth = pListObjectInfo[iObject].Feature.Width;
+                    nHeight = pListObjectInfo[iObject].Feature.Height;
                     nLength = pListObjectInfo[iObject].PixelCount;
                     // Only count the square rect blob
                     if (bSquareOnly)
@@ -1997,8 +1997,8 @@ namespace YoonFactory.Image
                     // Only count the showing whole blob in image
                     if (bNormalOnly)
                     {
-                        int nDiffLeft = pListObjectInfo[iObject].Object.Left;
-                        int nDiffTop = pListObjectInfo[iObject].Object.Top;
+                        int nDiffLeft = pListObjectInfo[iObject].Feature.Left;
+                        int nDiffTop = pListObjectInfo[iObject].Feature.Top;
                         if (nDiffLeft <= 1 || nDiffTop <= 1)
                         {
                             pListObjectInfo.RemoveAt(iObject);
@@ -2012,12 +2012,12 @@ namespace YoonFactory.Image
                         nMaxLabel = pListObjectInfo[iObject].Label;
                         dMaxScore = pListObjectInfo[iObject].Score;
                         pMaxImage = pListObjectInfo[iObject].ObjectImage;
-                        pMaxArea.CenterPos.X = pScanArea.Left + pListObjectInfo[iObject].Object.Left +
-                                               pListObjectInfo[iObject].Object.Width / 2;
-                        pMaxArea.CenterPos.Y = pScanArea.Top + pListObjectInfo[iObject].Object.Top +
-                                               pListObjectInfo[iObject].Object.Height / 2;
-                        pMaxArea.Width = pListObjectInfo[iObject].Object.Right - pListObjectInfo[iObject].Object.Left;
-                        pMaxArea.Height = pListObjectInfo[iObject].Object.Bottom - pListObjectInfo[iObject].Object.Top;
+                        pMaxArea.CenterPos.X = pScanArea.Left + pListObjectInfo[iObject].Feature.Left +
+                                               pListObjectInfo[iObject].Feature.Width / 2;
+                        pMaxArea.CenterPos.Y = pScanArea.Top + pListObjectInfo[iObject].Feature.Top +
+                                               pListObjectInfo[iObject].Feature.Height / 2;
+                        pMaxArea.Width = pListObjectInfo[iObject].Feature.Right - pListObjectInfo[iObject].Feature.Left;
+                        pMaxArea.Height = pListObjectInfo[iObject].Feature.Bottom - pListObjectInfo[iObject].Feature.Top;
                     }
                 }
 
@@ -2047,8 +2047,8 @@ namespace YoonFactory.Image
                 for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
                 {
 
-                    int nWidth = pListObjectInfo[iObject].Object.Width;
-                    int nHeight = pListObjectInfo[iObject].Object.Height;
+                    int nWidth = pListObjectInfo[iObject].Feature.Width;
+                    int nHeight = pListObjectInfo[iObject].Feature.Height;
                     int nLength = pListObjectInfo[iObject].PixelCount;
                     if (bSquareOnly)
                     {
@@ -2061,8 +2061,8 @@ namespace YoonFactory.Image
 
                     if (bNormalOnly)
                     {
-                        int diffLeft = pListObjectInfo[iObject].Object.Left;
-                        int diffTop = pListObjectInfo[iObject].Object.Top;
+                        int diffLeft = pListObjectInfo[iObject].Feature.Left;
+                        int diffTop = pListObjectInfo[iObject].Feature.Top;
                         if (diffLeft <= 1 || diffTop <= 1)
                         {
                             pListObjectInfo.RemoveAt(iObject);
@@ -2129,12 +2129,12 @@ namespace YoonFactory.Image
                             bWhite) as YoonObject<YoonRect2N>;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
                     //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 ||
-                        pObject.Object.Bottom == 0)
+                    if (pObject.Feature.Left == 0 || pObject.Feature.Top == 0 || pObject.Feature.Right == 0 ||
+                        pObject.Feature.Bottom == 0)
                         break;
                     // Erase the rect when the blob is constructed only one pixel
-                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 ||
-                        pObject.Object.Bottom == -1)
+                    if (pObject.Feature.Left == -1 || pObject.Feature.Top == -1 || pObject.Feature.Right == -1 ||
+                        pObject.Feature.Bottom == -1)
                         continue;
                     // Save the blob in the list
                     if (pListResult.Count < MAX_OBJECT)
@@ -2144,7 +2144,7 @@ namespace YoonFactory.Image
                     }
 
                     // Control the start vector to the end of these sequence
-                    pStartVector = (YoonVector2N) pObject.Object.BottomRight.Clone() + new YoonVector2N(1, 1);
+                    pStartVector = (YoonVector2N) pObject.Feature.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
 
                 return pListResult;
@@ -2182,11 +2182,11 @@ namespace YoonFactory.Image
                         ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
                             bWhite) as YoonObject<YoonRect2N>;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
-                    if (pObject.Object.Left == 0 || pObject.Object.Top == 0 || pObject.Object.Right == 0 ||
-                        pObject.Object.Bottom == 0)
+                    if (pObject.Feature.Left == 0 || pObject.Feature.Top == 0 || pObject.Feature.Right == 0 ||
+                        pObject.Feature.Bottom == 0)
                         break;
-                    if (pObject.Object.Left == -1 || pObject.Object.Top == -1 || pObject.Object.Right == -1 ||
-                        pObject.Object.Bottom == -1)
+                    if (pObject.Feature.Left == -1 || pObject.Feature.Top == -1 || pObject.Feature.Right == -1 ||
+                        pObject.Feature.Bottom == -1)
                         continue;
                     if (pListResult.Count < MAX_OBJECT)
                     {
@@ -2194,7 +2194,7 @@ namespace YoonFactory.Image
                         pListResult.Add(pObject);
                     }
 
-                    pStartVector = (YoonVector2N) pObject.Object.BottomRight.Clone() + new YoonVector2N(1, 1);
+                    pStartVector = (YoonVector2N) pObject.Feature.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
 
                 return pListResult;
