@@ -84,7 +84,9 @@ namespace YoonFactory
                     ReferencePosition = new YoonVector2D();
                     break;
                 default:
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
+                    Feature = new YoonRect2N();
+                    ReferencePosition = new YoonVector2N();
+                    break;
             }
 
             ObjectImage = new YoonImage();

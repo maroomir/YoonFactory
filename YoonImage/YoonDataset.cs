@@ -38,6 +38,9 @@ namespace YoonFactory.Image
         }
         #endregion
 
+        private const int DEFAULT_LABEL = 0;
+        private const int DEFAULT_PIX_COUNT = 0;
+        private const double DEFAULT_SCORE = 0.0;
         protected List<int> _pListLabel = new List<int>();
         protected List<double> _pListScore = new List<double>();
         protected List<IYoonFigure> _pListFeature = new List<IYoonFigure>();
@@ -116,7 +119,8 @@ namespace YoonFactory.Image
 
         public bool Contains(YoonObject item)
         {
-            if (_pListFeature == null)
+            if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                _pListImage == null || _pListPixels == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             return _pListFeature.Contains(item.Feature) &&
                    _pListImage.Contains(item.ObjectImage) &&
@@ -126,34 +130,70 @@ namespace YoonFactory.Image
                    _pListPixels.Contains(item.PixelCount);
         }
 
-        public void CopyTo(YoonObject<T>[] array, int arrayIndex)
+        public void CopyTo(YoonObject[] array, int arrayIndex)
         {
-            if (_pListFeature == null || array == null)
+            if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                _pListImage == null || _pListPixels == null || array == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
             if (arrayIndex < 0 || arrayIndex >= array.Length)
                 throw new IndexOutOfRangeException("[YOONIMAGE EXCEPTION] Index must be within the bounds");
-            _pListFeature.CopyTo(array, arrayIndex);
+            _pListFeature.CopyTo(array.Select(pObject => pObject.Feature).ToArray());
+            _pListLabel.CopyTo(array.Select(pObject=>pObject.Label).ToArray());
+            _pListScore.CopyTo(array.Select(pObject=>pObject.Score).ToArray());
+            _pListImage.CopyTo(array.Select(pObject=>pObject.ObjectImage).ToArray());
+            _pListReference.CopyTo(array.Select(pObject=>pObject.ReferencePosition).ToArray());
+            _pListPixels.CopyTo(array.Select(pObject=>pObject.PixelCount).ToArray());
         }
 
-        public YoonDataset<T> Clone()
+        public YoonDataset Clone()
         {
             if (_pListFeature == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            YoonDataset<T> pList = new YoonDataset<T>();
-            pList._pListFeature = new List<YoonObject<T>>(_pListFeature);
-            return pList;
+            return new YoonDataset
+            {
+                _pListFeature = new List<IYoonFigure>(_pListFeature),
+                _pListImage = new List<YoonImage>(_pListImage),
+                _pListLabel = new List<int>(_pListLabel),
+                _pListPixels = new List<int>(_pListPixels),
+                _pListReference = new List<IYoonVector>(_pListReference),
+                _pListScore = new List<double>(_pListScore)
+            };
         }
 
-        public void CopyFrom(YoonDataset<T> pList)
+        public void CopyFrom(YoonDataset pDataset)
         {
-            _pListFeature = pList._pListFeature;
+            if (pDataset?._pListImage == null || pDataset._pListLabel == null || pDataset._pListPixels == null ||
+                pDataset._pListReference == null || pDataset._pListScore == null || pDataset._pListFeature == null)
+                return;
+            _pListFeature = new List<IYoonFigure>(pDataset._pListFeature);
+            _pListImage = new List<YoonImage>(pDataset._pListImage);
+            _pListLabel = new List<int>(pDataset._pListLabel);
+            _pListPixels = new List<int>(pDataset._pListPixels);
+            _pListReference = new List<IYoonVector>(pDataset._pListReference);
+            _pListScore = new List<double>(pDataset._pListScore);
         }
 
-        public IEnumerator<YoonObject<T>> GetEnumerator()
+        public IEnumerator<YoonObject> GetEnumerator()
         {
-            if (_pListFeature == null)
+            if (_pListLabel == null || _pListScore == null || _pListFeature == null || _pListReference == null ||
+                _pListImage == null || _pListPixels == null)
                 throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Objects was not ordered");
-            return _pListFeature.GetEnumerator();
+            List<YoonObject> pListObject = new List<YoonObject>();
+            for (int i = 0; i < _pListImage.Count; i++)
+            {
+                YoonObject pObject = new YoonObject
+                {
+                    Feature = (_pListFeature.Count > i) ? _pListFeature[i] : new YoonRect2N(),
+                    Label = (_pListLabel.Count > i) ? _pListLabel[i] : DEFAULT_LABEL,
+                    Score = (_pListScore.Count > i) ? _pListScore[i] : DEFAULT_SCORE,
+                    ObjectImage = (_pListImage.Count > i) ? _pListImage[i] : new YoonImage(),
+                    PixelCount = (_pListPixels.Count > i) ? _pListPixels[i] : DEFAULT_PIX_COUNT,
+                    ReferencePosition = (_pListReference.Count > i) ? _pListReference[i] : new YoonVector2N()
+                };
+                pListObject.Add(pObject);
+            }
+
+            return pListObject.GetEnumerator();
         }
 
         public int IndexOf(YoonObject<T> item)
