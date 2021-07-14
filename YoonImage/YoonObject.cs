@@ -308,22 +308,9 @@ namespace YoonFactory
 
         public IYoonObject Clone()
         {
-            switch (Feature)
-            {
-                case IYoonRect pRect:
-                    return new YoonObject(Label, pRect.Clone(), ReferencePosition,
-                        (YoonImage) ObjectImage.Clone(), Score, PixelCount);
-                case IYoonLine pLine:
-                    return new YoonObject(Label, pLine.Clone(), ReferencePosition,
-                        (YoonImage) ObjectImage.Clone(), Score, PixelCount);
-                case IYoonVector pVector:
-                    return new YoonObject(Label, pVector.Clone(), ReferencePosition,
-                        (YoonImage) ObjectImage.Clone(), Score, PixelCount);
-                default:
-                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
-            }
+            return new YoonObject(Label, Feature.Clone(), ReferencePosition.Clone(), (YoonImage) ObjectImage.Clone(),
+                Score, PixelCount);
         }
-
 
         public bool Equals(IYoonObject pObject)
         {

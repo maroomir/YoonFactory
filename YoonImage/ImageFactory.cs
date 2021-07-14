@@ -68,11 +68,11 @@ namespace YoonFactory.Image
             FindMaxBlob(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) =>
             Blob.FindMaxBlob(pSourceImage, nThreshold, bWhite);
 
-        public static YoonDataset<YoonRect2N> FindBlobs(this YoonImage pSourceImage, YoonRect2N scanArea,
-            byte nThreshold = 128, bool bWhite = false) => Blob.FindBlobs(pSourceImage, scanArea, nThreshold, bWhite);
+        public static YoonDataset FindBlobs(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128,
+            bool bWhite = false) => Blob.FindBlobs(pSourceImage, scanArea, nThreshold, bWhite);
 
-        public static YoonDataset<YoonRect2N> FindBlobs(this YoonImage pSourceImage, byte nThreshold = 128,
-            bool bWhite = false) => Blob.FindBlobs(pSourceImage, nThreshold, bWhite);
+        public static YoonDataset FindBlobs(this YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false) =>
+            Blob.FindBlobs(pSourceImage, nThreshold, bWhite);
 
         public static YoonImage Binarize(this YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128) =>
             Binary.Binarize(pSourceImage, scanArea, nThreshold);
@@ -288,8 +288,7 @@ namespace YoonFactory.Image
                 YoonRect2N pResultRect = FindPatternAsBinary(pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                     pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                     out double dScore, out int nPixelCount, true);
-                return new YoonObject<YoonRect2N>(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore,
-                    nPixelCount);
+                return new YoonObject(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
             }
 
             public static YoonRect2N FindPatternAsBinary(byte[] pPatternBuffer, int nPatternWidth, int nPatternHeight,
@@ -390,8 +389,7 @@ namespace YoonFactory.Image
                 YoonRect2N pResultRect = FindPatternAsBinary(pScanArea, pPatternImage.GetGrayBuffer(),
                     pPatternImage.Width, pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width,
                     pSourceImage.Height, out double dScore, out int nPixelCount);
-                return new YoonObject<YoonRect2N>(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore,
-                    nPixelCount);
+                return new YoonObject(0, pResultRect, pSourceImage.CropImage(pResultRect), dScore, nPixelCount);
             }
 
             public static YoonRect2N FindPatternAsBinary(YoonRect2N pScanArea, byte[] pPatternBuffer, int patternWidth,
@@ -477,8 +475,7 @@ namespace YoonFactory.Image
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                         (byte) nDiffThreshold, out double dScore, out int nPixelCount);
-                    return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
-                        nPixelCount);
+                    return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
                 }
 
                 if (pPatternImage.Plane == 4 && pSourceImage.Plane == 4)
@@ -486,8 +483,7 @@ namespace YoonFactory.Image
                     YoonRect2N pRectResult = FindPattern(pPatternImage.GetARGBBuffer(), pPatternImage.Width,
                         pPatternImage.Height, pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
                         nDiffThreshold, out double dScore, out int nPixelCount);
-                    return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
-                        nPixelCount);
+                    return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore, nPixelCount);
                 }
 
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format arguments is not comportable");
@@ -625,7 +621,7 @@ namespace YoonFactory.Image
                 YoonRect2N pRectResult = FindPattern(scanArea, pPatternImage.GetGrayBuffer(), pPatternImage.Width,
                     pPatternImage.Height, pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
                     nDiffThreshold, out dScore, out nPixelCount);
-                return new YoonObject<YoonRect2N>(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
+                return new YoonObject(0, pRectResult, pSourceImage.CropImage(pRectResult), dScore,
                     nPixelCount);
             }
 
@@ -1919,7 +1915,6 @@ namespace YoonFactory.Image
                         }
                     }
                 }
-                ////  검은색으로 채울 경우.
                 else
                 {
                     for (int i = pScanArea.Left; i < pScanArea.Right; i++)
@@ -1976,20 +1971,20 @@ namespace YoonFactory.Image
                 int nMaxLabel = 0;
                 int nWidth, nHeight, nLength;
                 double dMaxScore = 0.0;
-                YoonDataset<YoonRect2N> pListObjectInfo =
-                    FindBlobs(pBuffer, nImageWidth, pScanArea, nThreshold, bWhite);
+                YoonDataset pDataset = FindBlobs(pBuffer, nImageWidth, pScanArea, nThreshold, bWhite);
                 YoonRect2N pMaxArea = new YoonRect2N(0, 0, 0, 0);
-                for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
+                for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
-                    nWidth = pListObjectInfo[iObject].Feature.Width;
-                    nHeight = pListObjectInfo[iObject].Feature.Height;
-                    nLength = pListObjectInfo[iObject].PixelCount;
+                    YoonRect2N pRectFeature = (YoonRect2N) pDataset[iObject].Feature;
+                    nWidth = pRectFeature.Width;
+                    nHeight = pRectFeature.Height;
+                    nLength = pDataset[iObject].PixelCount;
                     // Only count the square rect blob
                     if (bSquareOnly)
                     {
                         if (nWidth > 3 * nHeight || nHeight > 3 * nWidth)
                         {
-                            pListObjectInfo.RemoveAt(iObject);
+                            pDataset.RemoveAt(iObject);
                             continue;
                         }
                     }
@@ -1997,11 +1992,11 @@ namespace YoonFactory.Image
                     // Only count the showing whole blob in image
                     if (bNormalOnly)
                     {
-                        int nDiffLeft = pListObjectInfo[iObject].Feature.Left;
-                        int nDiffTop = pListObjectInfo[iObject].Feature.Top;
+                        int nDiffLeft = pRectFeature.Left;
+                        int nDiffTop = pRectFeature.Top;
                         if (nDiffLeft <= 1 || nDiffTop <= 1)
                         {
-                            pListObjectInfo.RemoveAt(iObject);
+                            pDataset.RemoveAt(iObject);
                             continue;
                         }
                     }
@@ -2009,20 +2004,17 @@ namespace YoonFactory.Image
                     if (nLength > nMaxLength)
                     {
                         nMaxLength = nLength;
-                        nMaxLabel = pListObjectInfo[iObject].Label;
-                        dMaxScore = pListObjectInfo[iObject].Score;
-                        pMaxImage = pListObjectInfo[iObject].ObjectImage;
-                        pMaxArea.CenterPos.X = pScanArea.Left + pListObjectInfo[iObject].Feature.Left +
-                                               pListObjectInfo[iObject].Feature.Width / 2;
-                        pMaxArea.CenterPos.Y = pScanArea.Top + pListObjectInfo[iObject].Feature.Top +
-                                               pListObjectInfo[iObject].Feature.Height / 2;
-                        pMaxArea.Width = pListObjectInfo[iObject].Feature.Right - pListObjectInfo[iObject].Feature.Left;
-                        pMaxArea.Height = pListObjectInfo[iObject].Feature.Bottom - pListObjectInfo[iObject].Feature.Top;
+                        nMaxLabel = pDataset[iObject].Label;
+                        dMaxScore = pDataset[iObject].Score;
+                        pMaxImage = pDataset[iObject].ObjectImage;
+                        pMaxArea.CenterPos.X = pScanArea.Left + pRectFeature.Left + pRectFeature.Width / 2;
+                        pMaxArea.CenterPos.Y = pScanArea.Top + pRectFeature.Top + pRectFeature.Height / 2;
+                        pMaxArea.Width = pRectFeature.Right - pRectFeature.Left;
+                        pMaxArea.Height = pRectFeature.Bottom - pRectFeature.Top;
                     }
                 }
 
-                return new YoonObject<YoonRect2N>(nMaxLabel, pMaxArea, (YoonImage) pMaxImage.Clone(), dMaxScore,
-                    nMaxLength);
+                return new YoonObject(nMaxLabel, pMaxArea, (YoonImage) pMaxImage.Clone(), dMaxScore, nMaxLength);
             }
 
             public static IYoonObject FindMaxBlob(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
@@ -2037,35 +2029,35 @@ namespace YoonFactory.Image
                 bool isWhite, bool bSquareOnly = false, bool bNormalOnly = false)
             {
                 // Save found blobs as list
-                YoonDataset<YoonRect2N> pListObjectInfo =
-                    FindBlobs(pBuffer, nImageWidth, imageHeight, nThreshold, isWhite);
-                if (pListObjectInfo.Count == 0)
+                YoonDataset pDataset = FindBlobs(pBuffer, nImageWidth, imageHeight, nThreshold, isWhite);
+                if (pDataset.Count == 0)
                     throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Find Object List is empty");
                 int nOrder = 0;
                 int nMaxLength = 0;
                 YoonRect2N pRect = new YoonRect2N(0, 0, 0, 0);
-                for (int iObject = 0; iObject < pListObjectInfo.Count; iObject++)
+                for (int iObject = 0; iObject < pDataset.Count; iObject++)
                 {
 
-                    int nWidth = pListObjectInfo[iObject].Feature.Width;
-                    int nHeight = pListObjectInfo[iObject].Feature.Height;
-                    int nLength = pListObjectInfo[iObject].PixelCount;
+                    YoonRect2N pRectFeature = (YoonRect2N) pDataset[iObject].Feature;
+                    int nWidth = pRectFeature.Width;
+                    int nHeight = pRectFeature.Height;
+                    int nLength = pDataset[iObject].PixelCount;
                     if (bSquareOnly)
                     {
                         if (nWidth > 3 * nHeight || nHeight > 3 * nWidth)
                         {
-                            pListObjectInfo.RemoveAt(iObject);
+                            pDataset.RemoveAt(iObject);
                             continue;
                         }
                     }
 
                     if (bNormalOnly)
                     {
-                        int diffLeft = pListObjectInfo[iObject].Feature.Left;
-                        int diffTop = pListObjectInfo[iObject].Feature.Top;
+                        int diffLeft = pRectFeature.Left;
+                        int diffTop = pRectFeature.Top;
                         if (diffLeft <= 1 || diffTop <= 1)
                         {
-                            pListObjectInfo.RemoveAt(iObject);
+                            pDataset.RemoveAt(iObject);
                             continue;
                         }
                     }
@@ -2077,19 +2069,19 @@ namespace YoonFactory.Image
                     }
                 }
 
-                return pListObjectInfo[nOrder];
+                return pDataset[nOrder];
             }
 
-            public static YoonDataset<YoonRect2N> FindBlobs(YoonImage pSourceImage, YoonRect2N scanArea,
-                byte nThreshold = 128, bool bWhite = false)
+            public static YoonDataset FindBlobs(YoonImage pSourceImage, YoonRect2N scanArea, byte nThreshold = 128,
+                bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
                 return FindBlobs(pSourceImage.GetGrayBuffer(), pSourceImage.Width, scanArea, nThreshold, bWhite);
             }
 
-            public static YoonDataset<YoonRect2N> FindBlobs(byte[] pBuffer, int imageWidth, YoonRect2N scanArea,
-                byte nThreshold, bool bWhite)
+            public static YoonDataset FindBlobs(byte[] pBuffer, int imageWidth, YoonRect2N scanArea, byte nThreshold,
+                bool bWhite)
             {
                 int nLabelNo = 0;
                 int nWidth = scanArea.Width;
@@ -2097,7 +2089,7 @@ namespace YoonFactory.Image
                 if (nThreshold < 10) nThreshold = 10;
                 byte[] pTempBuffer = new byte[nWidth * nHeight];
                 YoonVector2N pStartVector = new YoonVector2N(0, 0);
-                YoonDataset<YoonRect2N> pListResult = new YoonDataset<YoonRect2N>();
+                YoonDataset pResultSet = new YoonDataset();
                 // Copy the source buffer into the temporary buffer
                 for (int j = 0; j < nHeight; j++)
                 {
@@ -2124,34 +2116,33 @@ namespace YoonFactory.Image
                     if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
                     // Bind the blob
-                    YoonObject<YoonRect2N> pObject =
+                    YoonObject pObject =
                         ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
-                            bWhite) as YoonObject<YoonRect2N>;
+                            bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
-                    //////  DetectEdge에서 Error가 발생했을 경우.
-                    if (pObject.Feature.Left == 0 || pObject.Feature.Top == 0 || pObject.Feature.Right == 0 ||
-                        pObject.Feature.Bottom == 0)
+                    YoonRect2N pFeature = pObject.Feature as YoonRect2N;
+                    Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
+                    // Error in edge detection
+                    if (pFeature.Left == 0 || pFeature.Top == 0 || pFeature.Right == 0 || pFeature.Bottom == 0)
                         break;
                     // Erase the rect when the blob is constructed only one pixel
-                    if (pObject.Feature.Left == -1 || pObject.Feature.Top == -1 || pObject.Feature.Right == -1 ||
-                        pObject.Feature.Bottom == -1)
+                    if (pFeature.Left == -1 || pFeature.Top == -1 || pFeature.Right == -1 || pFeature.Bottom == -1)
                         continue;
                     // Save the blob in the list
-                    if (pListResult.Count < MAX_OBJECT)
+                    if (pResultSet.Count < MAX_OBJECT)
                     {
                         pObject.Label = nLabelNo++;
-                        pListResult.Add(pObject);
+                        pResultSet.Add(pObject);
                     }
 
                     // Control the start vector to the end of these sequence
-                    pStartVector = (YoonVector2N) pObject.Feature.BottomRight.Clone() + new YoonVector2N(1, 1);
+                    pStartVector = (YoonVector2N) pFeature.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
 
-                return pListResult;
+                return pResultSet;
             }
 
-            public static YoonDataset<YoonRect2N> FindBlobs(YoonImage pSourceImage, byte nThreshold = 128,
-                bool bWhite = false)
+            public static YoonDataset FindBlobs(YoonImage pSourceImage, byte nThreshold = 128, bool bWhite = false)
             {
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
@@ -2159,10 +2150,9 @@ namespace YoonFactory.Image
                     bWhite);
             }
 
-            public static YoonDataset<YoonRect2N> FindBlobs(byte[] pBuffer, int nWidth, int nHeight, byte nThreshold,
-                bool bWhite)
+            public static YoonDataset FindBlobs(byte[] pBuffer, int nWidth, int nHeight, byte nThreshold, bool bWhite)
             {
-                YoonDataset<YoonRect2N> pListResult = new YoonDataset<YoonRect2N>();
+                YoonDataset pListResult = new YoonDataset();
                 int nLabelNo = 0;
                 if (nThreshold < 10) nThreshold = 10;
                 byte[] pTempBuffer = new byte[nWidth * nHeight];
@@ -2178,15 +2168,15 @@ namespace YoonFactory.Image
                     Debug.Assert(pResultVector != null, nameof(pResultVector) + " != null");
                     if (pResultVector.X == -1 && pResultVector.Y == -1)
                         break;
-                    YoonObject<YoonRect2N> pObject =
+                    YoonObject pObject =
                         ProcessBind(pTempBuffer, nWidth, nHeight, eYoonDir2D.Right, pResultVector, nThreshold,
-                            bWhite) as YoonObject<YoonRect2N>;
+                            bWhite) as YoonObject;
                     Debug.Assert(pObject != null, nameof(pObject) + " != null");
-                    if (pObject.Feature.Left == 0 || pObject.Feature.Top == 0 || pObject.Feature.Right == 0 ||
-                        pObject.Feature.Bottom == 0)
+                    YoonRect2N pFeature = pObject.Feature as YoonRect2N;
+                    Debug.Assert(pFeature != null, nameof(pFeature) + " != null");
+                    if (pFeature.Left == 0 || pFeature.Top == 0 || pFeature.Right == 0 || pFeature.Bottom == 0)
                         break;
-                    if (pObject.Feature.Left == -1 || pObject.Feature.Top == -1 || pObject.Feature.Right == -1 ||
-                        pObject.Feature.Bottom == -1)
+                    if (pFeature.Left == -1 || pFeature.Top == -1 || pFeature.Right == -1 || pFeature.Bottom == -1)
                         continue;
                     if (pListResult.Count < MAX_OBJECT)
                     {
@@ -2194,7 +2184,7 @@ namespace YoonFactory.Image
                         pListResult.Add(pObject);
                     }
 
-                    pStartVector = (YoonVector2N) pObject.Feature.BottomRight.Clone() + new YoonVector2N(1, 1);
+                    pStartVector = (YoonVector2N) pFeature.BottomRight.Clone() + new YoonVector2N(1, 1);
                 }
 
                 return pListResult;
@@ -2345,7 +2335,7 @@ namespace YoonFactory.Image
                         PixelFormat.Format8bppIndexed);
                 }
 
-                return new YoonObject<YoonRect2N>(0, pResultRect, pResultImage, nPixelCount);
+                return new YoonObject(0, pResultRect, pResultImage, nPixelCount);
             }
         }
 
@@ -3042,7 +3032,7 @@ namespace YoonFactory.Image
                     for (int j = 0; j < nTotalCount; j++)
                     {
                         if (i == j) continue;
-                        YoonRect2N pRect2 = pListTemp[j] as YoonRect2N;
+                        YoonRect2N pRect2 = pListTemp[j];
                         if (pRect2.Width == 0)
                             continue;
                         // Overlap two rectangles

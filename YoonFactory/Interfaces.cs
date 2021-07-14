@@ -51,7 +51,7 @@ namespace YoonFactory
         int Count { get; }
 
         bool Equals(IYoonVector pVector);
-        IYoonVector Clone();
+        new IYoonVector Clone();
         void CopyFrom(IYoonVector pVector);
         void Zero();
         IYoonVector Unit();
@@ -148,7 +148,7 @@ namespace YoonFactory
     {
         double Length { get; }
 
-        IYoonLine Clone();
+        new IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
         bool Equals(IYoonLine pLine);
         bool IsContain(IYoonVector pVector);
@@ -168,7 +168,7 @@ namespace YoonFactory
 
     public interface IYoonRect : IYoonFigure
     {
-        IYoonRect Clone();
+        new IYoonRect Clone();
         void CopyFrom(IYoonRect pRect);
         bool Equals(IYoonRect pRect);
         bool IsContain(IYoonVector pVector);
@@ -196,7 +196,7 @@ namespace YoonFactory
 
     public interface IYoonTriangle : IYoonFigure
     {
-        IYoonTriangle Clone();
+        new IYoonTriangle Clone();
         void CopyFrom(IYoonTriangle pTriangle);
     }
 
