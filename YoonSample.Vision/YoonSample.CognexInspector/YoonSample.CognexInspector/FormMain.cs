@@ -703,7 +703,7 @@ namespace YoonSample.CognexInspector
                             {
                                 DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "OK");
                                 if (pParamObjectExtract.IsUseBlob)
-                                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, string.Format("{0} ea", (CommonClass.pCogResultTemplate[pKey][eYoonCognexType.Blob][string.Empty].ObjectList.Count)));
+                                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, string.Format("{0} ea", (CommonClass.pCogResultTemplate[pKey][eYoonCognexType.Blob][string.Empty].ObjectDataset.Count)));
                                 else
                                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, nRowResult++, 1, "- ea");
                             }

@@ -162,6 +162,11 @@ namespace YoonFactory
             return hashCode;
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public static bool operator == (YoonLine2N l1, YoonLine2N l2)
         {
             return l1?.Equals(l2) == true;
@@ -326,6 +331,11 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + m_dSlope.GetHashCode();
             hashCode = hashCode * -1521134295 + m_dIntercept.GetHashCode();
             return hashCode;
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
         }
 
         public static bool operator ==(YoonLine2D l1, YoonLine2D l2)

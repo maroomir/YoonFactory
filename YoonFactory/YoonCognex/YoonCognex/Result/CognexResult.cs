@@ -11,7 +11,7 @@ namespace YoonFactory.Cognex.Result
         public CognexImage ResultImage { get; private set; } = null;
         public eYoonCognexType ToolType { get; private set; } = eYoonCognexType.None;
         public Dictionary<int, ICogShape> CogShapeDictionary { get; private set; } = new Dictionary<int, ICogShape>();
-        public ObjectList<IYoonFigure> ObjectList { get; private set; } = new ObjectList<IYoonFigure>();
+        public YoonDataset ObjectDataset { get; private set; } = new YoonDataset();
         public double TotalScore { get; private set; } = 0.0;
 
         public CognexResult(eYoonCognexType nType)
@@ -45,15 +45,15 @@ namespace YoonFactory.Cognex.Result
             {
                 CogRectangleAffine pCogRect = pResult.GetBoundingBox(CogBlobAxisConstants.Principal);
                 CogShapeDictionary.Add(pResult.ID, new CogRectangleAffine(pCogRect));
-                YoonObject<IYoonFigure> pObject = new YoonObject<IYoonFigure>();
+                YoonObject pObject = new YoonObject();
                 {
                     pObject.Label = pResult.ID;
-                    pObject.Object = new YoonRect2D(pCogRect.CenterX - pCogRect.SideXLength / 2, pCogRect.CenterY - pCogRect.SideYLength / 2, pCogRect.SideXLength, pCogRect.SideYLength);
+                    pObject.Feature = new YoonRect2D(pCogRect.CenterX - pCogRect.SideXLength / 2, pCogRect.CenterY - pCogRect.SideYLength / 2, pCogRect.SideXLength, pCogRect.SideYLength);
                     pObject.ReferencePosition = new YoonVector2D(pCogRect.CenterX, pCogRect.CenterY);
                     pObject.ObjectImage = pImageResult.CropImage(pCogRect.ToYoonRectAffine());
                     pObject.PixelCount = (int)pResult.Area;
                 }
-                ObjectList.Add(pObject);
+                ObjectDataset.Add(pObject);
             }
         }
 
@@ -63,16 +63,16 @@ namespace YoonFactory.Cognex.Result
             if (pImageResult != null)
                 ResultImage = pImageResult.Clone() as CognexImage;
 
-            YoonObject<IYoonFigure> pObject = new YoonObject<IYoonFigure>();
+            YoonObject pObject = new YoonObject();
             {
                 pObject.Label = 0;
                 YoonLine2D pObjectLine = new YoonLine2D(new YoonVector2D(pLine.StartX, pLine.StartY), new YoonVector2D(pLine.EndX, pLine.EndY));
-                pObject.Object = pObjectLine.Clone();
+                pObject.Feature = pObjectLine.Clone();
                 pObject.ReferencePosition = pObjectLine.CenterPos.Clone();
                 pObject.ObjectImage = pImageResult.CropImage(pObjectLine.Area);
                 pObject.PixelCount = (int)pObjectLine.Length;
             }
-            ObjectList.Add(pObject);
+            ObjectDataset.Add(pObject);
         }
 
         public CognexResult(CognexImage pImageResult, CogTransform2DLinear pResult, ICogRegion pPattern, double dScore)
@@ -81,7 +81,7 @@ namespace YoonFactory.Cognex.Result
             if (pImageResult != null)
                 ResultImage = pImageResult.Clone() as CognexImage;
 
-            YoonObject<IYoonFigure> pObject = new YoonObject<IYoonFigure>();
+            YoonObject pObject = new YoonObject();
             {
                 YoonVector2D vecFeature = new YoonVector2D(pResult.TranslationX, pResult.TranslationY);
                 double dScaleX = pResult.ScalingX;
@@ -102,12 +102,12 @@ namespace YoonFactory.Cognex.Result
                 }
                 pObject.Label = 0;
                 YoonRectAffine2D pRectAffine = new YoonRectAffine2D(vecFeature, dWidth, dHeight, pResult.Rotation);
-                pObject.Object = pRectAffine.Clone();
+                pObject.Feature = pRectAffine.Clone();
                 pObject.ReferencePosition = vecFeature.Clone();
                 pObject.ObjectImage = pImageResult.CropImage(pRectAffine);
                 pObject.Score = dScore * 100;
             }
-            ObjectList.Add(pObject);
+            ObjectDataset.Add(pObject);
             TotalScore = dScore;
         }
 
@@ -115,7 +115,7 @@ namespace YoonFactory.Cognex.Result
         {
             return ToolType.ToString() + strDelimiter +
                 CogShapeDictionary.Count.ToString() + strDelimiter +
-                ObjectList.Count.ToString() + strDelimiter +
+                ObjectDataset.Count.ToString() + strDelimiter +
                 TotalScore.ToString();
         }
 
@@ -131,8 +131,8 @@ namespace YoonFactory.Cognex.Result
                 foreach (int nNo in CogShapeDictionary.Keys)
                     if (!pResultCognex.CogShapeDictionary.ContainsKey(nNo) || pResultCognex.CogShapeDictionary[nNo] != CogShapeDictionary[nNo])
                         return false;
-                for (int iObject = 0; iObject < ObjectList.Count; iObject++)
-                    if (pResultCognex.ObjectList[iObject] != ObjectList[iObject])
+                for (int iObject = 0; iObject < ObjectDataset.Count; iObject++)
+                    if (pResultCognex.ObjectDataset[iObject] != ObjectDataset[iObject])
                         return false;
 
                 return true;
@@ -150,7 +150,7 @@ namespace YoonFactory.Cognex.Result
                     ResultImage = pResultCognex.ResultImage.Clone() as CognexImage;
                 ToolType = pResultCognex.ToolType;
                 CogShapeDictionary = new Dictionary<int, ICogShape>(pResultCognex.CogShapeDictionary);
-                ObjectList = pResultCognex.ObjectList.Clone();
+                ObjectDataset = pResultCognex.ObjectDataset.Clone();
                 TotalScore = pResultCognex.TotalScore;
             }
         }
@@ -162,7 +162,7 @@ namespace YoonFactory.Cognex.Result
             if (ResultImage != null)
                 pTargetResult.ResultImage = ResultImage.Clone() as CognexImage;
             pTargetResult.CogShapeDictionary = new Dictionary<int, ICogShape>(CogShapeDictionary);
-            pTargetResult.ObjectList = ObjectList.Clone();
+            pTargetResult.ObjectDataset = ObjectDataset.Clone();
             pTargetResult.TotalScore = TotalScore;
             return pTargetResult;
         }
@@ -171,9 +171,9 @@ namespace YoonFactory.Cognex.Result
         {
             if (ToolType != eYoonCognexType.PMAlign) return new YoonVector2D();
 
-            if (ObjectList[0].Object is YoonRect2D pRect)
+            if (ObjectDataset[0].Feature is YoonRect2D pRect)
                 return pRect.CenterPos as YoonVector2D;
-            else if (ObjectList[0].Object is YoonRectAffine2D pRectAffine)
+            else if (ObjectDataset[0].Feature is YoonRectAffine2D pRectAffine)
                 return pRectAffine.CenterPos as YoonVector2D;
             else
                 throw new FormatException("[YOONCOGNEX] Object format is not correct");
@@ -183,7 +183,7 @@ namespace YoonFactory.Cognex.Result
         {
             if (ToolType != eYoonCognexType.PMAlign) return new YoonRectAffine2D(0, 0, 0);
 
-            else if (ObjectList[0].Object is YoonRectAffine2D pRectAffine)
+            else if (ObjectDataset[0].Feature is YoonRectAffine2D pRectAffine)
                 return pRectAffine;
             else
                 throw new FormatException("[YOONCOGNEX] Object format is not correct");
@@ -192,7 +192,7 @@ namespace YoonFactory.Cognex.Result
         public double GetPatternRotation()
         {
             if (ToolType != eYoonCognexType.PMAlign) return 0.0;
-            if (ObjectList[0].Object is YoonRectAffine2D pRect)
+            if (ObjectDataset[0].Feature is YoonRectAffine2D pRect)
                 return pRect.Rotation;
             throw new FormatException("[YOONCOGNEX] Object format is not correct");
         }

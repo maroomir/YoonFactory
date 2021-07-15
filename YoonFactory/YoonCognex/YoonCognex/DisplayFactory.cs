@@ -189,11 +189,11 @@ namespace YoonFactory.Cognex
                 if (pDisplay == null || pDisplay.IsDisposed) return false;
                 if (pResult == null || pResult.ToolType != eYoonCognexType.Blob) return false;
                 if (pResult.CogShapeDictionary == null || pResult.CogShapeDictionary.Count == 0) return false;
-                if (pResult.ObjectList == null || pResult.ObjectList.Count == 0) return false;
+                if (pResult.ObjectDataset == null || pResult.ObjectDataset.Count == 0) return false;
 
                 foreach (int nID in pResult.CogShapeDictionary.Keys)
                 {
-                    if (pResult.ObjectList.Search(nID)?.PixelCount < nMinimumPixelCount) continue;
+                    if (pResult.ObjectDataset.Search(nID)?.PixelCount < nMinimumPixelCount) continue;
 
                     CogRectangleAffine cogRectAffine = pResult.CogShapeDictionary[nID] as CogRectangleAffine;
                     {
@@ -225,12 +225,12 @@ namespace YoonFactory.Cognex
             {
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
-                if (pResult.ObjectList[0].Object is YoonRectAffine2D pPickArea)
+                if (pResult.ObjectDataset[0].Feature is YoonRectAffine2D pPickArea)
                 {
                     YoonVector2D pMatchPos = pPickArea.CenterPos as YoonVector2D;
                     if (pMatchPos.X == 0.0 && pMatchPos.Y == 0.0)
                         return false;
-                    if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pResult.ObjectList[0].Score == 0)
+                    if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pResult.ObjectDataset[0].Score == 0)
                         return false;
 
                     double dLineLength = 2.0;
@@ -251,9 +251,9 @@ namespace YoonFactory.Cognex
                     pDisplay.InteractiveGraphics.Add(cogLine_Horz, strGroup, false);
                     pDisplay.InteractiveGraphics.Add(cogLine_Vert, strGroup, false);
 
-                    if (bDisplayText == true && pResult.ObjectList[0].Score > 0)
+                    if (bDisplayText == true && pResult.ObjectDataset[0].Score > 0)
                     {
-                        string strTextScore = string.Format("Mark={0:0.0}", pResult.ObjectList[0].Score);
+                        string strTextScore = string.Format("Mark={0:0.0}", pResult.ObjectDataset[0].Score);
                         CogGraphicLabel cogLabel = new CogGraphicLabel();
                         {
                             cogLabel.BackgroundColor = CogColorConstants.None;
@@ -276,12 +276,12 @@ namespace YoonFactory.Cognex
                 if (pResult == null || pResult.ToolType != eYoonCognexType.PMAlign)
                     return false;
 
-                if (pResult.ObjectList[0].Object is YoonRectAffine2D pPickArea)
+                if (pResult.ObjectDataset[0].Feature is YoonRectAffine2D pPickArea)
                 {
                     YoonVector2D pMatchPos = pPickArea.CenterPos as YoonVector2D;
                     if (pMatchPos.X == 0.0 && pMatchPos.Y == 0.0)
                         return false;
-                    if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pResult.ObjectList[0].Score == 0)
+                    if (pPickArea.Width == 0.0 || pPickArea.Height == 0.0 || pResult.ObjectDataset[0].Score == 0)
                         return false;
                     CogRectangle fCogRectMatchResult = new CogRectangle();
                     {
@@ -294,9 +294,9 @@ namespace YoonFactory.Cognex
                     }
                     pDisplay.InteractiveGraphics.Add(fCogRectMatchResult, strGroup, false);
 
-                    if (bDisplayText == true && pResult.ObjectList[0].Score > 0)
+                    if (bDisplayText == true && pResult.ObjectDataset[0].Score > 0)
                     {
-                        string strTextScore = string.Format("Mark={0:0.0}", pResult.ObjectList[0].Score);
+                        string strTextScore = string.Format("Mark={0:0.0}", pResult.ObjectDataset[0].Score);
                         CogGraphicLabel cogLabel = new CogGraphicLabel();
                         {
                             cogLabel.BackgroundColor = CogColorConstants.None;

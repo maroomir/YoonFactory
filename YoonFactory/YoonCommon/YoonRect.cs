@@ -291,6 +291,11 @@ namespace YoonFactory
             return new YoonRect2D(CenterPos.X, CenterPos.Y, Width, Height);
         }
 
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public static YoonRect2N operator +(YoonRect2N r1, YoonRect2N r2)
         {
             int nTop = Math.Min(r1.Top, r2.Top);
@@ -598,6 +603,11 @@ namespace YoonFactory
         public YoonRect2N ToRect2N()
         {
             return new YoonRect2N((int)CenterPos.X, (int)CenterPos.Y, (int)Width, (int)Height);
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
         }
 
         public static YoonRect2D operator +(YoonRect2D r1, YoonRect2D r2)

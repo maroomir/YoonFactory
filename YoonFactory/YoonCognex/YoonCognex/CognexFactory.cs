@@ -16,9 +16,9 @@ namespace YoonFactory.Cognex
         public static CognexImage CropImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.Crop(pSourceImage, pRect);
         public static CognexImage ResizeImage(this CognexImage pSourceImage, double dSourceWidth, double dSourceHeight) => Transform.Resize(pSourceImage, dSourceWidth, dSourceHeight);
         public static CognexImage ResizeImage(this CognexImage pSourceImage, IYoonRect pRect) => Transform.Resize(pSourceImage, pRect);
-        public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect) => PatternMatch.CropPattern(pSourceImage, pRect);
-        public static YoonObject<YoonRect2D> CropPattern(this CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos) => PatternMatch.CropPattern(pSourceImage, pRect);
-        public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold) => PatternMatch.FindPattern(pSourceImage, pPatternObject, dMatchThreshold);
+        public static YoonObject CropPattern(this CognexImage pSourceImage, YoonRect2D pRect) => PatternMatch.CropPattern(pSourceImage, pRect);
+        public static YoonObject CropPattern(this CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos) => PatternMatch.CropPattern(pSourceImage, pRect);
+        public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject pPatternObject, double dMatchThreshold) => PatternMatch.FindPattern(pSourceImage, pPatternObject, dMatchThreshold);
         public static CognexImage Subtract(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.Subtract(pSourceImage, pObjectImage);
         public static CognexImage Add(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.Add(pSourceImage, pObjectImage);
         public static CognexImage OverlapMax(this CognexImage pSourceImage, CognexImage pObjectImage) => TwoImageProcess.OverlapMax(pSourceImage, pObjectImage);
@@ -179,24 +179,24 @@ namespace YoonFactory.Cognex
 
         public static class PatternMatch
         {
-            public static YoonObject<YoonRect2D> CropPattern(CognexImage pSourceImage, YoonRect2D pRect)
+            public static YoonObject CropPattern(CognexImage pSourceImage, YoonRect2D pRect)
             {
-                YoonObject<YoonRect2D> pObject = new YoonObject<YoonRect2D>();
+                YoonObject pObject = new YoonObject();
                 {
                     pObject.Label = 0;
-                    pObject.Object = pRect.Clone() as YoonRect2D;
+                    pObject.Feature = pRect.Clone() as YoonRect2D;
                     pObject.ObjectImage = pSourceImage.CropImage(pRect);
                     pObject.ReferencePosition = pRect.CenterPos.Clone();
                 }
                 return pObject;
             }
 
-            public static YoonObject<YoonRect2D> CropPattern(CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos)
+            public static YoonObject CropPattern(CognexImage pSourceImage, YoonRect2D pRect, YoonVector2D pOriginPos)
             {
-                YoonObject<YoonRect2D> pObject = new YoonObject<YoonRect2D>();
+                YoonObject pObject = new YoonObject();
                 {
                     pObject.Label = 0;
-                    pObject.Object = pRect.Clone() as YoonRect2D;
+                    pObject.Feature = pRect.Clone() as YoonRect2D;
                     pObject.ObjectImage = pSourceImage.CropImage(pRect);
                     pObject.ReferencePosition = pOriginPos.Clone();
                 }
@@ -294,7 +294,7 @@ namespace YoonFactory.Cognex
                 else return null;
             }
 
-            public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject<YoonRect2D> pPatternObject, double dMatchThreshold,
+            public static CognexResult FindPattern(CognexImage pSourceImage, YoonObject pPatternObject, double dMatchThreshold,
                 bool bAutoLimited = true, bool bAutoThreshold = true, double dCoarseLimit = 10.0, double dFineLimit = 3.0, double dThreshold = 30.0,
                 bool bUseZoneAngle = true, bool bUseZoneScale = true, double dZoneAngleLow = 0.1, double dZoneAngleHigh = 2.0, double dZoneScaleLow = 0.1, double dZoneScaleHigh = 2.0)
             {
