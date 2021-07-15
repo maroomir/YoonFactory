@@ -32,7 +32,14 @@ namespace YoonFactory.Comm.Serial
         private SerialPort _pSerial = new SerialPort();
 
         public string Port { get; set; }
+
+        public StringBuilder sbReceiveMessage { get; }
         
+        public YoonSerial()
+        {
+            //
+        }
+
         public void CopyFrom(IYoonComm pComm)
         {
             throw new NotImplementedException();
@@ -51,11 +58,6 @@ namespace YoonFactory.Comm.Serial
         public bool Send(byte[] pBuffer)
         {
             throw new NotImplementedException();
-        }
-
-        public YoonSerial()
-        {
-            //
         }
 
         public bool Open()

@@ -6,14 +6,15 @@ namespace YoonFactory.Comm
     public interface IYoonComm : IDisposable
     {
         string Port { get; set; }
+        StringBuilder sbReceiveMessage { get; }
         
         void CopyFrom(IYoonComm pComm);
         IYoonComm Clone();
         
-        bool Send(string strBuffer);
-        bool Send(byte[] pBuffer);
         bool Open();
         void Close();
+        bool Send(string strBuffer);
+        bool Send(byte[] pBuffer);
     }
 
     public interface IYoonTcpIp : IYoonComm
@@ -26,7 +27,6 @@ namespace YoonFactory.Comm
         bool IsRetryOpen { get; }
         bool IsSend { get; }
         bool IsConnected { get; }
-        StringBuilder sbReceiveMessage { get; }
 
         void LoadParam();
         void SaveParam();

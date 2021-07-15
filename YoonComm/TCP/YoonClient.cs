@@ -9,79 +9,67 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Comm.TCP
 {
-    public class YoonClient : IYoonTcpIp, IDisposable
+    public class YoonClient : IYoonTcpIp
     {
 
         #region IDisposable Support
-        private bool disposedValue = false; // 중복 호출을 검색하려면
+        private bool _disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
-                    // TODO: 관리되는 상태(관리되는 개체)를 삭제합니다.
                     if (m_clientSocket != null)
                     {
                         m_clientSocket.Disconnect(false);
                         m_clientSocket.Dispose();
                     }
                 }
-
-                // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
-                // TODO: 큰 필드를 null로 설정합니다.
                 // Close RetryConnect Thread
                 OnRetryThreadStop();
                 // Refund memory to main function
                 m_threadRetryConnect = null;
-
                 m_clientSocket = null;
                 m_sendHandler = null;
                 m_receiveHandler = null;
-
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
-        public YoonClient()
-        {
-            // 비동기 작업에 사용될 대리자를 초기화합니다.
-            m_sendHandler = new AsyncCallback(OnSendEvent);
-            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
-
-            // 관리 가능한 변수를 초기화합니다.
-            sbReceiveMessage = new StringBuilder(string.Empty);
-        }
-
-        public YoonClient(string strParamDirectory)
-        {
-            // 비동기 작업에 사용될 대리자를 초기화합니다.
-            m_sendHandler = new AsyncCallback(OnSendEvent);
-            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
-
-            // 관리 가능한 변수를 초기화합니다.
-            sbReceiveMessage = new StringBuilder(string.Empty);
-
-            RootDirectory = strParamDirectory;
-            LoadParam();
-        }
-
-        // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
         ~YoonClient()
         {
             Dispose(false);
         }
 
-        // 삭제 가능한 패턴을 올바르게 구현하기 위해 추가된 코드입니다.
         public void Dispose()
         {
-            // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
             Dispose(true);
-            // TODO: 위의 종료자가 재정의된 경우 다음 코드 줄의 주석 처리를 제거합니다.
             GC.SuppressFinalize(this);
         }
         #endregion
+        
+        public YoonClient()
+        {
+            // Initialize the delegate to use async works
+            m_sendHandler = new AsyncCallback(OnSendEvent);
+            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
+            // Initialize message parameter
+            sbReceiveMessage = new StringBuilder(string.Empty);
+        }
+
+        public YoonClient(string strParamDirectory)
+        {
+            // Initialize the delegate to use async works
+            m_sendHandler = new AsyncCallback(OnSendEvent);
+            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
+            // Initialize message parameter
+            sbReceiveMessage = new StringBuilder(string.Empty);
+
+            RootDirectory = strParamDirectory;
+            LoadParam();
+        }
 
         protected class AsyncObject
         {
@@ -137,16 +125,14 @@ namespace YoonFactory.Comm.TCP
 
         public void CopyFrom(IYoonComm pComm)
         {
-            if (pComm is YoonClient pClient)
-            {
-                Disconnect();
-                if (pClient.IsConnected)
-                    pClient.Disconnect();
+            if (pComm is not YoonClient pClient) return;
+            Disconnect();
+            if (pClient.IsConnected)
+                pClient.Disconnect();
 
-                LoadParam();
-                Address = pClient.Address;
-                Port = pClient.Port;
-            }
+            LoadParam();
+            Address = pClient.Address;
+            Port = pClient.Port;
         }
 
         public IYoonComm Clone()
@@ -159,34 +145,24 @@ namespace YoonFactory.Comm.TCP
             pClient.Port = Port;
             return pClient;
         }
-
-        /// <summary>
-        /// Parameter를 설정한다.
-        /// </summary>
-        /// <param name="ip">IP 주소  (ex. 192.168.1.1)</param>
-        /// <param name="port">Port Num  (ex. 5000)</param>
-        /// <param name="retryConnect">재시도 여부  (ex.  true)</param>
-        /// <param name="timeout">Time Out 예상 시간  (ex. 5000)</param>
-        /// <param name="retryCount">재시도 횟수  (ex. 1)</param>
-        /// <param name="elapsedTime">ACK Timeout 시간  (ex. 5000)</param>
-        public void SetParam(string ip, string port, string retryConnect, string timeout, string retryCount, string elapsedTime)
+        public void SetParam(string strIP, string strPort, string strRetryConnect, string strTimeout, string strRetryCount, string strElapsedTime)
         {
-            Param.IP = ip;
-            Param.Port = port;
-            Param.RetryConnect = retryConnect;
-            Param.Timeout = timeout;
-            Param.RetryCount = retryCount;
-            Param.ElapsedTime = elapsedTime;
+            Param.IP = strIP;
+            Param.Port = strPort;
+            Param.RetryConnect = strRetryConnect;
+            Param.Timeout = strTimeout;
+            Param.RetryCount = strRetryCount;
+            Param.ElapsedTime = strElapsedTime;
         }
 
-        public void SetParam(string ip, int port, bool retryConnect, int timeout, int retryCount, int elapsedTime)
+        public void SetParam(string strIP, int nPort, bool bRetryConnect, int nTimeout, int nRetryCount, int nElapsedTime)
         {
-            Param.IP = ip;
-            Param.Port = port.ToString();
-            Param.RetryConnect = retryConnect.ToString();
-            Param.Timeout = timeout.ToString();
-            Param.RetryCount = retryCount.ToString();
-            Param.ElapsedTime = elapsedTime.ToString();
+            Param.IP = strIP;
+            Param.Port = nPort.ToString();
+            Param.RetryConnect = bRetryConnect.ToString();
+            Param.Timeout = nTimeout.ToString();
+            Param.RetryCount = nRetryCount.ToString();
+            Param.ElapsedTime = nElapsedTime.ToString();
         }
 
         public void LoadParam()

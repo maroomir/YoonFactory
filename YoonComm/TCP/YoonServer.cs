@@ -118,11 +118,11 @@ namespace YoonFactory.Comm.TCP
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
         public string Port
         {
-            get => Param.fPort;
+            get => Param.Port;
             set
             {
                 if (TCPFactory.VerifyPort(value))
-                    Param.fPort = value;
+                    Param.Port = value;
             }
         }
 
@@ -160,11 +160,11 @@ namespace YoonFactory.Comm.TCP
 
         private struct Param
         {
-            public static string fPort = "1234";
-            public static string fBacklog = "5";
-            public static string fRetryCount = "10";
-            public static string fRetryListen = "true";
-            public static string fTimeout = "10000";
+            public static string Port = "1234";
+            public static string Backlog = "5";
+            public static string RetryCount = "10";
+            public static string RetryListen = "true";
+            public static string Timeout = "10000";
         }
 
         /// <summary>
@@ -177,20 +177,20 @@ namespace YoonFactory.Comm.TCP
         /// <param name="retryCount">재시도 횟수  (ex. 1)</param>
         public void SetParam(string port, string backlog, string retryListen, string timeout, string retryCount)
         {
-            Param.fPort = port;
-            Param.fBacklog = backlog;
-            Param.fRetryCount = retryCount;
-            Param.fRetryListen = retryListen;
-            Param.fTimeout = timeout;
+            Param.Port = port;
+            Param.Backlog = backlog;
+            Param.RetryCount = retryCount;
+            Param.RetryListen = retryListen;
+            Param.Timeout = timeout;
         }
 
         public void SetParam(int port, int backlog, bool IsRetryListen, int timeout, int retryCount)
         {
-            Param.fPort = port.ToString();
-            Param.fBacklog = backlog.ToString();
-            Param.fRetryListen = IsRetryListen.ToString();
-            Param.fTimeout = timeout.ToString();
-            Param.fRetryCount = retryCount.ToString();
+            Param.Port = port.ToString();
+            Param.Backlog = backlog.ToString();
+            Param.RetryListen = IsRetryListen.ToString();
+            Param.Timeout = timeout.ToString();
+            Param.RetryCount = retryCount.ToString();
         }
 
         public void LoadParam()
@@ -199,11 +199,11 @@ namespace YoonFactory.Comm.TCP
             using (YoonIni ic = new YoonIni(strParamFilePath))
             {
                 ic.LoadFile();
-                Param.fPort = ic["Server"]["Port"].ToString("1234");
-                Param.fBacklog = ic["Server"]["Backlog"].ToString("5");
-                Param.fRetryListen = ic["Server"]["RetryListen"].ToString("true");
-                Param.fRetryCount = ic["Server"]["RetryCount"].ToString("10");
-                Param.fTimeout = ic["Server"]["TimeOut"].ToString("10000");
+                Param.Port = ic["Server"]["Port"].ToString("1234");
+                Param.Backlog = ic["Server"]["Backlog"].ToString("5");
+                Param.RetryListen = ic["Server"]["RetryListen"].ToString("true");
+                Param.RetryCount = ic["Server"]["RetryCount"].ToString("10");
+                Param.Timeout = ic["Server"]["TimeOut"].ToString("10000");
             }
         }
 
@@ -212,11 +212,11 @@ namespace YoonFactory.Comm.TCP
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
             using (YoonIni ic = new YoonIni(strParamFilePath))
             {
-                ic["Server"]["Port"] = Param.fPort;
-                ic["Server"]["Backlog"] = Param.fBacklog;
-                ic["Server"]["RetryListen"] = Param.fRetryListen;
-                ic["Server"]["RetryCount"] = Param.fRetryCount;
-                ic["Server"]["TimeOut"] = Param.fTimeout;
+                ic["Server"]["Port"] = Param.Port;
+                ic["Server"]["Backlog"] = Param.Backlog;
+                ic["Server"]["RetryListen"] = Param.RetryListen;
+                ic["Server"]["RetryCount"] = Param.RetryCount;
+                ic["Server"]["TimeOut"] = Param.Timeout;
                 ic.SaveFile();
             }
         }
@@ -296,10 +296,10 @@ namespace YoonFactory.Comm.TCP
             {
                 m_serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
+                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.Port)));
                 //// Binding port and Listening per backlogging
-                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
-                m_serverSocket.Listen(int.Parse(Param.fBacklog));
+                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.Port)));
+                m_serverSocket.Listen(int.Parse(Param.Backlog));
                 //// Associate the connection request
                 IAsyncResult asyncResult = m_serverSocket.BeginAccept(m_acceptHandler, null);
             }
@@ -344,13 +344,13 @@ namespace YoonFactory.Comm.TCP
             {
                 m_serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
 
-                Param.fPort = strPort;
+                Param.Port = strPort;
 
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
+                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.Port)));
                 //// Binding Port and Listening per backlogging
-                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
-                m_serverSocket.Listen(int.Parse(Param.fBacklog));
+                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.Port)));
+                m_serverSocket.Listen(int.Parse(Param.Backlog));
                 //// Associate the connection request
                 IAsyncResult asyncResult = m_serverSocket.BeginAccept(m_acceptHandler, null);
             }
@@ -457,7 +457,7 @@ namespace YoonFactory.Comm.TCP
         /// </summary>
         public void OnRetryThreadStart()
         {
-            if (Param.fRetryListen == Boolean.FalseString)
+            if (Param.RetryListen == Boolean.FalseString)
                 return;
             m_threadRetryListen = new Thread(new ThreadStart(ProcessRetry));
             m_threadRetryListen.Name = "Retry Listen";
@@ -482,8 +482,8 @@ namespace YoonFactory.Comm.TCP
             m_StopWatch.Start();
 
             OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Retry Start")));
-            int nCount = Convert.ToInt32(Param.fRetryCount);
-            int nTimeOut = Convert.ToInt32(Param.fTimeout);
+            int nCount = Convert.ToInt32(Param.RetryCount);
+            int nTimeOut = Convert.ToInt32(Param.Timeout);
 
             for (int iRetry = 0; iRetry < nCount; iRetry++)
             {
