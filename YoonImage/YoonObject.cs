@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using YoonFactory.Image;
 
 namespace YoonFactory
@@ -88,8 +86,6 @@ namespace YoonFactory
                     ReferencePosition = new YoonVector2N();
                     break;
             }
-
-            ObjectImage = new YoonImage();
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage)
@@ -97,6 +93,7 @@ namespace YoonFactory
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -130,8 +127,6 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
-
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage)
@@ -139,6 +134,8 @@ namespace YoonFactory
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
+            ReferencePosition = pPosReference.Clone();
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case IYoonRect pRect:
@@ -153,9 +150,6 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
-
-            ReferencePosition = pPosReference.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage, int nCount)
@@ -163,6 +157,7 @@ namespace YoonFactory
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = nCount;
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -196,8 +191,6 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
-
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage,
@@ -206,6 +199,8 @@ namespace YoonFactory
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = nCount;
+            ReferencePosition = pPosReference.Clone();
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case IYoonRect pRect:
@@ -220,9 +215,6 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
-
-            ReferencePosition = pPosReference.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, YoonImage pObjectImage, double dScore, int nCount)
@@ -230,6 +222,7 @@ namespace YoonFactory
             Label = nLabel;
             Score = dScore;
             PixelCount = nCount;
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
                 case YoonRect2N pRect2N:
@@ -263,8 +256,6 @@ namespace YoonFactory
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
-
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage,
@@ -274,6 +265,8 @@ namespace YoonFactory
             Label = nLabel;
             Score = dScore;
             PixelCount = nCount;
+            ReferencePosition = pPosReference.Clone();
+            ObjectImage = pObjectImage.Clone() as YoonImage;
             Feature = pFeature switch
             {
                 IYoonRect pRect => pRect.Clone(),
@@ -281,9 +274,6 @@ namespace YoonFactory
                 IYoonVector pVector => pVector.Clone(),
                 _ => throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct")
             };
-
-            ReferencePosition = pPosReference.Clone();
-            ObjectImage = pObjectImage.Clone() as YoonImage;
         }
 
         public void CopyFrom(IYoonObject pObject)
@@ -314,40 +304,38 @@ namespace YoonFactory
 
         public bool Equals(IYoonObject pObject)
         {
-            if (pObject is YoonObject pYoonObject)
+            if (pObject is not YoonObject pYoonObject) return false;
+            switch (pYoonObject.Feature)
             {
-                switch (pYoonObject.Feature)
-                {
-                    case IYoonRect pRect:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pRect.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    case IYoonLine pLine:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pLine.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    case IYoonVector pVector:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pVector.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    default:
-                        throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
-                }
+                case IYoonRect pRect:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pRect.Equals(Feature) &&
+                        pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                case IYoonLine pLine:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pLine.Equals(Feature) &&
+                        pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                case IYoonVector pVector:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pVector.Equals(Feature) &&
+                        pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
 
             return false;
