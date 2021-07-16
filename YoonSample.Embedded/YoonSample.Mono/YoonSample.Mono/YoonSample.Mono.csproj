@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{B54DB1F9-10A9-4582-B1C4-45791698D8E5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|X86' ">
+    <Platform Condition=" '$(Platform)' == '' ">X86</Platform>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Debug\X86</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Debug</IntermediateOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|X86' ">
+    <Platform Condition=" '$(Platform)' == '' ">X86</Platform>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Release\X86</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Release</IntermediateOutputPath>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Debug\AnyCPU</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Debug</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Release\AnyCPU</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Release</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|X64' ">
+    <Platform Condition=" '$(Platform)' == '' ">X64</Platform>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Debug\X64</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Debug</IntermediateOutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|X64' ">
+    <Platform Condition=" '$(Platform)' == '' ">X64</Platform>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Release\X64</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\anycpu\Release</IntermediateOutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="gtk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="gdk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glib-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glade-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="pango-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="atk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Mono.Posix" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="gtk-gui\gui.stetic">
+      <LogicalName>gui.stetic</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="gtk-gui\generated.cs" />
+    <Compile Include="MainWindow.cs" />
+    <Compile Include="gtk-gui\MainWindow.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CommonClass.cs" />
+    <Compile Include="ParameterClass.cs" />
+    <Compile Include="InterfaceClass.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonLog\YoonLog\YoonLog.csproj">
+      <Project>{C347EBD9-6691-43F6-A83E-97EBAB6988E8}</Project>
+      <Name>YoonLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonMono\YoonMono\YoonMono.csproj">
+      <Project>{52185DE2-98A5-4A36-974C-C451A226EF0F}</Project>
+      <Name>YoonMono</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonCommon\YoonCommon.csproj">
+      <Project>{1F8E210E-2C3B-4084-AF34-855673EFEFC0}</Project>
+      <Name>YoonCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonComm\YoonComm\YoonComm.csproj">
+      <Project>{CB506015-8250-4E52-B9D3-D7F9620F4CB9}</Project>
+      <Name>YoonComm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428CEA-A460-47A6-AE13-50C17EA6727F}</Project>
+      <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>
+      <Name>YoonParameter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

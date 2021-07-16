@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YoonSample.Xamarin.MainPage">
+
+    <StackLayout>
+        <Frame BackgroundColor="#2196F3" Padding="24" CornerRadius="0">
+            <Label Text="YoonSample" HorizontalTextAlignment="Center" VerticalTextAlignment="End" TextColor="White" FontSize="36"/>
+        </Frame>
+        <StackLayout>
+            <Label Text="Set-up and Simulator for Remote Control" FontSize="Body" Padding="30,0,30,0"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Text="Setting" FontSize="Title" Padding="30,12,30,10"/>
+                <Button x:Name="button_ChangeConnection" Grid.Column="1" Text="Connect" Padding="0,10,0,10"
+                        Clicked="OnClickChangeConnectionButton"/>
+            </Grid>
+            <Grid Padding="0,10,0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="1. Address" FontSize="Large" Padding="30,12,30,10"/>
+                <Entry x:Name="entry_SettingIPAddress" Grid.Row="0" Grid.Column="1" Placeholder="127.0.0.1" FontSize="Default" FontAttributes="Italic" Margin="0,0,30,0"/>
+                <Label Grid.Row="1" Grid.Column="0" Text="2. Port" FontSize="Large" Padding="30,12,30,10"/>
+                <Entry x:Name="entry_SettingPort" Grid.Row="1" Grid.Column="1" Placeholder="5000" FontSize="Default" FontAttributes="Italic" Margin="0,0,30,0"/>
+                <Label Grid.Row="2" Grid.Column="0" Text="3. As server" FontSize="Large" Padding="30,12,30,10"/>
+                <Switch x:Name="switch_SettingTCPServer" Grid.Row="2" Grid.Column="1" IsToggled="false" Margin="0,12,30,10"
+                        Toggled="OnToggledTcpSettingSwitch"/>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Column="0" Text="Send Message" FontSize="Title" Padding="30,0,30,0"/>
+                <Button x:Name="button_SendMessage" Grid.Column="1" Text="Send" Padding="0,10,0,10"
+                        Clicked="OnClickSendMessageButton"/>
+            </Grid>
+            <Entry x:Name="entry_SendMessage" Grid.Column="0" Placeholder="Message" FontSize="Default" ClearButtonVisibility="WhileEditing" Margin="30,0,30,10"/>
+            <Label Text="Receive Message" FontSize="Title" Padding="30,12,30,0"/>
+            <Editor x:Name="editor_ReceiveMessages" Placeholder="String Received" FontSize="Default" Margin="30,0,30,10" IsReadOnly="True"/>
+        </StackLayout>
+        <Label FontSize="Caption" Padding="30,24,30,0" HorizontalTextAlignment="End">
+            <Label.FormattedText>
+                <FormattedString>
+                    <FormattedString.Spans>
+                        <Span Text="Provided by "/>
+                        <Span Text="maroomir@gmail.com" FontAttributes="Bold"/>
+                    </FormattedString.Spans>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+    </StackLayout>
+
+</ContentPage>
