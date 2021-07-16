@@ -35,28 +35,7 @@ namespace YoonSample.ImageViewer
                     comboBox_Camera.Items.Add(strCamera);
                 }
             }
-            CommonClass.pCLM.Write("Init Image Viewer");
-            {
-                imageViewer_Main.OnGetGuidePoint += OnUpdateCurrentPoint;
-                imageViewer_Main.OnGetPixel += OnUpdateCurrentPixel;
-                imageViewer_Main.OnMeasurement += OnUpdateCurrentMeasurement;
-            }
             CommonClass.pCLM.Write("Load Form Completed");
-        }
-
-        private void OnUpdateCurrentMeasurement(object sender, YoonFactory.Viewer.MeasureArgs e)
-        {
-            //
-        }
-
-        private void OnUpdateCurrentPixel(object sender, YoonFactory.Viewer.PixelArgs e)
-        {
-            //
-        }
-
-        private void OnUpdateCurrentPoint(object sender, YoonFactory.Viewer.PointArgs e)
-        {
-            //
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -74,17 +53,16 @@ namespace YoonSample.ImageViewer
             {
                 case eYoonCamera.BaslerColor:
                     CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3);
-                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
+                    imageViewer_Main.ViewImage = CommonClass.pImage;
                     break;
                 case eYoonCamera.RealsenseColor:
                     CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 3, eYoonRGBMode.Mixed);
-                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
                 case eYoonCamera.BaslerMono:
                     CommonClass.pImage = new YoonImage(e.pAddressBuffer, (int)e.Width, (int)e.Height, 1);
-                    imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
                     break;
             }
+            imageViewer_Main.ViewImage = CommonClass.pImage;
             imageViewer_Main.DrawImage();
         }
 
@@ -116,10 +94,7 @@ namespace YoonSample.ImageViewer
                     CommonClass.pImage.Dispose();
 
                 CommonClass.pImage.LoadImage(pDlg.FileName);
-                imageViewer_Main.InputImage = CommonClass.pImage.CopyImage();
-                imageViewer_Main.IsEnabledDraw = true;
-                imageViewer_Main.SetImageSize(CommonClass.pImage.Width, CommonClass.pImage.Height);
-                imageViewer_Main.SetDoubleBuffering();
+                imageViewer_Main.ViewImage = CommonClass.pImage;
                 imageViewer_Main.DrawImage();
             }
         }
@@ -149,20 +124,19 @@ namespace YoonSample.ImageViewer
             }
 
             m_nSelectedCamera = (eYoonCamera)Enum.Parse(typeof(eYoonCamera), comboBox_Camera.SelectedItem.ToString());
-            imageViewer_Main.IsEnabledDraw = true;
             switch (m_nSelectedCamera)
             {
                 case eYoonCamera.BaslerMono:
                     CommonClass.pCamera = new YoonBasler();
-                    imageViewer_Main.InputImage = new Bitmap(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format8bppIndexed);
+                    imageViewer_Main.ViewImage = new YoonImage(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format8bppIndexed);
                     break;
                 case eYoonCamera.BaslerColor:
                     CommonClass.pCamera = new YoonBasler();
-                    imageViewer_Main.InputImage = new Bitmap(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format24bppRgb);
+                    imageViewer_Main.ViewImage = new YoonImage(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format24bppRgb);
                     break;
                 case eYoonCamera.RealsenseColor:
                     CommonClass.pCamera = new YoonRealsense(eYoonRSCaptureMode.RGBColor);
-                    imageViewer_Main.InputImage = new Bitmap(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format24bppRgb);
+                    imageViewer_Main.ViewImage = new YoonImage(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight, PixelFormat.Format24bppRgb);
                     break;
                 default:
                     return;
@@ -172,8 +146,6 @@ namespace YoonSample.ImageViewer
                 CommonClass.pCamera.OpenCamera(0);
                 CommonClass.pCamera.StartCamera();
                 CommonClass.pCamera.OnCameraImageUpdateEvent += OnUpdateCameraImage;
-                imageViewer_Main.SetImageSize(CommonClass.pCamera.ImageWidth, CommonClass.pCamera.ImageHeight);
-                imageViewer_Main.SetDoubleBuffering();
             }
             catch (Exception ex)
             {

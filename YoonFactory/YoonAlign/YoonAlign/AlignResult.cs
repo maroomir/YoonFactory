@@ -5,35 +5,20 @@
     /// </summary>
     public class AlignResult : IYoonResult
     {
-        private double fResultX;
-        private double fResultY;
-        private double fResultT;
-        public double ResultX
-        {
-            get { return fResultX; }
-            set { fResultX = value; }
-        }
-        public double ResultY
-        {
-            get { return fResultY; }
-            set { fResultY = value; }
-        }
-        public double ResultT
-        {
-            get { return fResultT; }
-            set { fResultT = value; }
-        }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Theta { get; set; }
 
         public AlignResult()
         {
-            fResultX = 0.0;
-            fResultY = 0.0;
-            fResultT = 0.0;
+            X = 0.0;
+            Y = 0.0;
+            Theta = 0.0;
         }
 
         public string Combine(string strDelimiter)
         {
-            return fResultX.ToString() + strDelimiter + fResultY.ToString() + strDelimiter + fResultT.ToString();
+            return X.ToString() + strDelimiter + Y.ToString() + strDelimiter + Theta.ToString();
         }
 
         public bool Equals(IYoonResult pResult)
@@ -42,7 +27,7 @@
 
             if (pResult is AlignResult pResultAlign)
             {
-                if (ResultX == pResultAlign.ResultX && ResultY == pResultAlign.ResultY && ResultT == pResultAlign.ResultT)
+                if (X == pResultAlign.X && Y == pResultAlign.Y && Theta == pResultAlign.Theta)
                     return true;
             }
             return false;
@@ -54,20 +39,19 @@
 
             if (pResult is AlignResult pResultAlign)
             {
-                ResultX = pResultAlign.ResultX;
-                ResultY = pResultAlign.ResultY;
-                ResultT = pResultAlign.ResultT;
+                X = pResultAlign.X;
+                Y = pResultAlign.Y;
+                Theta = pResultAlign.Theta;
             }
         }
 
         public IYoonResult Clone()
         {
             AlignResult pTargetResult = new AlignResult();
-            pTargetResult.ResultX = ResultX;
-            pTargetResult.ResultY = ResultY;
-            pTargetResult.ResultT = ResultT;
+            pTargetResult.X = X;
+            pTargetResult.Y = Y;
+            pTargetResult.Theta = Theta;
             return pTargetResult;
         }
     }
-
 }

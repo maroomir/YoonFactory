@@ -46,7 +46,7 @@ namespace YoonFactory
 
     public interface IYoonFigure
     {
-        //
+        IYoonFigure Clone();
     }
 
     public interface IYoonVector : IYoonFigure
@@ -54,7 +54,7 @@ namespace YoonFactory
         int Count { get; }
 
         bool Equals(IYoonVector pVector);
-        IYoonVector Clone();
+        new IYoonVector Clone();
         void CopyFrom(IYoonVector pVector);
         void Zero();
         IYoonVector Unit();
@@ -68,8 +68,10 @@ namespace YoonFactory
         T X { get; set; }
         T Y { get; set; }
         T[] Array { get; set; }
+        double Angle2D(IYoonVector pVector);
         eYoonDir2D Direction { get; set; }
         IYoonCart<T> Cartesian { get; set; }
+        eYoonDir2D DirectionTo(IYoonVector pVector);
         IYoonVector GetScaleVector(T sx, T sy);
         IYoonVector GetNextVector(T dx, T dy);
         IYoonVector GetNextVector(IYoonVector v);
@@ -91,6 +93,9 @@ namespace YoonFactory
         T Y { get; set; }
         T Z { get; set; }
         T[] Array { get; set; }
+        double AngleX(IYoonVector pVector);
+        double AngleY(IYoonVector pVector);
+        double AngleZ(IYoonVector pVector);
         IYoonCart<T> Cartesian { get; set; }
         IYoonVector GetScaleVector(T sx, T sy, T sz);
         IYoonVector GetNextVector(T dx, T dy, T dz);
@@ -144,25 +149,34 @@ namespace YoonFactory
 
     public interface IYoonLine : IYoonFigure
     {
-        IYoonLine Clone();
+        double Length { get; }
+
+        new IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
         bool Equals(IYoonLine pLine);
+        bool IsContain(IYoonVector pVector);
+        double Distance(IYoonVector pVector);
     }
 
     public interface IYoonLine2D<T> : IYoonLine where T : IComparable, IComparable<T>
     {
-        IYoonVector2D<T> StartPos { get; set; }
-        IYoonVector2D<T> EndPos { get; set; }
+        IYoonVector2D<T> StartPos { get; }
+        IYoonVector2D<T> EndPos { get; }
         IYoonVector2D<T> CenterPos { get; }
+        IYoonRect2D<T> Area { get; }
 
-        T Length();
+        T X(T valueY);
+        T Y(T valueX);
     }
 
     public interface IYoonRect : IYoonFigure
     {
-        IYoonRect Clone();
+        new IYoonRect Clone();
         void CopyFrom(IYoonRect pRect);
         bool Equals(IYoonRect pRect);
+        bool IsContain(IYoonVector pVector);
+
+        double Area();
     }
 
     public interface IYoonRect2D<T> : IYoonRect where T : IComparable, IComparable<T>
@@ -180,12 +194,12 @@ namespace YoonFactory
         IYoonVector2D<T> BottomLeft { get; }
         IYoonVector2D<T> BottomRight { get; }
 
-        T Area();
+        IYoonVector2D<T> GetPosition(eYoonDir2D nDir);
     }
 
     public interface IYoonTriangle : IYoonFigure
     {
-        IYoonTriangle Clone();
+        new IYoonTriangle Clone();
         void CopyFrom(IYoonTriangle t);
     }
 

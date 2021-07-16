@@ -73,11 +73,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Interfaces.cs" />
-    <Compile Include="ObjectList.cs" />
-    <Compile Include="ScreenMouseEventTask.cs" />
     <Compile Include="ImageFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="YoonDataset.cs" />
     <Compile Include="YoonImage.cs" />
     <Compile Include="YoonObject.cs" />
   </ItemGroup>
@@ -89,6 +89,10 @@
     <ProjectReference Include="..\..\YoonFile\YoonFile\YoonFile.csproj">
       <Project>{93428cea-a460-47a6-ae13-50c17ea6727f}</Project>
       <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>
+      <Name>YoonParameter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

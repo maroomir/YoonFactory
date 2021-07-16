@@ -71,7 +71,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="YoonAlign.cs" />
+    <Compile Include="AlignObject.cs" />
+    <Compile Include="AlignFactory.cs" />
     <Compile Include="AlignResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -79,6 +80,14 @@
     <ProjectReference Include="..\..\YoonCommon\YoonCommon.csproj">
       <Project>{1F8E210E-2C3B-4084-AF34-855673EFEFC0}</Project>
       <Name>YoonCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428cea-a460-47a6-ae13-50c17ea6727f}</Project>
+      <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonImage\YoonImage\YoonImage.csproj">
+      <Project>{c4e9558e-eb1d-4478-8d94-5ef8a802cae0}</Project>
+      <Name>YoonImage</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\YoonParameter\YoonParameter\YoonParameter.csproj">
       <Project>{6ce26e92-3505-4992-b407-577a0be69e82}</Project>

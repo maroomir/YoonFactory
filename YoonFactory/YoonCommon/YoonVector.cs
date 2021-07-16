@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace YoonFactory
@@ -6,7 +7,7 @@ namespace YoonFactory
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector2N : IYoonVector, IYoonVector2D<int>
+    public class YoonVector2N : IYoonVector, IYoonVector2D<int>, IEquatable<YoonVector2N>
     {
         public int Count { get; } = 3;
 
@@ -97,6 +98,11 @@ namespace YoonFactory
             v.Y = this.Y;
             v.W = this.W;
             return v;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
         }
 
         public bool Equals(IYoonVector v)
@@ -206,13 +212,34 @@ namespace YoonFactory
             return this;
         }
 
-        public double Distance(IYoonVector p)
+        public double Distance(IYoonVector pPos)
         {
-            if (p is YoonVector2N vec)
+            if (pPos is YoonVector2N vec)
             {
                 double dx = this.X - vec.X;
                 double dy = this.Y - vec.Y;
                 return Math.Sqrt(dx * dx + dy * dy);
+            }
+            else
+                return 0.0;
+        }
+
+        public eYoonDir2D DirectionTo(IYoonVector pPos)
+        {
+            if (pPos is YoonVector2N vec)
+            {
+                YoonVector2N pVecDiff = this - vec;
+                return pVecDiff.Direction;
+            }
+            else
+                return eYoonDir2D.None;
+        }
+
+        public double Angle2D(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector2N vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
             }
             else
                 return 0.0;
@@ -322,6 +349,41 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonVector2N other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   Direction == other.Direction &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   EqualityComparer<IYoonCart<int>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<int[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1178670866;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + Direction.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<int>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<int[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
+        public YoonVector2D ToVector2D()
+        {
+            return new YoonVector2D(X, Y);
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public static YoonVector2N operator *(YoonMatrix3X3Int m, YoonVector2N v)
         {
             YoonVector2N pVector = new YoonVector2N();
@@ -341,9 +403,19 @@ namespace YoonFactory
         {
             return new YoonVector2N(v1.X + v2.X, v1.Y + v2.Y);
         }
+        public static YoonVector2N operator +(YoonVector2N v, eYoonDir2D d)
+        {
+            YoonVector2N pVector = new YoonVector2N(d);
+            return new YoonVector2N(v.X + pVector.X, v.Y + pVector.Y);
+        }
         public static YoonVector2N operator -(YoonVector2N v1, YoonVector2N v2)
         {
             return new YoonVector2N(v1.X - v2.X, v1.Y - v2.Y);
+        }
+        public static YoonVector2N operator -(YoonVector2N v, eYoonDir2D d)
+        {
+            YoonVector2N pVector = new YoonVector2N(d);
+            return new YoonVector2N(v.X - pVector.X, v.Y - pVector.Y);
         }
         public static YoonVector2N operator -(YoonVector2N v)
         {
@@ -357,12 +429,20 @@ namespace YoonFactory
         {
             return v1.X * v2.X + v1.Y * v2.Y;
         }
+        public static bool operator ==(YoonVector2N v1, YoonVector2N v2)
+        {
+            return v1?.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector2N v1, YoonVector2N v2)
+        {
+            return v1?.Equals(v2) == false;
+        }
     }
 
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector2D : IYoonVector, IYoonVector2D<double>
+    public class YoonVector2D : IYoonVector, IYoonVector2D<double>, IEquatable<YoonVector2D>
     {
         public int Count { get; } = 3;
 
@@ -434,6 +514,11 @@ namespace YoonFactory
                         break;
                 }
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
         }
 
         public bool Equals(IYoonVector v)
@@ -543,10 +628,12 @@ namespace YoonFactory
             Y = 0;
             W = 1;
         }
+
         public double Length()
         {
             return Math.Sqrt(X * X + Y * Y);
         }
+
         public IYoonVector Unit()
         {
             double len = this.Length();
@@ -558,6 +645,7 @@ namespace YoonFactory
             }
             return this;
         }
+
         public double Distance(IYoonVector p)
         {
             if (p is YoonVector2D vec)
@@ -565,6 +653,27 @@ namespace YoonFactory
                 double dx = this.X - vec.X;
                 double dy = this.Y - vec.Y;
                 return Math.Sqrt(dx * dx + dy * dy);
+            }
+            else
+                return 0.0;
+        }
+
+        public eYoonDir2D DirectionTo(IYoonVector pPos)
+        {
+            if (pPos is YoonVector2D vec)
+            {
+                YoonVector2D pVecDiff = this - vec;
+                return pVecDiff.Direction;
+            }
+            else
+                return eYoonDir2D.None;
+        }
+
+        public double Angle2D(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector2D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
             }
             else
                 return 0.0;
@@ -674,6 +783,41 @@ namespace YoonFactory
             }
         }
 
+        public bool Equals(YoonVector2D other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   Direction == other.Direction &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   EqualityComparer<IYoonCart<double>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<double[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1178670866;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + Direction.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<double>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
+        public YoonVector2N ToVector2N()
+        {
+            return new YoonVector2N((int)X, (int)Y);
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public static YoonVector2D operator *(YoonMatrix3X3Double m, YoonVector2D v)
         {
             YoonVector2D pVector = new YoonVector2D();
@@ -697,6 +841,11 @@ namespace YoonFactory
         {
             return new YoonVector2D(v.X + c.X, v.Y + c.Y);
         }
+        public static YoonVector2D operator +(YoonVector2D v, eYoonDir2D d)
+        {
+            YoonVector2D pVector = new YoonVector2D(d);
+            return new YoonVector2D(v.X + pVector.X, v.Y + pVector.Y);
+        }
         public static YoonVector2D operator -(YoonVector2D v1, YoonVector2D v2)
         {
             return new YoonVector2D(v1.X - v2.X, v1.Y - v2.Y);
@@ -709,6 +858,11 @@ namespace YoonFactory
         {
             return new YoonVector2D(v.X - c.X, v.Y - c.Y);
         }
+        public static YoonVector2D operator -(YoonVector2D v, eYoonDir2D d)
+        {
+            YoonVector2D pVector = new YoonVector2D(d);
+            return new YoonVector2D(v.X - pVector.X, v.Y - pVector.Y);
+        }
         public static YoonVector2D operator /(YoonVector2D v, double a)
         {
             return new YoonVector2D(v.X / a, v.Y / a);
@@ -717,14 +871,27 @@ namespace YoonFactory
         {
             return v1.X * v2.X + v1.Y * v2.Y;
         }
+        public static bool operator ==(YoonVector2D v1, YoonVector2D v2)
+        {
+            return v1?.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector2D v1, YoonVector2D v2)
+        {
+            return v1?.Equals(v2) == false;
+        }
     }
 
     /// <summary>
     /// 2차원 동차변환 벡터
     /// </summary>
-    public class YoonVector3D : IYoonVector, IYoonVector3D<double>
+    public class YoonVector3D : IYoonVector, IYoonVector3D<double>, IEquatable<YoonVector3D>
     {
         public int Count { get; } = 4;
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IYoonVector);
+        }
 
         public bool Equals(IYoonVector v)
         {
@@ -881,6 +1048,36 @@ namespace YoonFactory
                 return 0.0;
         }
 
+        public double AngleX(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.Z - Z);
+            }
+            else
+                return 0.0;
+        }
+
+        public double AngleY(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.X - X, vec.Z - Z);
+            }
+            else
+                return 0.0;
+        }
+
+        public double AngleZ(IYoonVector pPosObject)
+        {
+            if (pPosObject is YoonVector3D vec)
+            {
+                return Math.Atan2(vec.Y - Y, vec.X - X);
+            }
+            else
+                return 0.0;
+        }
+
         public IYoonVector GetScaleVector(double sx, double sy, double sz)
         {
             YoonMatrix3D pMatrix = new YoonMatrix3D();
@@ -969,6 +1166,36 @@ namespace YoonFactory
             this.Z = v.Z;
         }
 
+        public bool Equals(YoonVector3D other)
+        {
+            return other != null &&
+                   Count == other.Count &&
+                   W == other.W &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   Z == other.Z &&
+                   EqualityComparer<IYoonCart<double>>.Default.Equals(Cartesian, other.Cartesian) &&
+                   EqualityComparer<double[]>.Default.Equals(Array, other.Array);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -366330435;
+            hashCode = hashCode * -1521134295 + Count.GetHashCode();
+            hashCode = hashCode * -1521134295 + W.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + Z.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonCart<double>>.Default.GetHashCode(Cartesian);
+            hashCode = hashCode * -1521134295 + EqualityComparer<double[]>.Default.GetHashCode(Array);
+            return hashCode;
+        }
+
+        IYoonFigure IYoonFigure.Clone()
+        {
+            return Clone();
+        }
+
         public static YoonVector3D operator *(YoonMatrix4X4Double m, YoonVector3D v)
         {
             YoonVector3D pVector = new YoonVector3D();
@@ -1011,6 +1238,14 @@ namespace YoonFactory
         public static double operator *(YoonVector3D v1, YoonVector3D v2) // dot product
         {
             return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+        }
+        public static bool operator ==(YoonVector3D v1, YoonVector3D v2)
+        {
+            return v1?.Equals(v2) == true;
+        }
+        public static bool operator !=(YoonVector3D v1, YoonVector3D v2)
+        {
+            return v1?.Equals(v2) == false;
         }
     }
 

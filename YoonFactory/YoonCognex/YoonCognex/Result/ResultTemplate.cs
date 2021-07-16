@@ -2,7 +2,7 @@
 using System.IO;
 using YoonFactory.Files;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Result
 {
     public class ResultTemplate : ResultContainer, IYoonTemplate
     {

@@ -113,7 +113,7 @@ namespace YoonSample.ImageViewer
             this.comboBox_Camera.FormattingEnabled = true;
             this.comboBox_Camera.Location = new System.Drawing.Point(5, 5);
             this.comboBox_Camera.Name = "comboBox_Camera";
-            this.comboBox_Camera.Size = new System.Drawing.Size(500, 32);
+            this.comboBox_Camera.Size = new System.Drawing.Size(500, 24);
             this.comboBox_Camera.TabIndex = 9;
             // 
             // button_SetCamera
@@ -130,27 +130,12 @@ namespace YoonSample.ImageViewer
             // imageViewer_Main
             // 
             this.imageViewer_Main.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("imageViewer_Main.BackgroundImage")));
-            this.imageViewer_Main.BitCount = 8;
-            this.imageViewer_Main.CurrentPos = new System.Drawing.Point(0, 0);
-            this.imageViewer_Main.IsDefectROI = false;
-            this.imageViewer_Main.IsDrawing = false;
-            this.imageViewer_Main.IsEnabledDraw = false;
-            this.imageViewer_Main.IsEnabledROI = false;
-            this.imageViewer_Main.IsGuideLine = false;
-            this.imageViewer_Main.IsMeasure = false;
-            this.imageViewer_Main.IsObservationROI = false;
-            this.imageViewer_Main.IsProfile = false;
-            this.imageViewer_Main.IsROIDraw = false;
-            this.imageViewer_Main.KindView = 0;
             this.imageViewer_Main.Location = new System.Drawing.Point(5, 44);
-            this.imageViewer_Main.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.imageViewer_Main.Margin = new System.Windows.Forms.Padding(4);
             this.imageViewer_Main.Name = "imageViewer_Main";
-            this.imageViewer_Main.PixFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed;
-            this.imageViewer_Main.ROI = new System.Drawing.Rectangle(0, 0, 0, 0);
-            this.imageViewer_Main.ScrollPosition = new System.Drawing.Point(0, 0);
             this.imageViewer_Main.Size = new System.Drawing.Size(640, 480);
-            this.imageViewer_Main.StartPos = new System.Drawing.Point(0, 0);
             this.imageViewer_Main.TabIndex = 11;
+            this.imageViewer_Main.ViewImage = null;
             this.imageViewer_Main.Zoom = 0D;
             // 
             // MainForm
@@ -168,6 +153,7 @@ namespace YoonSample.ImageViewer
             this.Controls.Add(this.button_Live);
             this.Controls.Add(this.panel_StatusBar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "Image Viewer";

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace YoonFactory.Camera.Realsense
@@ -286,6 +287,69 @@ namespace YoonFactory.Camera.Realsense
         {
             return Crop(vecStartPos.X, vecStartPos.Y, nWidth, nHeight);
         }
-    }
 
+        public List<int[]> GetDepthScale(float dScaleSensor, int nPixelResolution)
+        {
+            if (nPixelResolution == 0 || dScaleSensor == 0.0) return null;
+            if (Width % nPixelResolution != 0 || Height % nPixelResolution != 0) return null;
+            List<int[]> pListDepthScale = new List<int[]>();
+
+            for (int iRow = 0; iRow < Height / nPixelResolution; iRow++)
+            {
+                int[] pArrayDepthScaleRow = new int[Width / nPixelResolution];
+                for (int iCol = 0; iCol < Width / nPixelResolution; iCol++)
+                {
+                    int nDepthScaling = 0;
+                    int nCountPartial = 0;
+                    for (int jY = iRow * nPixelResolution; jY < (iRow + 1) * nPixelResolution; jY++)
+                    {
+                        for (int jX = iCol * nPixelResolution; jX < (iCol + 1) * nPixelResolution; jX++)
+                        {
+                            short nDepthData = GetDepth(jX, jY);
+                            nDepthScaling += nDepthData;
+                            nCountPartial++;
+                        }
+                    }
+                    pArrayDepthScaleRow[iCol] = nDepthScaling / nCountPartial;
+                }
+                pListDepthScale.Add(pArrayDepthScaleRow);
+            }
+            return pListDepthScale;
+        }
+
+        public byte[] GetDepthScale(ref float dValueResolution, float dScaleSensor, int nPixelResolution)
+        {
+            if (nPixelResolution == 0 || dScaleSensor == 0.0) return null;
+            if (Width % nPixelResolution != 0 || Height % nPixelResolution != 0) return null;
+
+            float dEffectRange = YoonRealsense.MAX_DEPTH_DIST / dScaleSensor;
+            dValueResolution = dEffectRange / byte.MaxValue;
+            if (dValueResolution == 0) return null;
+
+            byte[] pBuffer = new byte[(Width / nPixelResolution) * (Height / nPixelResolution)];
+
+            for (int iRow = 0; iRow < Height / nPixelResolution; iRow++)
+            {
+                for (int iCol = 0; iCol < Width / nPixelResolution; iCol++)
+                {
+                    int nDepthScaling = 0;
+                    int nCountPartial = 0;
+                    for (int jY = iRow * nPixelResolution; jY < (iRow + 1) * nPixelResolution; jY++)
+                    {
+                        for (int jX = iCol * nPixelResolution; jX < (iCol + 1) * nPixelResolution; jX++)
+                        {
+                            short nDepthData = GetDepth(jX, jY);
+                            if (nDepthData > 0 && nDepthData < dEffectRange) nDepthScaling += nDepthData;
+                            else if (nDepthData >= dEffectRange) nDepthScaling += (short)dEffectRange;
+                            else continue;
+                            nCountPartial++;
+                        }
+                    }
+                    if (nCountPartial > 0)
+                        pBuffer[iRow * (Width / nPixelResolution) + iCol] = (byte)((nDepthScaling / nCountPartial) / dValueResolution);
+                }
+            }
+            return pBuffer;
+        }
+    }
 }

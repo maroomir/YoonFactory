@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoonFactory;
+using YoonFactory.Cognex;
 using YoonFactory.Cognex.Tool;
 
 namespace YoonSample.CognexInspector
@@ -20,10 +21,10 @@ namespace YoonSample.CognexInspector
     {
         private int m_nIndex = -1;
         private eTypeInspect m_nType = eTypeInspect.None;
-        private ICogImage m_pCogImageOrigin;
-        private ICogImage m_pCogImagePreprocessing;
-        private ICogImage m_pCogImageSourceSelected;
-        private ICogImage m_pCogImageResult;
+        private CognexImage m_pCogImageOrigin;
+        private CognexImage m_pCogImagePreprocessing;
+        private CognexImage m_pCogImageSourceSelected;
+        private CognexImage m_pCogImageResult;
         public event PassImageCallback OnUpdateResultImageEvent;
 
         public TabObjectExtract(int nIndex)
@@ -213,15 +214,15 @@ namespace YoonSample.CognexInspector
 
         public void OnCognexImageDownload(object sender, CogImageArgs e)
         {
-            if (e.InspectType != eTypeInspect.ObjectExtract || e.CogImage == null) return;
+            if (e.InspectType != eTypeInspect.ObjectExtract || e.Image == null) return;
 
             switch (sender)
             {
                 case Button pButtonUpdate:
-                    m_pCogImageOrigin = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageOrigin = e.Image.Clone() as CognexImage;
                     break;
                 case IInspectionTab pTabInsp:
-                    m_pCogImagePreprocessing = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImagePreprocessing = e.Image.Clone() as CognexImage;
                     break;
             }
         }
@@ -271,8 +272,8 @@ namespace YoonSample.CognexInspector
             OnInspectionParameterUpdate(sender, e);
 
             //// Image 가져오기
-            CogImage8Grey pImageBlob = GetSourceImage(pParam.SelectedBlobImageLevel, pParam.SelectedBlobImageNo, pParam.SelectedBlobImageType) as CogImage8Grey;
-            CogImage24PlanarColor pImageColorExtract = GetSourceImage(pParam.SelectedColorSegmentImageLevel, pParam.SelectedColorSegmentImageNo, pParam.SelectedColorSegmentImageType) as CogImage24PlanarColor;
+            CognexImage pImageBlob = GetSourceImage(pParam.SelectedBlobImageLevel, pParam.SelectedBlobImageNo, pParam.SelectedBlobImageType);
+            CognexImage pImageColorExtract = GetSourceImage(pParam.SelectedColorSegmentImageLevel, pParam.SelectedColorSegmentImageNo, pParam.SelectedColorSegmentImageType);
 
             if (CommonClass.ProcessObjectExtract(pImageBlob, pImageColorExtract, ref m_pCogImageResult))  // 선택된 Source Image가 들어감
             {
@@ -281,7 +282,7 @@ namespace YoonSample.CognexInspector
                 //// Display Update
                 cogDisplay_ProcessView.StaticGraphics.Clear();
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
-                cogDisplay_ProcessView.Image = m_pCogImageResult;
+                cogDisplay_ProcessView.Image = m_pCogImageResult.CogImage;
                 //// Result에 맞게 Display 위에 결과 그리기
                 CommonClass.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                 //// Result Image를 다른 Tab으로 넘기기
@@ -299,10 +300,10 @@ namespace YoonSample.CognexInspector
             switch(strSourceSelected)
             {
                 case "Origin":
-                    m_pCogImageSourceSelected = m_pCogImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImageOrigin.Clone() as CognexImage;
                     break;
                 case "CurrentProcessing":
-                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.Clone() as CognexImage;
                     break;
                 default:
                     KeyValuePair<int, eTypeInspect> pPair = CommonClass.GetInspectFlagFromStringTag(strSourceSelected);
@@ -311,7 +312,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_PrevView.StaticGraphics.Clear();
             cogDisplay_PrevView.InteractiveGraphics.Clear();
-            cogDisplay_PrevView.Image = m_pCogImageSourceSelected;
+            cogDisplay_PrevView.Image = m_pCogImageSourceSelected.CogImage;
         }
 
         private void button_UpdateSetting_Click(object sender, EventArgs e)
@@ -329,7 +330,7 @@ namespace YoonSample.CognexInspector
             eTypeInspect nInspTypeSelected = eTypeInspect.None;
             eLevelImageSelection nLevelSource = eLevelImageSelection.None;
             string strSourceSelected = (string)comboBox_SelectBlobSource.SelectedItem;
-            ICogImage pImageBlob = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
+            CognexImage pImageBlob = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
             ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             pParam.SelectedBlobImageLevel = nLevelSource;
             pParam.SelectedBlobImageNo = nInspNoSelected;
@@ -341,7 +342,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogBlob pCogForm = new Form_CogBlob();
-            pCogForm.CogImageSource = pImageBlob;
+            pCogForm.CogImageSource = pImageBlob.CogImage;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.Blob][string.Empty] as CogBlobTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -359,7 +360,7 @@ namespace YoonSample.CognexInspector
             eTypeInspect nInspTypeSelected = eTypeInspect.None;
             eLevelImageSelection nLevelSource = eLevelImageSelection.None;
             string strSourceSelected = (string)comboBox_SelectColorSegmentSource.SelectedItem;
-            ICogImage pImageColorSegment = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
+            CognexImage pImageColorSegment = GetSourceImageToComboBoxString(strSourceSelected, ref nLevelSource, ref nInspNoSelected, ref nInspTypeSelected);
             ParameterInspectionObjectExtract pParam = CommonClass.pParamTemplate[m_nType].Parameter as ParameterInspectionObjectExtract;
             pParam.SelectedColorSegmentImageLevel = nLevelSource;
             pParam.SelectedColorSegmentImageNo = nInspNoSelected;
@@ -371,7 +372,7 @@ namespace YoonSample.CognexInspector
 
             ////  Form 생성하기
             Form_CogColorSegment pCogForm = new Form_CogColorSegment();
-            pCogForm.CogImageSource = pImageColorSegment as CogImage24PlanarColor;
+            pCogForm.CogImageSource = pImageColorSegment.CogImage as CogImage24PlanarColor;
             pCogForm.CogToolLabel = eLabelInspect.None;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.ColorSegment][string.Empty] as CogColorSegmenterTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -380,17 +381,17 @@ namespace YoonSample.CognexInspector
             button_SettingColorSegment.Enabled = true;
         }
 
-        private ICogImage GetSourceImageToComboBoxString(string strSourceSelected, ref eLevelImageSelection nSourceLevel, ref int nInspNoSelected, ref eTypeInspect nInspTypeSelected)
+        private CognexImage GetSourceImageToComboBoxString(string strSourceSelected, ref eLevelImageSelection nSourceLevel, ref int nInspNoSelected, ref eTypeInspect nInspTypeSelected)
         {
-            ICogImage pImageResult = null;
+            CognexImage pImageResult = null;
             switch (strSourceSelected)
             {
                 case "Origin":
-                    pImageResult = m_pCogImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    pImageResult = m_pCogImageOrigin.Clone() as CognexImage;
                     nSourceLevel = eLevelImageSelection.Origin;
                     break;
                 case "CurrentProcessing":
-                    pImageResult = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    pImageResult = m_pCogImagePreprocessing.Clone() as CognexImage;
                     nSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
@@ -404,7 +405,7 @@ namespace YoonSample.CognexInspector
             return pImageResult;
         }
 
-        private ICogImage GetSourceImage(eLevelImageSelection nLevel, int nInspNo, eTypeInspect nTypeInsp)
+        private CognexImage GetSourceImage(eLevelImageSelection nLevel, int nInspNo, eTypeInspect nTypeInsp)
         {
             switch (nLevel)
             {

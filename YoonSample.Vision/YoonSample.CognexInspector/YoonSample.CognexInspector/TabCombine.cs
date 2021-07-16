@@ -1,13 +1,7 @@
-﻿using Cognex.VisionPro;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using YoonFactory.Cognex;
 using YoonFactory.Cognex.Tool;
 
 namespace YoonSample.CognexInspector
@@ -16,11 +10,11 @@ namespace YoonSample.CognexInspector
     {
         private int m_nIndex = -1;
         private eTypeInspect m_nType = eTypeInspect.None;
-        private ICogImage m_pCogImageOrigin;
-        private ICogImage m_pCogImagePreprocessing;
-        private ICogImage m_pCogImageSourceSelected;
-        private ICogImage m_pCogImageObjectSelected;
-        private ICogImage m_pCogImageResult;
+        private CognexImage m_pCogImageOrigin;
+        private CognexImage m_pCogImagePreprocessing;
+        private CognexImage m_pCogImageSourceSelected;
+        private CognexImage m_pCogImageObjectSelected;
+        private CognexImage m_pCogImageResult;
         public event PassImageCallback OnUpdateResultImageEvent;
 
         public TabCombine(int nIndex)
@@ -216,10 +210,10 @@ namespace YoonSample.CognexInspector
             switch (sender)
             {
                 case Button pButtonUpdate:
-                    m_pCogImageOrigin = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageOrigin = e.Image.Clone() as CognexImage;
                     break;
                 case IInspectionTab pTabInsp:
-                    m_pCogImagePreprocessing = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImagePreprocessing = e.Image.Clone() as CognexImage;
                     break;
             }
         }
@@ -289,7 +283,7 @@ namespace YoonSample.CognexInspector
                 //// Display Update
                 cogDisplay_CombineView.StaticGraphics.Clear();
                 cogDisplay_CombineView.InteractiveGraphics.Clear();
-                cogDisplay_CombineView.Image = m_pCogImageResult;
+                cogDisplay_CombineView.Image = m_pCogImageResult.CogImage;
                 //// Result Image를 다른 Tab으로 넘기기
                 OnUpdateResultImageEvent(this, new CogImageArgs(m_nIndex, m_nType, m_pCogImageResult));
             }
@@ -306,11 +300,11 @@ namespace YoonSample.CognexInspector
             switch (strSourceSelected)
             {
                 case "Origin":
-                    m_pCogImageSourceSelected = m_pCogImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImageOrigin.Clone() as CognexImage;
                     pParam.SelectedSourceLevel = eLevelImageSelection.Origin;
                     break;
                 case "CurrentProcessing":
-                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.Clone() as CognexImage;
                     pParam.SelectedSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
@@ -323,7 +317,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_SourceView.StaticGraphics.Clear();
             cogDisplay_SourceView.InteractiveGraphics.Clear();
-            cogDisplay_SourceView.Image = m_pCogImageSourceSelected;
+            cogDisplay_SourceView.Image = m_pCogImageSourceSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
             CommonClass.pParamTemplate[m_nType].Parameter = pParam;
@@ -341,11 +335,11 @@ namespace YoonSample.CognexInspector
             switch (strObjectSelected)
             {
                 case "Origin":
-                    m_pCogImageObjectSelected = m_pCogImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageObjectSelected = m_pCogImageOrigin.Clone() as CognexImage;
                     pParam.SelectedObjectLevel = eLevelImageSelection.Origin;
                     break;
                 case "CurrentProcessing":
-                    m_pCogImageObjectSelected = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageObjectSelected = m_pCogImagePreprocessing.Clone() as CognexImage;
                     pParam.SelectedObjectLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
@@ -358,7 +352,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_ObjectView.StaticGraphics.Clear();
             cogDisplay_ObjectView.InteractiveGraphics.Clear();
-            cogDisplay_ObjectView.Image = m_pCogImageObjectSelected;
+            cogDisplay_ObjectView.Image = m_pCogImageObjectSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
             CommonClass.pParamTemplate[m_nType].Parameter = pParam;

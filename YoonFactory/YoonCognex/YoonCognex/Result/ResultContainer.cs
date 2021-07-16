@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cognex.VisionPro;
 
-namespace YoonFactory.Cognex
+namespace YoonFactory.Cognex.Result
 {
     public class ResultContainer : IYoonContainer, IYoonContainer<eYoonCognexType, ResultSection>
     {
@@ -213,14 +213,14 @@ namespace YoonFactory.Cognex
             return bResult;
         }
 
-        public ICogImage GetResultImage(eYoonCognexType nKey)
+        public CognexImage GetResultImage(eYoonCognexType nKey)
         {
             if (m_pDicSection.ContainsKey(nKey))
-                return new CogImage8Grey();
+                return new CognexImage();
             return m_pDicSection[nKey].GetLastResultImage();
         }
 
-        public ICogImage GetLastResultImage()
+        public CognexImage GetLastResultImage()
         {
             if (m_pListKeyOrdered == null || m_pListKeyOrdered.Count == 0)
             {

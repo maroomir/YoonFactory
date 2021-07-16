@@ -1,15 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Cognex.VisionPro;
 using Cognex.VisionPro.Display;
 using YoonFactory;
 using YoonFactory.Align;
 using YoonFactory.Cognex;
 using YoonFactory.Cognex.Tool;
+using YoonFactory.Cognex.Result;
 using YoonFactory.Log;
 using YoonFactory.Param;
 
@@ -20,27 +18,48 @@ namespace YoonSample.CognexInspector
     {
         public int InspectNo;
         public eTypeInspect InspectType;
-        public ICogImage CogImage;
+        public CognexImage Image;
 
-        public CogImageArgs(ICogImage pImage)
+        public CogImageArgs(CognexImage pImage)
         {
             InspectNo = 0;
             InspectType = eTypeInspect.None;
-            CogImage = pImage;
+            Image = pImage;
         }
 
-        public CogImageArgs(eTypeInspect nInspType, ICogImage pImage)
+        public CogImageArgs(ICogImage cogImage)
+        {
+            InspectNo = 0;
+            InspectType = eTypeInspect.None;
+            Image = new CognexImage(cogImage);
+        }
+
+        public CogImageArgs(eTypeInspect nInspType, CognexImage pImage)
         {
             InspectNo = 0;
             InspectType = nInspType;
-            CogImage = pImage;
+            Image = pImage;
         }
 
-        public CogImageArgs(int nNo, eTypeInspect nInspType, ICogImage pImage)
+        public CogImageArgs(eTypeInspect nInspType, ICogImage cogImage)
+        {
+            InspectNo = 0;
+            InspectType = nInspType;
+            Image = new CognexImage(cogImage);
+        }
+
+        public CogImageArgs(int nNo, eTypeInspect nInspType, CognexImage pImage)
         {
             InspectNo = nNo;
             InspectType = nInspType;
-            CogImage = pImage;
+            Image = pImage;
+        }
+
+        public CogImageArgs(int nNo, eTypeInspect nInspType, ICogImage cogImage)
+        {
+            InspectNo = nNo;
+            InspectType = nInspType;
+            Image = new CognexImage(cogImage);
         }
     }
 
@@ -50,15 +69,24 @@ namespace YoonSample.CognexInspector
         public eYoonCognexType ToolType;
         public eLabelInspect Label;
         public ICogTool CogTool;
-        public ICogImage ContainImage;
+        public CognexImage ContainImage;
 
-        public CogToolArgs(eYoonCognexType nType, eLabelInspect nLabel, ICogTool pTool, ICogImage pImage)
+        public CogToolArgs(eYoonCognexType nType, eLabelInspect nLabel, ICogTool pTool, CognexImage pImage)
         {
             ToolType = nType;
             Label = nLabel;
             CogTool = pTool;
             if (pImage != null)
-                ContainImage = pImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                ContainImage = pImage.Clone() as CognexImage;
+        }
+
+        public CogToolArgs(eYoonCognexType nType, eLabelInspect nLabel, ICogTool pTool, ICogImage cogImage)
+        {
+            ToolType = nType;
+            Label = nLabel;
+            CogTool = pTool;
+            if (cogImage != null)
+                ContainImage = new CognexImage(cogImage);
         }
     }
 
@@ -73,8 +101,8 @@ namespace YoonSample.CognexInspector
         public const double DEFAULT_POSITION = -10000.0;
 
         public static YoonTemplate<eTypeInspect> pParamTemplate = new YoonTemplate<eTypeInspect>();
-        public static Template<eTypeInspect, ToolTemplate> pCogToolTemplate = new Template<eTypeInspect, ToolTemplate>("Tools");
-        public static Template<eTypeInspect, ResultTemplate> pCogResultTemplate = new Template<eTypeInspect, ResultTemplate>("Results");
+        public static YoonTemplate<eTypeInspect, ToolTemplate> pCogToolTemplate = new YoonTemplate<eTypeInspect, ToolTemplate>("Tools");
+        public static YoonTemplate<eTypeInspect, ResultTemplate> pCogResultTemplate = new YoonTemplate<eTypeInspect, ResultTemplate>("Results");
         public static YoonConsoler pCLM = new YoonConsoler(90);
         public static YoonDisplayer pDLM = new YoonDisplayer(90);
 
@@ -92,7 +120,7 @@ namespace YoonSample.CognexInspector
                 return new KeyValuePair<int, eTypeInspect>(nInspNo, nInspType);
 
             //// String Split 및 Paramter 추출
-            string[] pArrayContens = strContentSelected.Split('.');  // 예시 : "0.Preprocessing"
+            string[] pArrayContens = strContentSelected.Split('_');  // Example : "0_Preprocessing"
             if (pArrayContens.Length != 2)
                 return new KeyValuePair<int, eTypeInspect>(nInspNo, nInspType);
 
@@ -115,7 +143,7 @@ namespace YoonSample.CognexInspector
             return -1;
         }
 
-        public static ICogImage GetResultImage(int nInspNo, eTypeInspect nInspType)
+        public static CognexImage GetResultImage(int nInspNo, eTypeInspect nInspType)
         {
             if (nInspNo == 0 && nInspType == eTypeInspect.None) return null;
 
@@ -126,8 +154,8 @@ namespace YoonSample.CognexInspector
                 case eTypeInspect.PatternMatching:
                 case eTypeInspect.ObjectExtract:
                 case eTypeInspect.Combine:
-                    if (pCogResultTemplate[nInspType].GetLastResultImage() as CogImage8Grey != null)
-                        return pCogResultTemplate[nInspType].GetLastResultImage().CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    if (pCogResultTemplate[nInspType].GetLastResultImage() != null)
+                        return pCogResultTemplate[nInspType].GetLastResultImage().Clone() as CognexImage;
                     break;
             }
             return null;
@@ -147,7 +175,7 @@ namespace YoonSample.CognexInspector
                     eLabelInspect nTag = (eLabelInspect)Enum.Parse(typeof(eLabelInspect), strTag);
                     if (nTag == eLabelInspect.None) continue;
                     if (pParam.IsOriginTeachedFlags[nTag.ToInt()])
-                        CognexFactory.Draw.DrawCross(pDisplay, CogColorConstants.Red, pParam.OriginPixelXs[nTag.ToInt()], pParam.OriginPixelYs[nTag.ToInt()], 2.0);
+                        DisplayFactory.Draw.DrawCross(pDisplay, CogColorConstants.Red, pParam.OriginPixelXs[nTag.ToInt()], pParam.OriginPixelYs[nTag.ToInt()], 2.0);
                 }
             }
             return true;
@@ -164,13 +192,13 @@ namespace YoonSample.CognexInspector
                         case eYoonCognexType.PMAlign:
                             foreach (string strTag in pResultTemplate[pKey].Keys)
                             {
-                                CognexFactory.Draw.DrawPatternMatchCross(pDisplay, pResultTemplate[pKey][strTag]);
-                                CognexFactory.Draw.DrawPatternMatchRect(pDisplay, pResultTemplate[pKey][strTag], "", false, true);
+                                DisplayFactory.Draw.DrawPatternMatchCross(pDisplay, pResultTemplate[pKey][strTag]);
+                                DisplayFactory.Draw.DrawPatternMatchRect(pDisplay, pResultTemplate[pKey][strTag], "", false, true);
                             }
                             break;
                         case eYoonCognexType.Blob:
                             foreach (string strTag in pResultTemplate[pKey].Keys)
-                                CognexFactory.Draw.DrawBlobRect(pDisplay, pResultTemplate[pKey][strTag], 2500);
+                                DisplayFactory.Draw.DrawBlobRect(pDisplay, pResultTemplate[pKey][strTag], 2500);
                             break;
                         default:
                             return false;
@@ -181,11 +209,11 @@ namespace YoonSample.CognexInspector
         }
 
 
-        public static CogImage8Grey SetPatternMatchResultOverlap(ICogImage pImageSource, params eLabelInspect[] pArrayInspLabel)
+        public static CognexImage SetPatternMatchResultOverlap(CognexImage pImageSource, params eLabelInspect[] pArrayInspLabel)
         {
-            if (!(pImageSource is CogImage8Grey)) return null;
+            if (pImageSource.Plane != 1) return null;
 
-            CogImage8Grey pImageResult = null;
+            CognexImage pImageResult = null;
             for (int iTool = 0; iTool < pArrayInspLabel.Length; iTool++)
             {
                 eLabelInspect nLabel = pArrayInspLabel[iTool];
@@ -193,12 +221,12 @@ namespace YoonSample.CognexInspector
                     continue;
                 if (pCogResultTemplate[eTypeInspect.PatternMatching][eYoonCognexType.PMAlign].ContainsKey(nLabel.ToString()))
                 {
-                    CogImage8Grey pImageProcessing = CognexFactory.Editor.EraseWithoutPatternMatchRegion((CogImage8Grey)pImageSource, pCogResultTemplate[eTypeInspect.PatternMatching][eYoonCognexType.PMAlign][nLabel.ToString()]);
+                    CognexImage pImageProcessing = CognexFactory.Editor.EraseWithoutPatternMatchRegion(pImageSource, pCogResultTemplate[eTypeInspect.PatternMatching][eYoonCognexType.PMAlign][nLabel.ToString()]);
                     if (pImageProcessing == null) continue;
                     if (iTool == 0)
-                        pImageResult = pImageProcessing.CopyBase(CogImageCopyModeConstants.CopyPixels) as CogImage8Grey;
+                        pImageResult = pImageProcessing.Clone() as CognexImage;
                     else
-                        pImageResult = CognexFactory.TwoImageProcess.OverlapMax(pImageResult, pImageProcessing) as CogImage8Grey;
+                        pImageResult = CognexFactory.TwoImageProcess.OverlapMax(pImageResult, pImageProcessing);
                 }
                 if (pImageResult == null) break;
             }
@@ -321,7 +349,7 @@ namespace YoonSample.CognexInspector
             return bResultOrigin;
         }
 
-        public static bool ProcessPreprocessing(ICogImage pImageSource, ref ICogImage pImageResult)
+        public static bool ProcessPreprocessing(CognexImage pImageSource, ref CognexImage pImageResult)
         {
             if (pImageSource == null) return false;
 
@@ -334,7 +362,7 @@ namespace YoonSample.CognexInspector
             eStepPreprocessing nJobStepBK = eStepPreprocessing.None;
             CognexResult pResultInsp = null;
             ParameterInspectionPreprocessing pParam = null;
-            ICogImage pImagePipeline = pImageSource.CopyBase(CogImageCopyModeConstants.CopyPixels);
+            CognexImage pImagePipeline = pImageSource.Clone() as CognexImage;
 
             while (bRun)
             {
@@ -407,7 +435,7 @@ namespace YoonSample.CognexInspector
                         else
                         {
                             bResult = true;
-                            pImageResult = pImagePipeline.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                            pImageResult = pImagePipeline.Clone() as CognexImage;
                             pCLM.Write("Preprocess Success");
                             pDLM.Write(eYoonStatus.Inspect, "Preprocess Success");
                         }
@@ -446,7 +474,7 @@ namespace YoonSample.CognexInspector
             return bResult;
         }
 
-        public static int ProcessPatternMatchAlign(CogImage8Grey pImageSource, ref CogImage8Grey pImageResult, ref YoonVector2D pVecResult, ref double dThetaResult, ref AlignResult pAlignResult)
+        public static int ProcessPatternMatchAlign(CognexImage pImageSource, ref CognexImage pImageResult, ref YoonVector2D pVecResult, ref double dThetaResult, ref AlignResult pAlignResult)
         {
             if (pImageSource == null) return -1;
             int iPatternInspected = -1;
@@ -641,9 +669,9 @@ namespace YoonSample.CognexInspector
                                         dOffsetT += (pArrayTheta[iPattern] - pParam.OriginThetas[iPattern]);
                                     }
                                 }
-                                pAlignResult.ResultX = dOffsetX / iPatternInspected;
-                                pAlignResult.ResultY = dOffsetY / iPatternInspected;
-                                pAlignResult.ResultT = dOffsetT / iPatternInspected;
+                                pAlignResult.X = dOffsetX / iPatternInspected;
+                                pAlignResult.Y = dOffsetY / iPatternInspected;
+                                pAlignResult.Theta = dOffsetT / iPatternInspected;
                                 break;
                             default:
                                 break;
@@ -723,7 +751,7 @@ namespace YoonSample.CognexInspector
             return iPatternInspected;
         }
 
-        public static bool ProcessObjectExtract(CogImage8Grey pImageSourceBlob, CogImage24PlanarColor pImageSourceColorExtract, ref ICogImage pImageResult)    // Blob : 0, ColorExtract : 1
+        public static bool ProcessObjectExtract(CognexImage pImageSourceBlob, CognexImage pImageSourceColorExtract, ref CognexImage pImageResult)    // Blob : 0, ColorExtract : 1
         {
             if (pImageSourceColorExtract == null || pImageSourceBlob == null) return false;
 
@@ -736,11 +764,11 @@ namespace YoonSample.CognexInspector
             eStepObjectExtract nJobStepBK = eStepObjectExtract.None;
             CognexResult pResultInsp = null;
             ParameterInspectionObjectExtract pParam = null;
-            ICogImage pImageBlob = null;
-            ICogImage pImageColorSegment = null;
+            CognexImage pImageBlob = null;
+            CognexImage pImageColorSegment = null;
             //// Combine 관련 변수 초기화
             bool bInspectBlob = false;
-            ICogImage pImageCombine = null;
+            CognexImage pImageCombine = null;
 
             while (bRun)
             {
@@ -806,7 +834,7 @@ namespace YoonSample.CognexInspector
                                 pImageCombine = CognexFactory.TwoImageProcess.OverlapMin(pImageBlob, pImageColorSegment);
                                 break;
                             case eTypeProcessTwoImage.Subtract:
-                                pImageCombine = CognexFactory.TwoImageProcess.Substract(pImageBlob, pImageColorSegment);
+                                pImageCombine = CognexFactory.TwoImageProcess.Subtract(pImageBlob, pImageColorSegment);
                                 break;
                             default:
                                 break;
@@ -866,7 +894,7 @@ namespace YoonSample.CognexInspector
             return bResult;
         }
 
-        public static bool ProcessImageCombine(ICogImage pImageSourceA, ICogImage pImageSourceB, ref ICogImage pImageResult)
+        public static bool ProcessImageCombine(CognexImage pImageSourceA, CognexImage pImageSourceB, ref CognexImage pImageResult)
         {
             if (pImageSourceA == null || pImageSourceB == null) return false;
 
@@ -915,7 +943,7 @@ namespace YoonSample.CognexInspector
                                 break;
                             case eTypeProcessTwoImage.Subtract:
                                 nTypeCognex = eYoonCognexType.ImageSubtract;
-                                pImageResult = CognexFactory.TwoImageProcess.Substract(pImageSourceA, pImageSourceB);
+                                pImageResult = CognexFactory.TwoImageProcess.Subtract(pImageSourceA, pImageSourceB);
                                 pCogResultTemplate[nTypeInsp][nTypeCognex][string.Empty] = new CognexResult(nTypeCognex, pImageResult);
                                 break;
                             default:

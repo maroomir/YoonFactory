@@ -22,10 +22,10 @@ namespace YoonSample.CognexInspector
     {
         private int m_nIndex = -1;
         private eTypeInspect m_nType = eTypeInspect.None;
-        private ICogImage m_pCogImageOrigin;
-        private ICogImage m_pCogImagePreprocessing;
-        private ICogImage m_pCogImageSourceSelected;
-        private CogImage8Grey m_pCogImageResult;
+        private CognexImage m_pCogImageOrigin;
+        private CognexImage m_pCogImagePreprocessing;
+        private CognexImage m_pCogImageSourceSelected;
+        private CognexImage m_pCogImageResult;
         private DataTable m_pTableResult = null;
         public event PassImageCallback OnUpdateResultImageEvent;
 
@@ -255,10 +255,10 @@ namespace YoonSample.CognexInspector
             switch (sender)
             {
                 case Button pButtonUpdate:
-                    m_pCogImageOrigin = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageOrigin = e.Image.Clone() as CognexImage;
                     break;
                 case IInspectionTab pTabInsp:
-                    m_pCogImagePreprocessing = e.CogImage.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImagePreprocessing = e.Image.Clone() as CognexImage;
                     break;
             }
         }
@@ -311,14 +311,14 @@ namespace YoonSample.CognexInspector
             //// 공용으로 사용하기 전 Parameter 갱신 및 Process 초기화
             OnInspectionParameterUpdate(sender, e);
 
-            if (CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign) > 0)
+            if (CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign) > 0)
             {
                 //// Inspection Info Download
                 OnInspectionParameterDownload(sender, e);
                 //// Display Update
                 cogDisplay_ProcessView.StaticGraphics.Clear();
                 cogDisplay_ProcessView.InteractiveGraphics.Clear();
-                cogDisplay_ProcessView.Image = m_pCogImageResult;
+                cogDisplay_ProcessView.Image = m_pCogImageResult.CogImage;
                 //// Result에 맞게 Display 위에 결과 그리기
                 CommonClass.SetPatternOriginRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                 CommonClass.SetResultRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
@@ -327,9 +327,9 @@ namespace YoonSample.CognexInspector
                 {
                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 1, string.Format("{0:0.###} px", pResultPos.X));
                     DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 2, string.Format("{0:0.###} px", pResultPos.Y));
-                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 1, string.Format("{0:0.###} px", pResultAlign.ResultX));
-                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 2, string.Format("{0:0.###} px", pResultAlign.ResultY));
-                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 3, string.Format("{0:0.###} deg", pResultAlign.ResultT));
+                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 1, string.Format("{0:0.###} px", pResultAlign.X));
+                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 2, string.Format("{0:0.###} px", pResultAlign.Y));
+                    DataTableFactory.ChangeDataTableData(ref m_pTableResult, 0, 3, string.Format("{0:0.###} deg", pResultAlign.Theta));
                     dataGridView_AlignResult.Invalidate();
                 }
                 catch (Exception ex)
@@ -353,7 +353,7 @@ namespace YoonSample.CognexInspector
                 AlignResult pResultAlign = null;
                 YoonVector2D pResultPos = null;
                 double dTheta = 0.0;
-                int nInspPattern = CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected as CogImage8Grey, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign);
+                int nInspPattern = CommonClass.ProcessPatternMatchAlign(m_pCogImageSourceSelected, ref m_pCogImageResult, ref pResultPos, ref dTheta, ref pResultAlign);
                 if (nInspPattern < 0) return;
                 //// Origin Setting 시작
                 if(CommonClass.ProcessPatternMatchOrigin(nInspPattern))
@@ -363,7 +363,7 @@ namespace YoonSample.CognexInspector
                     //// Display Update
                     cogDisplay_ProcessView.StaticGraphics.Clear();
                     cogDisplay_ProcessView.InteractiveGraphics.Clear();
-                    cogDisplay_ProcessView.Image = m_pCogImageResult;
+                    cogDisplay_ProcessView.Image = m_pCogImageResult.CogImage;
                     //// Display Origin 표시하기
                     CommonClass.SetPatternOriginRegionToDisplay(cogDisplay_ProcessView, m_nIndex, m_nType);
                     //// Result Image를 다른 Tab으로 넘기기
@@ -383,11 +383,11 @@ namespace YoonSample.CognexInspector
             switch (strSourceSelected)
             {
                 case "Origin":
-                    m_pCogImageSourceSelected = m_pCogImageOrigin.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImageOrigin.Clone() as CognexImage;
                     pParam.SelectedSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 case "CurrentProcessing":
-                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.CopyBase(CogImageCopyModeConstants.CopyPixels);
+                    m_pCogImageSourceSelected = m_pCogImagePreprocessing.Clone() as CognexImage;
                     pParam.SelectedSourceLevel = eLevelImageSelection.CurrentProcessing;
                     break;
                 default:
@@ -400,7 +400,7 @@ namespace YoonSample.CognexInspector
             }
             cogDisplay_ProcessView.StaticGraphics.Clear();
             cogDisplay_ProcessView.InteractiveGraphics.Clear();
-            cogDisplay_ProcessView.Image = m_pCogImageSourceSelected;
+            cogDisplay_ProcessView.Image = m_pCogImageSourceSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
             CommonClass.pParamTemplate[m_nType].Parameter = pParam;
@@ -420,7 +420,7 @@ namespace YoonSample.CognexInspector
             ////  Form 생성하기
             eLabelInspect nLabel = eLabelInspect.Main;
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
-            pCogForm.CogImageSource = m_pCogImagePreprocessing;
+            pCogForm.CogImageSource = m_pCogImagePreprocessing.CogImage;
             pCogForm.CogToolLabel = nLabel;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -436,7 +436,7 @@ namespace YoonSample.CognexInspector
             ////  Form Initialize
             eLabelInspect nLabel = eLabelInspect.Second;
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
-            pCogForm.CogImageSource = m_pCogImagePreprocessing;
+            pCogForm.CogImageSource = m_pCogImagePreprocessing.CogImage;
             pCogForm.CogToolLabel = nLabel;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -452,7 +452,7 @@ namespace YoonSample.CognexInspector
             ////  Form Initialize
             eLabelInspect nLabel = eLabelInspect.Third;
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
-            pCogForm.CogImageSource = m_pCogImagePreprocessing;
+            pCogForm.CogImageSource = m_pCogImagePreprocessing.CogImage;
             pCogForm.CogToolLabel = nLabel;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;
@@ -468,7 +468,7 @@ namespace YoonSample.CognexInspector
             ////  Form Initialize
             eLabelInspect nLabel = eLabelInspect.Forth;
             Form_CogPatternAlign pCogForm = new Form_CogPatternAlign();
-            pCogForm.CogImageSource = m_pCogImagePreprocessing;
+            pCogForm.CogImageSource = m_pCogImagePreprocessing.CogImage;
             pCogForm.CogToolLabel = nLabel;
             pCogForm.CogTool = CommonClass.pCogToolTemplate[m_nType][eYoonCognexType.PMAlign][nLabel.ToString()] as CogPMAlignTool;
             pCogForm.OnUpdateCogToolEvent += OnCognexToolUpdate;

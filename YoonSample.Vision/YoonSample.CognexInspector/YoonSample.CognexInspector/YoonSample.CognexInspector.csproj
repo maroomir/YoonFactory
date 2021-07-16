@@ -378,6 +378,10 @@
       <Project>{1f8e210e-2c3b-4084-af34-855673efefc0}</Project>
       <Name>YoonCommon</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428cea-a460-47a6-ae13-50c17ea6727f}</Project>
+      <Name>YoonFile</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\YoonFactory\YoonImage\YoonImage\YoonImage.csproj">
       <Project>{c4e9558e-eb1d-4478-8d94-5ef8a802cae0}</Project>
       <Name>YoonImage</Name>
