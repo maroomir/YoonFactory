@@ -9,10 +9,32 @@ Windows 기반의 Machine Vision Software를 쉽고 빠르게 개발해보려는
 해당 프로젝트는 15개의 DLL 모듈과 4개의 Sample Program으로 이뤄져있습니다.
 
 
+## Repackage Line-up ##
+
+위 YoonFactory는 현재 산업용 현장에서 많이 쓰이는 .NetFramework 4.7 기반의 C#으로 작성되었으며, Windows 환경에 최적화 되었습니다.
+
+위의 한계를 극복하고 다양한 용도로 사용할 수 있도록 각 Module을 Python/Java/C# 9.0에 최적화시키는 Repackage Project를 수행하고 있습니다.
+
+자세히 알고 싶으시면 하단 링크와 설명을 참조하시기 바랍니다.
+
+### [YoonFactory.Net](https://github.com/maroomir/YoonFactory.Net) ###
+.Net 5.0 이상을 지원하는 패키지입니다.
+Xamarin 및 향후 MAUI 출시시 Linux, Mac, Windows 동시 지원성을 강화했습니다.
+
+### [YoonFactory.Java](https://github.com/maroomir/YoonFactory.Java) ###
+Java(OpenJava)를 지원하는 패키지입니다.
+
+### [YoonFactory.Droid](https://github.com/maroomir/YoonFactory.Droid) ###
+Java로 이뤄져있으며 Google API를 사용해서 Android에 최적화되어진 패키지입니다.
+
+### [YoonPytory](https://github.com/maroomir/YoonPytory) ###
+현재 YoonFactory와 다르게 Deep-Learning을 전문적으로 다루는 패키지입니다.
+YoonPytory에 적용된 코드들은 향후 최적화를 거쳐서 YoonFactory 및 각 Repackage Line-up에 Customizing 될 수 있습니다. 
+
+
 ## Feature and Desing Concept ##
 
 YoonFactory는 쉽고, 빠르고, 일관된 방법으로 Vision Software를 제작할 수 있는 Library 입니다.
-
 
 ### Module Integration ###
 
