@@ -180,7 +180,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionObjectExtract));
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -203,7 +203,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionObjectExtract));
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -337,7 +337,7 @@ namespace YoonSample.CognexInspector
             pParam.SelectedBlobImageType = nInspTypeSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionObjectExtract));
             OnInspectionParameterUpdate(sender, e);
 
             ////  Form 생성하기
@@ -367,7 +367,7 @@ namespace YoonSample.CognexInspector
             pParam.SelectedColorSegmentImageType = nInspTypeSelected;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionObjectExtract));
             OnInspectionParameterUpdate(sender, e);
 
             ////  Form 생성하기

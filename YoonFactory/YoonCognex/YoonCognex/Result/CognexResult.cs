@@ -119,6 +119,15 @@ namespace YoonFactory.Cognex.Result
                 TotalScore.ToString();
         }
 
+        public bool Insert(string strCombineResult, string strDelimiter = ",")
+        {
+            string[] pArrayResult = strCombineResult.Split(strDelimiter.ToCharArray()[0]);
+            if (pArrayResult?.Length != 4) return false;
+            ToolType = (eYoonCognexType)Enum.Parse(typeof(eYoonCognexType), pArrayResult[0]);
+            TotalScore = Convert.ToDouble(pArrayResult[3]);
+            return true;
+        }
+
         public bool Equals(IYoonResult pResult)
         {
             if (pResult == null) return false;

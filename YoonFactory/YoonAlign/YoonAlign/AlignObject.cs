@@ -85,7 +85,7 @@ namespace YoonFactory
             return (Feature is YoonRectAffine2D pRectObject) ? pRectObject.Rotation : 0.0;
         }
 
-        public void CopyFrom(IYoonObject pObject)
+        public new void CopyFrom(IYoonParameter pObject)
         {
             if (pObject is AlignObject pAlignObject)
             {
@@ -101,7 +101,7 @@ namespace YoonFactory
             }
         }
 
-        public IYoonObject Clone()
+        public new IYoonParameter Clone()
         {
             return new AlignObject(this);
         }

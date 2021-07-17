@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using YoonFactory.Image;
+using YoonFactory;
 
 namespace YoonFactory
 {
-    public class YoonObject : IYoonObject, IEquatable<YoonObject>
+    public class YoonObject : IYoonParameter, IEquatable<YoonObject>
     {
         #region Supported IDisposable Pattern
 
@@ -270,7 +271,7 @@ namespace YoonFactory
             Feature = pFeature.Clone();
         }
 
-        public void CopyFrom(IYoonObject pObject)
+        public void CopyFrom(IYoonParameter pObject)
         {
             if (pObject is YoonObject pYoonObject)
             {
@@ -283,13 +284,13 @@ namespace YoonFactory
             }
         }
 
-        public IYoonObject Clone()
+        public IYoonParameter Clone()
         {
             return new YoonObject(Label, Feature.Clone(), ReferencePosition.Clone(), (YoonImage) ObjectImage.Clone(),
                 Score, PixelCount);
         }
 
-        public bool Equals(IYoonObject pObject)
+        public bool Equals(IYoonParameter pObject)
         {
             if (pObject is YoonObject pYoonObject)
             {

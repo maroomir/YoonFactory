@@ -93,12 +93,12 @@ namespace YoonSample.Xamarin
 
         void OnClickChangeConnectionButton(Object sender, EventArgs e)
         {
-            if (TCPFactory.VerifyIPAddress(entry_SettingIPAddress.Text))
+            if (CommunicationFactory.VerifyIPAddress(entry_SettingIPAddress.Text))
                 CommonClass.pParamConnect.IPAddress = entry_SettingIPAddress.Text;
-            if (TCPFactory.VerifyPort(entry_SettingPort.Text))
+            if (CommunicationFactory.VerifyPort(entry_SettingPort.Text))
                 CommonClass.pParamConnect.Port = Convert.ToInt32(entry_SettingPort.Text);
             //// Save the parameter directly
-            CommonClass.pConnectManager.Parameter = CommonClass.pParamConnect;
+            CommonClass.pConnectManager.SetParameter(CommonClass.pParamConnect, typeof(ParameterConnection));
             if (CommonClass.pConnectManager.SaveParameter())
                 CommonClass.pConnectManager.LoadParameter();
             //// Connection Open/Close

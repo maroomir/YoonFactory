@@ -322,7 +322,7 @@ namespace YoonSample.CognexInspector
                                 pParamPM.OriginThetas[iPattern] = pResult.GetPatternRotation();
                             }
                         }
-                        pParamTemplate[nTypeInsp].Parameter = pParamPM;
+                        pParamTemplate[nTypeInsp].SetParameter(pParamPM, typeof(ParameterInspectionPatternMatching));
                         bResultOrigin = true;
                         nJobStep = eStepOrigin.Finish;
                         break;
@@ -439,7 +439,7 @@ namespace YoonSample.CognexInspector
                             pCLM.Write("Preprocess Success");
                             pDLM.Write(eYoonStatus.Inspect, "Preprocess Success");
                         }
-                        pParamTemplate[nTypeInsp].Parameter = pParam;
+                        pParamTemplate[nTypeInsp].SetParameter(pParam, typeof(ParameterInspectionPreprocessing));
                         pCogResultTemplate[nTypeInsp].SaveTemplate();
                         nJobStep = eStepPreprocessing.Finish;
                         break;
@@ -737,7 +737,7 @@ namespace YoonSample.CognexInspector
                         nJobStep = eStepPatternMatching.Finish;
                         break;
                     case eStepPatternMatching.Finish:
-                        pParamTemplate[nTypeInsp].Parameter = pParam;
+                        pParamTemplate[nTypeInsp].SetParameter(pParam, typeof(ParameterInspectionPatternMatching));
                         pCogResultTemplate[nTypeInsp].SaveTemplate();
                         //// 선언한 배열 초기화
                         if (pArrayResultVec != null)
@@ -885,7 +885,7 @@ namespace YoonSample.CognexInspector
                         nJobStep = eStepObjectExtract.Finish;
                         break;
                     case eStepObjectExtract.Finish:
-                        pParamTemplate[nTypeInsp].Parameter = pParam;
+                        pParamTemplate[nTypeInsp].SetParameter(pParam, typeof(ParameterInspectionObjectExtract));
                         pCogResultTemplate[nTypeInsp].SaveTemplate();
                         bRun = false;
                         break;
@@ -976,7 +976,7 @@ namespace YoonSample.CognexInspector
                         break;
                     case eStepCombine.Finish:
                         pParam.IsPassRecently = bResult;
-                        pParamTemplate[nTypeInsp].Parameter = pParam;
+                        pParamTemplate[nTypeInsp].SetParameter(pParam, typeof(ParameterInspectionCombine));
                         pCogResultTemplate[nTypeInsp].SaveTemplate();
                         bRun = false;
                         break;

@@ -25,6 +25,17 @@ namespace YoonFactory.Calibration
                 DeviceCenterPos.Y.ToString() + strDelimiter;
         }
 
+        public bool Insert(string strCombineResult, string strDelimiter = ",")
+        {
+            string[] pArrayResult = strCombineResult.Split(strDelimiter.ToCharArray()[0]);
+            if (pArrayResult?.Length != 5) return false;
+            AverageResolution.X = Convert.ToDouble(pArrayResult[0]);
+            AverageResolution.Y = Convert.ToDouble(pArrayResult[1]);
+            DeviceCenterPos.X = Convert.ToDouble(pArrayResult[3]);
+            DeviceCenterPos.Y = Convert.ToDouble(pArrayResult[4]);
+            return true;
+        }
+
         public bool Equals(IYoonResult pResult)
         {
             if (pResult is RotationCalibResult pResultCalib)
@@ -80,6 +91,15 @@ namespace YoonFactory.Calibration
             return AverageResolution.X.ToString() + strDelimiter +
                 AverageResolution.Y.ToString() + strDelimiter +
                 ResolutionOfParts.Count.ToString() + strDelimiter;
+        }
+
+        public bool Insert(string strCombineResult, string strDelimiter = ",")
+        {
+            string[] pArrayResult = strCombineResult.Split(strDelimiter.ToCharArray()[0]);
+            if (pArrayResult?.Length != 3) return false;
+            AverageResolution.X = Convert.ToDouble(pArrayResult[0]);
+            AverageResolution.Y = Convert.ToDouble(pArrayResult[1]);
+            return true;
         }
 
         public bool Equals(IYoonResult pResult)

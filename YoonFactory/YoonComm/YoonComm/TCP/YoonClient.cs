@@ -51,7 +51,7 @@ namespace YoonFactory.Comm.TCP
             m_receiveHandler = new AsyncCallback(OnReceiveEvent);
 
             // 관리 가능한 변수를 초기화합니다.
-            sbReceiveMessage = new StringBuilder(string.Empty);
+            ReceiveMessage = new StringBuilder(string.Empty);
         }
 
         public YoonClient(string strParamDirectory)
@@ -61,7 +61,7 @@ namespace YoonFactory.Comm.TCP
             m_receiveHandler = new AsyncCallback(OnReceiveEvent);
 
             // 관리 가능한 변수를 초기화합니다.
-            sbReceiveMessage = new StringBuilder(string.Empty);
+            ReceiveMessage = new StringBuilder(string.Empty);
 
             RootDirectory = strParamDirectory;
             LoadParam();
@@ -98,14 +98,14 @@ namespace YoonFactory.Comm.TCP
         public event RecieveDataCallback OnShowReceiveDataEvent;
         public bool IsRetryOpen { get; private set; } = false;
         public bool IsSend { get; private set; } = false;
-        public StringBuilder sbReceiveMessage { get; private set; } = null;
+        public StringBuilder ReceiveMessage { get; private set; } = null;
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
         public string Address
         {
             get => Param.fIP;
             set
             {
-                if (TCPFactory.VerifyIPAddress(value))
+                if (CommunicationFactory.VerifyIPAddress(value))
                     Param.fIP = value;
             }
         }
@@ -114,7 +114,7 @@ namespace YoonFactory.Comm.TCP
             get => Param.fPort;
             set
             {
-                if (TCPFactory.VerifyPort(value))
+                if (CommunicationFactory.VerifyPort(value))
                     Param.fPort = value;
             }
         }
@@ -135,7 +135,7 @@ namespace YoonFactory.Comm.TCP
             public static string fElapsedTime = "5000";
         }
 
-        public void CopyFrom(IYoonTcpIp pTcpIp)
+        public void CopyFrom(IYoonComm pTcpIp)
         {
             if (pTcpIp is YoonClient pClient)
             {
@@ -149,7 +149,7 @@ namespace YoonFactory.Comm.TCP
             }
         }
 
-        public IYoonTcpIp Clone()
+        public IYoonComm Clone()
         {
             Disconnect();
 
@@ -616,7 +616,7 @@ namespace YoonFactory.Comm.TCP
                 if (bytesRead > 0)
                 {
                     ////// 더 많은 Data가 있을 수 있으므로 현재까지의 Data를 저장한다.
-                    sbReceiveMessage.Append(Encoding.ASCII.GetString(ao.Buffer, 0, bytesRead));
+                    ReceiveMessage.Append(Encoding.ASCII.GetString(ao.Buffer, 0, bytesRead));
                     //// 자료 처리가 끝났으면 이제 다시 데이터를 수신받기 위해서 수신 대기를 해야 합니다.
                     //// BeginReceive 메서드를 이용해 비동기적으로 작업을 대기했다면,
                     //// 반드시 대리자 함수에서 EndReceive 메서드를 이용해 비동기 작업이 끝났다고 알려줘야 합니다!

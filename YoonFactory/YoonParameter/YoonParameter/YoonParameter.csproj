@@ -82,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="YoonContainer.cs" />
     <Compile Include="YoonParameter.cs" />
+    <Compile Include="YoonResult.cs" />
     <Compile Include="YoonTemplate.cs" />
   </ItemGroup>
   <ItemGroup>

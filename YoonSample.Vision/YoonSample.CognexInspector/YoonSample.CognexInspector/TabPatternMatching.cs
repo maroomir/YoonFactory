@@ -239,7 +239,7 @@ namespace YoonSample.CognexInspector
             }
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionPatternMatching));
             OnInspectionParameterUpdate(sender, e);
         }
 
@@ -403,7 +403,7 @@ namespace YoonSample.CognexInspector
             cogDisplay_ProcessView.Image = m_pCogImageSourceSelected.CogImage;
 
             //// 변경 즉시 반영 (적용지연 에러 발생에 대한 대처사항)
-            CommonClass.pParamTemplate[m_nType].Parameter = pParam;
+            CommonClass.pParamTemplate[m_nType].SetParameter(pParam, typeof(ParameterInspectionPatternMatching));
             OnInspectionParameterUpdate(sender, e);
         }
 

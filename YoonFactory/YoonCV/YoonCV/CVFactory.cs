@@ -11,7 +11,7 @@ namespace YoonFactory.CV
 {
     public static class CVFactory
     {
-        public static IYoonObject FindTemplate(this CVImage pSourceImage, CVImage pTemplateImage, double dScore = 0.7) => TemplateMatch.FindTemplate(pTemplateImage, pSourceImage, dScore);
+        public static YoonObject FindTemplate(this CVImage pSourceImage, CVImage pTemplateImage, double dScore = 0.7) => TemplateMatch.FindTemplate(pTemplateImage, pSourceImage, dScore);
         public static CVImage Add(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Add(pSourceImage, pObjectImage);
         public static CVImage Subtract(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Subtract(pSourceImage, pObjectImage);
         public static CVImage Multiply(this CVImage pSourceImage, CVImage pObjectImage) => TwoImageProcess.Multiply(pSourceImage, pObjectImage);
@@ -60,7 +60,7 @@ namespace YoonFactory.CV
 
         public static class TemplateMatch
         {
-            public static IYoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
+            public static YoonObject FindTemplate(CVImage pTemplateImage, CVImage pSourceImage, double dScore = 0.7)
             {
                 double dMatchScore;
                 Rect pRectResult = FindTemplate(pTemplateImage.Matrix, pSourceImage.Matrix, out dMatchScore, dScore, TemplateMatchModes.CCoeffNormed);

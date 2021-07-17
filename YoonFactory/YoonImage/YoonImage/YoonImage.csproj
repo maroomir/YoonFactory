@@ -74,7 +74,6 @@
   <ItemGroup>
     <Compile Include="Enums.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Interfaces.cs" />
     <Compile Include="ImageFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="YoonDataset.cs" />
