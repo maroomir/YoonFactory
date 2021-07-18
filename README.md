@@ -22,10 +22,12 @@ Windows 기반의 Machine Vision Software를 쉽고 빠르게 개발해보려는
 Xamarin 및 향후 MAUI 출시시 Linux, Mac, Windows 동시 지원성을 강화했습니다.
 
 ### [YoonFactory.Java](https://github.com/maroomir/YoonFactory.Java) ###
-Java(OpenJava)를 지원하는 패키지입니다.
+최신 사양의 Java(OpenJDK, 15 이상)를 지원하는 패키지입니다.
+상기 YoonFactory.Net과 최대한 동기화를 맞출 예정입니다.
 
 ### [YoonFactory.Droid](https://github.com/maroomir/YoonFactory.Droid) ###
-Java로 이뤄져있으며 Google API를 사용해서 Android에 최적화되어진 패키지입니다.
+Java 언어와 Google API를 사용해서 Android에 최적화되어진 패키지입니다.
+향후 Android 개발을 본격적으로 할 때까지는 연습 단계로 둘 예정입니다.
 
 ### [YoonPytory](https://github.com/maroomir/YoonPytory) ###
 현재 YoonFactory와 다르게 Deep-Learning을 전문적으로 다루는 패키지입니다.
@@ -277,12 +279,14 @@ YoonCognex를 정상적으로 사용하기 위해선 Cognex VisionPro를 사용�
 
     Cognex Library를 사용한 좌표 Calibration을 지원하는 Module 입니다.
 
+Module 및 성능에 대한 설명은 [Cognex](https://www.cognex.com/) 홈페이지를 참고해주세요.
+
 
 ### YoonCV ###
 
 YoonCV는 영상처리용 Open Source인 OpenCV를 Wrapping한 OpenCVSharp Package를 사용해서 전문척인 영상처리를 수행할 목적으로 제작되고 있습니다.
 
-현재 기능 개발을 위한 준비 중입니다.
+현재 기초적인 기능만 개발했으며, 유용한 기능 개발을 위해 공부 중입니다.
 
 
 ### YoonAlign ###
@@ -291,7 +295,7 @@ YoonAlign은 Machine Vision의 대표적인 용도 중 하나인 Vision Align �
 
 YoonCalibration과 연동해서 Mapping 된 중심점과 좌표값을 사용해 Align을 합니다.
 
-다만 YoonAlign Module의 대부분의 기능들을 YoonVector로 흡수시킬 계획이며, 조만간 삭제될 예정입니다.
+YoonAlign Module의 대부분의 기능들을 향후 YoonVector 또는 YoonImage로 흡수할 예정입니다.
 
 
 ### YoonCalibration ###
