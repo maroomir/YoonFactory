@@ -95,7 +95,7 @@ namespace YoonSample.Xamarin
         {
             if (CommunicationFactory.VerifyIPAddress(entry_SettingIPAddress.Text))
                 CommonClass.pParamConnect.IPAddress = entry_SettingIPAddress.Text;
-            if (CommunicationFactory.VerifyPort(entry_SettingPort.Text))
+            if (CommunicationFactory.VerifyTCPPort(entry_SettingPort.Text))
                 CommonClass.pParamConnect.Port = Convert.ToInt32(entry_SettingPort.Text);
             //// Save the parameter directly
             CommonClass.pConnectManager.SetParameter(CommonClass.pParamConnect, typeof(ParameterConnection));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace YoonFactory.Comm
@@ -15,12 +16,12 @@ namespace YoonFactory.Comm
             }
             return resultHex;
         }
-
+        
         public static byte[] ToHex(int data, int length)
         {
             return Encoding.ASCII.GetBytes(data.ToString().ToCharArray(), 0, length);
         }
-
+        
         public static int[] GetIPAddressArray(string strIPAddress)
         {
             const int MAX_IPV4_NUM = 4;
@@ -51,8 +52,7 @@ namespace YoonFactory.Comm
             const int MAX_IPV4_NUM = 4;
             if (nOrder >= 0 && nOrder < MAX_IPV4_NUM)
                 return GetIPAddressArray(strIPAddress)[nOrder];
-            else
-                return -1;
+            return -1;
         }
 
         public static bool VerifyIPAddress(string strIPAddress)
@@ -77,7 +77,7 @@ namespace YoonFactory.Comm
             return true;
         }
 
-        public static bool VerifyPort(string strPort)
+        public static bool VerifyTCPPort(string strPort)
         {
             try
             {
@@ -86,11 +86,16 @@ namespace YoonFactory.Comm
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Port Num Invalid : Port No / " + strPort);
-                Console.WriteLine(ex.ToString());
+                Debug.WriteLine("Port Num Invalid : Port No / " + strPort);
+                Debug.WriteLine(ex.ToString());
                 return false;
             }
             return true;
+        }
+
+        public static bool VerifySerialPort(string strPort)
+        {
+            return strPort.IndexOf("COM", StringComparison.Ordinal) >= 0;
         }
     }
 

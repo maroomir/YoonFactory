@@ -10,77 +10,48 @@ using YoonFactory.Files;
 
 namespace YoonFactory.Comm.TCP
 {
-    public class YoonServer : IYoonTcpIp, IDisposable
+    public class YoonServer : IYoonComm
     {
         #region IDisposable Support
-        private bool disposedValue = false; // 중복 호출을 검색하려면
+
+        private bool _disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 // Save Last setting
-                SaveParam();
+                SaveParameter();
                 SaveTarget();
 
                 if (disposing)
                 {
-                    // TODO: 관리되는 상태(관리되는 개체)를 삭제합니다.
-                    if (m_serverSocket != null)
+                    if (_pServerSocket != null)
                     {
-                        m_serverSocket.Close();
-                        m_serverSocket.Dispose();
-                        m_serverSocket = null;
+                        _pServerSocket.Close();
+                        _pServerSocket.Dispose();
+                        _pServerSocket = null;
                     }
-                    if (m_connectedClientSocket != null)
+
+                    if (_pConnectedClientSocket != null)
                     {
-                        m_connectedClientSocket.Disconnect(false);
-                        m_connectedClientSocket.Dispose();
-                        m_connectedClientSocket = null;
+                        _pConnectedClientSocket.Disconnect(false);
+                        _pConnectedClientSocket.Dispose();
+                        _pConnectedClientSocket = null;
                     }
                 }
-
-                // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
-                // TODO: 큰 필드를 null로 설정합니다.
 
                 // Close RetryConnect Thread
                 OnRetryThreadStop();
                 // Refund memory to main function
-                m_threadRetryListen = null;
+                _pThreadRetry = null;
 
-                m_acceptHandler = null;
-                m_receiveHandler = null;
-                m_sendHandler = null;
+                _pAcceptHandler = null;
+                _pReceiveHandler = null;
+                _pSendHandler = null;
 
-                disposedValue = true;
+                _disposedValue = true;
             }
-        }
-
-        // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        public YoonServer()
-        {
-            // 관리 가능한 변수를 초기화 합니다.
-            ReceiveMessage = new StringBuilder(string.Empty);
-
-            // 비동기 작업에 사용될 대리자를 초기화합니다.
-            m_acceptHandler = new AsyncCallback(OnAcceptClientEvent);
-            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
-            m_sendHandler = new AsyncCallback(OnSendEvent);
-        }
-
-        public YoonServer(string strParamDirectory)
-        {
-            RootDirectory = strParamDirectory;
-            LoadParam();
-            LoadTarget();
-
-            // 관리 가능한 변수를 초기화 합니다.
-            ReceiveMessage = new StringBuilder(string.Empty);
-
-            // 비동기 작업에 사용될 대리자를 초기화합니다.
-            m_acceptHandler = new AsyncCallback(OnAcceptClientEvent);
-            m_receiveHandler = new AsyncCallback(OnReceiveEvent);
-            m_sendHandler = new AsyncCallback(OnSendEvent);
         }
 
         ~YoonServer()
@@ -88,24 +59,44 @@ namespace YoonFactory.Comm.TCP
             Dispose(false);
         }
 
-        // 삭제 가능한 패턴을 올바르게 구현하기 위해 추가된 코드입니다.
         public void Dispose()
         {
-            // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
             Dispose(true);
-            // TODO: 위의 종료자가 재정의된 경우 다음 코드 줄의 주석 처리를 제거합니다.
             GC.SuppressFinalize(this);
         }
+
         #endregion
 
-        protected class AsyncObject
+        public YoonServer()
+        {
+            ReceiveMessage = new StringBuilder(string.Empty);
+
+            _pAcceptHandler = new AsyncCallback(OnAcceptClientEvent);
+            _pReceiveHandler = new AsyncCallback(OnReceiveEvent);
+            _pSendHandler = new AsyncCallback(OnSendEvent);
+        }
+
+        public YoonServer(string strParamDirectory)
+        {
+            RootDirectory = strParamDirectory;
+            LoadParameter();
+            LoadTarget();
+
+            ReceiveMessage = new StringBuilder(string.Empty);
+
+            _pAcceptHandler = new AsyncCallback(OnAcceptClientEvent);
+            _pReceiveHandler = new AsyncCallback(OnReceiveEvent);
+            _pSendHandler = new AsyncCallback(OnSendEvent);
+        }
+
+        private class AsyncObject
         {
             public byte[] Buffer;
             public Socket WorkingSocket;
 
-            public AsyncObject(Int32 bufferSize)
+            public AsyncObject(int nBufferSize)
             {
-                this.Buffer = new Byte[bufferSize];
+                Buffer = new byte[nBufferSize];
             }
         }
 
@@ -116,25 +107,26 @@ namespace YoonFactory.Comm.TCP
         public StringBuilder ReceiveMessage { get; private set; } = null;
         public string Address { get; set; } = string.Empty;
         public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
+
         public string Port
         {
-            get => Param.fPort;
+            get => Parameter.Port;
             set
             {
-                if (CommunicationFactory.VerifyPort(value))
-                    Param.fPort = value;
+                if (CommunicationFactory.VerifyTCPPort(value))
+                    Parameter.Port = value;
             }
         }
 
-        public void CopyFrom(IYoonComm pTcpIp)
+        public void CopyFrom(IYoonComm pComm)
         {
-            if (pTcpIp is YoonServer pServer)
+            if (pComm is YoonServer pServer)
             {
                 Close();
                 if (pServer.IsConnected)
                     pServer.Close();
 
-                LoadParam();
+                LoadParameter();
                 Port = pServer.Port;
             }
         }
@@ -144,80 +136,73 @@ namespace YoonFactory.Comm.TCP
             Close();
 
             YoonServer pServer = new YoonServer();
-            pServer.LoadParam();
+            pServer.LoadParameter();
             pServer.Port = Port;
             return pServer;
         }
 
         private const int BUFFER_SIZE = 4096;
 
-        private Socket m_serverSocket = null;
-        private Socket m_connectedClientSocket = null;
-        private AsyncCallback m_acceptHandler;
-        private AsyncCallback m_receiveHandler;
-        private AsyncCallback m_sendHandler;
-        private List<string> m_listClientIP = null;
+        private Socket _pServerSocket = null;
+        private Socket _pConnectedClientSocket = null;
+        private AsyncCallback _pAcceptHandler;
+        private AsyncCallback _pReceiveHandler;
+        private AsyncCallback _pSendHandler;
+        private List<string> _pListClientIp = null;
 
-        private struct Param
+        private struct Parameter
         {
-            public static string fPort = "1234";
-            public static string fBacklog = "5";
-            public static string fRetryCount = "10";
-            public static string fRetryListen = "true";
-            public static string fTimeout = "10000";
+            public static string Port = "1234";
+            public static string Backlog = "5";
+            public static string RetryCount = "10";
+            public static string RetryListen = "true";
+            public static string Timeout = "10000";
         }
 
-        /// <summary>
-        /// Parameter를 설정한다.
-        /// </summary>
-        /// <param name="port">Port Num  (ex. 5000)</param>
-        /// <param name="backlog"> Backlog (ex. 5)</param>
-        /// <param name="retryListen">재시도 여부  (ex.  true)</param>
-        /// <param name="timeout">Time Out 예상 시간  (ex. 5000)</param>
-        /// <param name="retryCount">재시도 횟수  (ex. 1)</param>
-        public void SetParam(string port, string backlog, string retryListen, string timeout, string retryCount)
+        public void SetParameter(string strPort, string strBacklog, string strRetryListen, string strTimeout,
+            string strRetryCount)
         {
-            Param.fPort = port;
-            Param.fBacklog = backlog;
-            Param.fRetryCount = retryCount;
-            Param.fRetryListen = retryListen;
-            Param.fTimeout = timeout;
+            Parameter.Port = strPort;
+            Parameter.Backlog = strBacklog;
+            Parameter.RetryCount = strRetryCount;
+            Parameter.RetryListen = strRetryListen;
+            Parameter.Timeout = strTimeout;
         }
 
-        public void SetParam(int port, int backlog, bool IsRetryListen, int timeout, int retryCount)
+        public void SetParameter(int strPort, int nBacklog, bool bRetryListen, int nTimeout, int nRetryCount)
         {
-            Param.fPort = port.ToString();
-            Param.fBacklog = backlog.ToString();
-            Param.fRetryListen = IsRetryListen.ToString();
-            Param.fTimeout = timeout.ToString();
-            Param.fRetryCount = retryCount.ToString();
+            Parameter.Port = strPort.ToString();
+            Parameter.Backlog = nBacklog.ToString();
+            Parameter.RetryListen = bRetryListen.ToString();
+            Parameter.Timeout = nTimeout.ToString();
+            Parameter.RetryCount = nRetryCount.ToString();
         }
 
-        public void LoadParam()
+        public void LoadParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni ic = new YoonIni(strParamFilePath))
+            using (YoonIni pIni = new YoonIni(strParamFilePath))
             {
-                ic.LoadFile();
-                Param.fPort = ic["Server"]["Port"].ToString("1234");
-                Param.fBacklog = ic["Server"]["Backlog"].ToString("5");
-                Param.fRetryListen = ic["Server"]["RetryListen"].ToString("true");
-                Param.fRetryCount = ic["Server"]["RetryCount"].ToString("10");
-                Param.fTimeout = ic["Server"]["TimeOut"].ToString("10000");
+                pIni.LoadFile();
+                Parameter.Port = pIni["Server"]["Port"].ToString("1234");
+                Parameter.Backlog = pIni["Server"]["Backlog"].ToString("5");
+                Parameter.RetryListen = pIni["Server"]["RetryListen"].ToString("true");
+                Parameter.RetryCount = pIni["Server"]["RetryCount"].ToString("10");
+                Parameter.Timeout = pIni["Server"]["TimeOut"].ToString("10000");
             }
         }
 
-        public void SaveParam()
+        public void SaveParameter()
         {
             string strParamFilePath = Path.Combine(RootDirectory, "IPServer.ini");
-            using (YoonIni ic = new YoonIni(strParamFilePath))
+            using (YoonIni pIni = new YoonIni(strParamFilePath))
             {
-                ic["Server"]["Port"] = Param.fPort;
-                ic["Server"]["Backlog"] = Param.fBacklog;
-                ic["Server"]["RetryListen"] = Param.fRetryListen;
-                ic["Server"]["RetryCount"] = Param.fRetryCount;
-                ic["Server"]["TimeOut"] = Param.fTimeout;
-                ic.SaveFile();
+                pIni["Server"]["Port"] = Parameter.Port;
+                pIni["Server"]["Backlog"] = Parameter.Backlog;
+                pIni["Server"]["RetryListen"] = Parameter.RetryListen;
+                pIni["Server"]["RetryCount"] = Parameter.RetryCount;
+                pIni["Server"]["TimeOut"] = Parameter.Timeout;
+                pIni.SaveFile();
             }
         }
 
@@ -226,15 +211,15 @@ namespace YoonFactory.Comm.TCP
             try
             {
                 string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
-                YoonXml xc = new YoonXml(strTargetPath);
-                object pTargetParam;
-                if (xc.LoadFile(out pTargetParam, typeof(List<string>)))
-                    m_listClientIP = (List<string>)pTargetParam;
-                else if (m_listClientIP == null)
+                YoonXml pXml = new YoonXml(strTargetPath);
+                if (pXml.LoadFile(out object pTargetParam, typeof(List<string>)))
+                    _pListClientIp = (List<string>) pTargetParam;
+                else if (_pListClientIp == null)
                 {
-                    m_listClientIP = new List<string>();
+                    _pListClientIp = new List<string>();
                 }
-                m_listClientIP.Clear();
+
+                _pListClientIp.Clear();
             }
             catch (Exception ex)
             {
@@ -244,16 +229,17 @@ namespace YoonFactory.Comm.TCP
 
         public void SaveTarget()
         {
-            if (m_listClientIP == null)
+            if (_pListClientIp == null)
             {
-                m_listClientIP = new List<string>();
-                m_listClientIP.Clear();
+                _pListClientIp = new List<string>();
+                _pListClientIp.Clear();
             }
+
             try
             {
                 string strTargetPath = Path.Combine(RootDirectory, "IPTarget.xml");
-                YoonXml xc = new YoonXml(strTargetPath);
-                xc.SaveFile(m_listClientIP, typeof(List<string>));
+                YoonXml pXml = new YoonXml(strTargetPath);
+                pXml.SaveFile(_pListClientIp, typeof(List<string>));
             }
             catch (Exception ex)
             {
@@ -261,23 +247,9 @@ namespace YoonFactory.Comm.TCP
             }
         }
 
-        public bool IsBound
-        {
-            get
-            {
-                if (m_serverSocket == null) return false;
-                return m_serverSocket.IsBound;
-            }
-        }
+        public bool IsBound => _pServerSocket != null && _pServerSocket.IsBound;
 
-        public bool IsConnected
-        {
-            get
-            {
-                if (m_connectedClientSocket == null) return false;
-                return m_connectedClientSocket.Connected;
-            }
-        }
+        public bool IsConnected => _pConnectedClientSocket != null && _pConnectedClientSocket.Connected;
 
         public bool Open()
         {
@@ -286,100 +258,98 @@ namespace YoonFactory.Comm.TCP
 
         public bool Listen()
         {
-            if (m_serverSocket != null)
-            {
-                if (m_serverSocket.IsBound == true)
-                    return true;
-            }
+            if (IsBound) return true;
 
             try
             {
-                m_serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+                _pServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
-                //// Binding port and Listening per backlogging
-                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
-                m_serverSocket.Listen(int.Parse(Param.fBacklog));
-                //// Associate the connection request
-                IAsyncResult asyncResult = m_serverSocket.BeginAccept(m_acceptHandler, null);
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Info, $"Listen Port : {Parameter.Port}"));
+                // Binding port and Listening per backlogging
+                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Parameter.Port)));
+                _pServerSocket.Listen(int.Parse(Parameter.Backlog));
+                // Associate the connection request
+                IAsyncResult pResult = _pServerSocket.BeginAccept(_pAcceptHandler, null);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listening Failure : Socket Error")));
-                if (m_serverSocket != null)
-                {
-                    m_serverSocket.Close();
-                    m_serverSocket = null;
-                }
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Error, "Listening Failure : Socket Error"));
+                _pServerSocket?.Close();
+                _pServerSocket = null;
                 return false;
             }
 
-            if (m_serverSocket.IsBound == true)
+            if (_pServerSocket.IsBound == true)
             {
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveParam();
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Listen Success"));
+                SaveParameter();
                 IsRetryOpen = false;
             }
             else
             {
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listen Failure : Bound Fail")));
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Error, "Listen Failure : Bound Fail"));
                 IsRetryOpen = true;
             }
-            return m_serverSocket.IsBound;
+
+            return _pServerSocket.IsBound;
         }
 
         public bool Listen(string strPort)
         {
-            if (m_serverSocket != null)
-            {
-                if (m_serverSocket.IsBound == true)
-                    return true;
-            }
+            if (IsBound) return true;
 
             try
             {
-                m_serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+                _pServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
 
-                Param.fPort = strPort;
+                Parameter.Port = strPort;
 
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Port : {0}", Param.fPort)));
-                //// Binding Port and Listening per backlogging
-                m_serverSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Param.fPort)));
-                m_serverSocket.Listen(int.Parse(Param.fBacklog));
-                //// Associate the connection request
-                IAsyncResult asyncResult = m_serverSocket.BeginAccept(m_acceptHandler, null);
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Info, $"Listen Port : {Parameter.Port}"));
+                // Binding Port and Listening per backlogging
+                _pServerSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(Parameter.Port)));
+                _pServerSocket.Listen(int.Parse(Parameter.Backlog));
+                // Associate the connection request
+                IAsyncResult asyncResult = _pServerSocket.BeginAccept(_pAcceptHandler, null);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listening Failure : Socket Error")));
-                if (m_serverSocket != null)
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Error, "Listening Failure : Socket Error"));
+                if (_pServerSocket != null)
                 {
-                    m_serverSocket.Close();
-                    m_serverSocket = null;
+                    _pServerSocket.Close();
+                    _pServerSocket = null;
                 }
+
                 return false;
             }
 
-            if (m_serverSocket.IsBound == true)
+            if (_pServerSocket.IsBound == true)
             {
                 IsRetryOpen = false;
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Success")));
-                SaveParam();
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Listen Success"));
+                SaveParameter();
             }
             else
             {
                 if (!IsRetryOpen)
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listen Failure : Bound Fail")));
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Error, "Listen Failure : Bound Fail"));
                 IsRetryOpen = true;
             }
+
             return true;
         }
 
@@ -391,301 +361,292 @@ namespace YoonFactory.Comm.TCP
                 Thread.Sleep(100);
             }
 
-            OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Close Listen")));
+            OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Close Listen"));
 
-            if (m_serverSocket == null)
+            if (_pServerSocket == null)
                 return;
 
-            m_serverSocket.Close();
-            m_serverSocket = null;
+            _pServerSocket.Close();
+            _pServerSocket = null;
         }
 
-        public void OnAcceptClientEvent(IAsyncResult ar)
+        private void OnAcceptClientEvent(IAsyncResult pResult)
         {
-            if (m_serverSocket == null || !m_serverSocket.IsBound) return;
+            if (IsBound) return;
 
-            Socket clientSocket;
+            Socket pClientSocket;
             try
             {
-                //// 클라이언트의 연결 요청을 수락합니다.
-                clientSocket = m_serverSocket.EndAccept(ar);
-                //// Get Client IP Address and Save to IPTarget.xml
-                string strAddressFull = clientSocket.RemoteEndPoint.ToString();
+                // Accept the connection request
+                pClientSocket = _pServerSocket.EndAccept(pResult);
+                // Get Client IP Address and Save to IPTarget.xml
+                string strAddressFull = pClientSocket.RemoteEndPoint?.ToString();
                 bool bDuplicatedAddress = false;
-                foreach (string strBuff in m_listClientIP)
+                foreach (string strIp in _pListClientIp)
                 {
-                    if (strBuff == strAddressFull)
+                    if (strIp == strAddressFull)
                         bDuplicatedAddress = true;
                 }
+
                 if (!bDuplicatedAddress)
-                    m_listClientIP.Add(strAddressFull);
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Acception Success To Client : {0}", strAddressFull)));
+                    _pListClientIp.Add(strAddressFull);
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info,
+                    $"Success To Accept Client : {strAddressFull}"));
                 SaveTarget();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Acceptation Failure")));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, string.Format("Acceptation Failure")));
                 return;
             }
 
-            //// 4096의 크기를 갖는 Byte 배열을 가진 AsyncObject Class를 생성한다.
-            AsyncObject ao = new AsyncObject(BUFFER_SIZE);
-            //// 클라이언트 소켓 저장
-            m_connectedClientSocket = clientSocket;
-            //// 작업 중인 소켓을 저장하기 위해 SocketClient를 할당한다.
-            ao.WorkingSocket = clientSocket;
+            // Save the working socket in the 4,096 size socket object
+            AsyncObject pObject = new AsyncObject(BUFFER_SIZE) {WorkingSocket = pClientSocket};
+            // Save the client socket
+            _pConnectedClientSocket = pClientSocket;
             try
             {
-                //// 비동기적으로 들어오는 자료를 수신하기 위해 BeginReceive 메서드를 사용한다.
-                clientSocket.BeginReceive(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, m_receiveHandler, ao);
+                // Receive the incoming data asynchronously
+                pClientSocket.BeginReceive(pObject.Buffer, 0, pObject.Buffer.Length, SocketFlags.None, _pReceiveHandler, pObject);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Receive Waiting Failure : Socket Error")));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, string.Format("Receive Waiting Failure : Socket Error")));
                 return;
             }
         }
 
-        Thread m_threadRetryListen = null;
-        Stopwatch m_StopWatch = new Stopwatch();
-        /// <summary>
-        /// 재연결을 시도하기 위한 Thread를 작성 및 구동한다.
-        /// </summary>
+        private Thread _pThreadRetry = null;
+        private Stopwatch _pStopWatch = new Stopwatch();
+
         public void OnRetryThreadStart()
         {
-            if (Param.fRetryListen == Boolean.FalseString)
+            if (_pThreadRetry != null || Parameter.RetryListen == bool.FalseString)
                 return;
-            m_threadRetryListen = new Thread(new ThreadStart(ProcessRetry));
-            m_threadRetryListen.Name = "Retry Listen";
-            m_threadRetryListen.Start();
+            _pThreadRetry = new Thread(ProcessRetry) {Name = "Retry Listen"};
+            _pThreadRetry.Start();
         }
 
         public void OnRetryThreadStop()
         {
-            if (m_threadRetryListen == null) return;
+            if (_pThreadRetry == null) return;
 
-            if (m_threadRetryListen.IsAlive)
-                m_threadRetryListen.Abort();
+            if (_pThreadRetry.IsAlive)
+            {
+                _pThreadRetry.Interrupt();
+                Thread.Sleep(100);
+            }
+
+            _pThreadRetry = null;
         }
 
-        /// <summary>
-        /// 재연결 시도 Thread에 들어가는 Core 함수다.
-        /// </summary>
         private void ProcessRetry()
         {
-            m_StopWatch.Stop();
-            m_StopWatch.Reset();
-            m_StopWatch.Start();
+            _pStopWatch.Stop();
+            _pStopWatch.Reset();
+            _pStopWatch.Start();
 
-            OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Retry Start")));
-            int nCount = Convert.ToInt32(Param.fRetryCount);
-            int nTimeOut = Convert.ToInt32(Param.fTimeout);
+            IsRetryOpen = true;
+
+            OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Listen Retry Start"));
+            int nCount = Convert.ToInt32(Parameter.RetryCount);
+            int nTimeOut = Convert.ToInt32(Parameter.Timeout);
 
             for (int iRetry = 0; iRetry < nCount; iRetry++)
             {
-                //// Error : Timeout
-                if (m_StopWatch.ElapsedMilliseconds >= nTimeOut)
+                // Error : Timeout
+                if (_pStopWatch.ElapsedMilliseconds >= nTimeOut)
                     break;
 
-                //// Error : Retry Listen is false suddenly
+                // Error : Retry Listen is false suddenly
                 if (!IsRetryOpen)
                     break;
 
-                ////  Success to connect
-                if (m_serverSocket != null)
+                //  Success to connect
+                if (IsBound)
                 {
-                    if (m_serverSocket.IsBound == true)
-                    {
-                        OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Listen Retry Success")));
-                        IsRetryOpen = false;
-                        break;
-                    }
+                    OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Listen Retry Success"));
+                    IsRetryOpen = false;
+                    break;
                 }
+
                 Listen();
             }
-            m_StopWatch.Stop();
-            m_StopWatch.Reset();
 
-            if (m_serverSocket == null)
+            _pStopWatch.Stop();
+            _pStopWatch.Reset();
+
+            if (_pServerSocket == null)
             {
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Listen Retry Failure : Listen Socket Empty"));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Listen Retry Failure : Listen Socket Empty"));
                 return;
             }
-            if (m_serverSocket.IsBound == false)
+
+            if (_pServerSocket.IsBound == false)
             {
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Listen Retry Failure : Connection Fail")));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Listen Retry Failure : Connection Fail"));
             }
         }
 
-        /// <summary>
-        ///  Buffer 상의 내용을 보낸다.
-        /// </summary>
-        /// <param name="strBuffer">전송할 내용</param>
         public bool Send(string strBuffer)
         {
-            if (m_serverSocket == null || m_connectedClientSocket == null)
+            if (_pServerSocket == null || _pConnectedClientSocket == null)
                 return false;
-            if (m_connectedClientSocket.Connected == false)
+            if (_pConnectedClientSocket.Connected == false)
             {
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
                 return false;
             }
-            IsSend = false;
-            // 추가 정보를 넘기기 위한 변수 선언
-            // 크기를 설정하는게 의미가 없습니다.
-            // 왜냐하면 바로 밑의 코드에서 문자열을 유니코드 형으로 변환한 바이트 배열을 반환하기 때문에
-            // 최소한의 크기르 배열을 초기화합니다.
-            AsyncObject ao = new AsyncObject(1);
 
-            //// 문자열을 Byte 배열(ASCII)로 변환해서 Buffer에 삽입한다.
-            ao.Buffer = Encoding.ASCII.GetBytes(strBuffer);
-            ao.WorkingSocket = m_connectedClientSocket;
+            IsSend = false;
+            AsyncObject pObject = new AsyncObject(1);
+
+            // Convert the byte buffer to ASCII
+            pObject.Buffer = Encoding.ASCII.GetBytes(strBuffer);
+            pObject.WorkingSocket = _pConnectedClientSocket;
 
             try
             {
-                m_connectedClientSocket.BeginSend(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, m_sendHandler, ao);
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Message To String : " + strBuffer)));
+                _pConnectedClientSocket.BeginSend(pObject.Buffer, 0, pObject.Buffer.Length, SocketFlags.None,
+                    _pSendHandler, pObject);
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Info, "Send Message To String : " + strBuffer));
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
             }
+
             return false;
         }
 
-        /// <summary>
-        /// Data의 내용을 보낸다.
-        /// </summary>
-        /// <param name="pBuffer">전송할 내용</param>
         public bool Send(byte[] pBuffer)
         {
-            if (m_serverSocket == null || m_connectedClientSocket == null)
+            if (_pServerSocket == null || _pConnectedClientSocket == null)
                 return false;
-            if (m_connectedClientSocket.Connected == false)
+            if (_pConnectedClientSocket.Connected == false)
             {
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Connection Fail"));
                 return false;
             }
+
             IsSend = false;
 
-            AsyncObject ao = new AsyncObject(1);
+            AsyncObject pObject = new AsyncObject(1);
 
-            string strBuff = Encoding.ASCII.GetString(pBuffer);
-            //// 문자열을 Byte 배열(ASCII)로 변환해서 Buffer에 삽입한다.
-            ao.Buffer = Encoding.ASCII.GetBytes(strBuff);
-            ao.WorkingSocket = m_connectedClientSocket;
+            string strBuffer = Encoding.ASCII.GetString(pBuffer);
+            // Convert the byte buffer to ASCII
+            pObject.Buffer = Encoding.ASCII.GetBytes(strBuffer);
+            pObject.WorkingSocket = _pConnectedClientSocket;
 
             try
             {
-                m_connectedClientSocket.BeginSend(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, m_sendHandler, ao);
+                _pConnectedClientSocket.BeginSend(pObject.Buffer, 0, pObject.Buffer.Length, SocketFlags.None,
+                    _pSendHandler, pObject);
                 //strBuff.Replace("\0", "");
                 //strBuff = "[S] " + strBuff;
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Message To String : " + strBuff)));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Info, "Send Message To String : " + strBuffer));
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Send Failure : Client Socket Error"));
             }
+
             return false;
         }
 
-        private void OnSendEvent(IAsyncResult ar)
+        private void OnSendEvent(IAsyncResult pResult)
         {
-            if (m_serverSocket == null || m_connectedClientSocket == null) return;
+            if (_pServerSocket == null || _pConnectedClientSocket == null) return;
 
-            //// 넘겨진 추가 정보를 가져옵니다.
-            AsyncObject ao = (AsyncObject)ar.AsyncState;
-            if (!ao.WorkingSocket.Connected)
+            AsyncObject pObject = (AsyncObject) pResult.AsyncState;
+            if (!pObject.WorkingSocket.Connected)
             {
-                //// 예외가 발생하면 예외 정보 출력 후 함수를 종료한다.
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Send Failure : Socket Disconnect")));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Send Failure : Socket Disconnect"));
                 return;
             }
 
-            //// 보낸 바이트 수를 저장할 변수 선언
-            Int32 sentBytes;
+            int nLengthSend;
 
             try
             {
-                //// 자료를 전송하고, 전송한 바이트를 가져옵니다.
-                sentBytes = ao.WorkingSocket.EndSend(ar);
+                // Send the data and take the information
+                nLengthSend = pObject.WorkingSocket.EndSend(pResult);
                 IsSend = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
-                //// 예외가 발생하면 예외 정보 출력 후 함수를 종료한다.
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Send Failure : Socket Error")));
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Send Failure : Socket Error"));
                 return;
             }
 
-            if (sentBytes > 0)
-            {
-                //// 여기도 마찬가지로 보낸 바이트 수 만큼 배열 선언 후 복사한다.
-                Byte[] msgByte = new Byte[sentBytes];
-                Array.Copy(ao.Buffer, msgByte, sentBytes);
+            if (nLengthSend <= 0) return;
+            // Declare an array of bytes sent
+            byte[] msgByte = new byte[nLengthSend];
+            Array.Copy(pObject.Buffer, msgByte, nLengthSend);
 
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Send Success : {0}", Encoding.ASCII.GetString(msgByte))));
-            }
+            OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info,
+                $"Send Success : {Encoding.ASCII.GetString(msgByte)}"));
         }
 
-        private void OnReceiveEvent(IAsyncResult ar)
+        private void OnReceiveEvent(IAsyncResult pResult)
         {
-            if (m_serverSocket == null || m_connectedClientSocket == null) return;
+            if (_pServerSocket == null || _pConnectedClientSocket == null) return;
 
             try
             {
-                //// 동기화된 State Object에서 Socket과 State Object를 검색한다.
-                AsyncObject ao = (AsyncObject)ar.AsyncState;
-                if (!ao.WorkingSocket.Connected)
+                // Search the socket and object in synchronized states
+                AsyncObject pObject = (AsyncObject) pResult.AsyncState;
+                Debug.Assert(pObject != null, nameof(pObject) + " != null");
+                if (!pObject.WorkingSocket.Connected)
                 {
-                    //// 예외가 발생하면 예외 정보 출력 후 함수를 종료한다.
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, string.Format("Receive Failure : Socket Disconnect")));
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Error, "Receive Failure : Socket Disconnect"));
                     return;
                 }
 
-                //// Remote Device에서 Data를 읽어온다.
-                int bytesRead = ao.WorkingSocket.EndReceive(ar);
+                // Read the data from device
+                int bytesRead = pObject.WorkingSocket.EndReceive(pResult);
                 if (bytesRead > 0)
                 {
-                    ////// 더 많은 Data가 있을 수 있으므로 현재까지의 Data를 저장한다.
-                    ReceiveMessage.Append(Encoding.ASCII.GetString(ao.Buffer, 0, bytesRead));
-                    //// 자료 처리가 끝났으면 이제 다시 데이터를 수신받기 위해서 수신 대기를 해야 합니다.
-                    //// BeginReceive 메서드를 이용해 비동기적으로 작업을 대기했다면,
-                    //// 반드시 대리자 함수에서 EndReceive 메서드를 이용해 비동기 작업이 끝났다고 알려줘야 합니다!
-                    ao.WorkingSocket.BeginReceive(ao.Buffer, 0, ao.Buffer.Length, 0, m_receiveHandler, ao);
+                    // Save the data up to now for being ready more data
+                    ReceiveMessage.Append(Encoding.ASCII.GetString(pObject.Buffer, 0, bytesRead));
+                    // wait the receive
+                    pObject.WorkingSocket.BeginReceive(pObject.Buffer, 0, pObject.Buffer.Length, 0, _pReceiveHandler,
+                        pObject);
 
                     byte[] buffer = new byte[bytesRead];
-                    System.Buffer.BlockCopy(ao.Buffer, 0, buffer, 0, buffer.Length);
-                    OnShowReceiveDataEvent(this, new BufferArgs(buffer));
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Info, string.Format("Receive Sucess : {0}", Encoding.ASCII.GetString(buffer))));
-                    //strRecv = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
+                    Buffer.BlockCopy(pObject.Buffer, 0, buffer, 0, buffer.Length);
+                    OnShowReceiveDataEvent?.Invoke(this, new BufferArgs(buffer));
+                    OnShowMessageEvent?.Invoke(this,
+                        new MessageArgs(eYoonStatus.Info, $"Receive Success : {Encoding.ASCII.GetString(buffer)}"));
                 }
-                else // 서버와 연결이 끊겼을 경우
+                else // Timeout
                 {
-                    //// 모든 Data가 도착했으므로, 응답(CallBack) 한다.
-                    //if (state.sb.Length > 1)
-                    //{
-                    //        strRecv = state.sb.ToString();
-                    //        ReceiveBufferEvent(strRecv);
-                    //}
-                    OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Receive Failure : Connection Fail"));
+                    OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Receive Failure : Connection Fail"));
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
 
-                OnShowMessageEvent(this, new MessageArgs(eYoonStatus.Error, "Receive Failure: Socket Error"));
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Receive Failure: Socket Error"));
             }
         }
     }

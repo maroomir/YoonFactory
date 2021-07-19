@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
+using System.IO;
 using System.IO.Ports;
 using System.Threading;
+using YoonFactory.Files;
 
 namespace YoonFactory.Comm.Serial
 {
-
-    public class YoonSerial : IYoonComm, IDisposable
+    public class YoonSerial : IYoonComm
     {
 
         #region IDisposable Support
+
         private bool _disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
@@ -19,11 +22,24 @@ namespace YoonFactory.Comm.Serial
                 if (disposing)
                 {
                     Close();
-                    Thread.Sleep(100);
-                    m_pSerial.Dispose();
+                    _pSerial.Dispose();
                 }
+
+                OnRetryThreadStop();
+                if (_pThreadReceive != null)
+                {
+                    _pThreadReceive.Interrupt();
+                    Thread.Sleep(1000);
+                    _pThreadReceive = null;
+                }
+
                 _disposedValue = true;
             }
+        }
+
+        ~YoonSerial()
+        {
+            Dispose(false);
         }
 
         public void Dispose()
@@ -33,26 +49,67 @@ namespace YoonFactory.Comm.Serial
 
         #endregion
 
-        private SerialPort m_pSerial = new SerialPort();
-
-        public string Port { get; set; }
-
-        public StringBuilder ReceiveMessage { get; private set; }
-
         public YoonSerial()
         {
-            //
+            // Initialize message parameter
+            ReceiveMessage = new StringBuilder(string.Empty);
         }
 
-        public YoonSerial(string strPort)
+        public YoonSerial(string strParamDirectory)
         {
-            Port = strPort;
+            // Initialize message parameter
+            ReceiveMessage = new StringBuilder(string.Empty);
+
+            RootDirectory = strParamDirectory;
+            LoadParameter();
+        }
+
+        public event ShowMessageCallback OnShowMessageEvent;
+        public event RecieveDataCallback OnShowReceiveDataEvent;
+        public bool IsSend { get; private set; } = false;
+        public bool IsRetryOpen { get; private set; } = false;
+        public StringBuilder ReceiveMessage { get; private set; }
+        public string RootDirectory { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "YoonFactory");
+        public string Address { get; set; } = string.Empty;
+
+        public string Port
+        {
+            get => Parameter.Port;
+            set
+            {
+                if (CommunicationFactory.VerifySerialPort(value))
+                    Parameter.Port = value;
+            }
+        }
+
+        public bool IsConnected => _pSerial != null && _pSerial.IsOpen;
+
+        private SerialPort _pSerial = new SerialPort();
+
+        private struct Parameter
+        {
+            public static string Port = "COM1";
+            public static string BaudRate = "115200";
+            public static string DataBits = "8";
+            public static string Parity = "None";
+            public static string StopBits = "One";
+            public static string RetryOpen = "true";
+            public static string RetryCount = "10";
+            public static string ReadTimeout = "100";
+            public static string WriteTimeout = "100";
+            public static string RetryTimeout = "10000";
         }
 
         public void CopyFrom(IYoonComm pComm)
         {
-            if (pComm is YoonSerial)
+            if (pComm is YoonSerial pSerial)
             {
+                Close();
+                if (pSerial.IsConnected)
+                    pSerial.Close();
+
+                RootDirectory = pSerial.RootDirectory;
+                LoadParameter();
                 Port = pComm.Port;
             }
         }
@@ -60,37 +117,122 @@ namespace YoonFactory.Comm.Serial
         public IYoonComm Clone()
         {
             Close();
-            return new YoonSerial(Port);
+
+            YoonSerial pSerial = new YoonSerial();
+            pSerial.RootDirectory = RootDirectory;
+            pSerial.LoadParameter();
+            pSerial.Port = Port;
+            return pSerial;
         }
+
+        public void SetParameter(string strPort, string strBaudRate, string strDataBits, string strParity,
+            string strStopBits, string strRetryOpen, string strRetryCount, string strReadTimeout,
+            string strWriteTimeout, string strRetryTimeout)
+        {
+            Parameter.Port = strPort;
+            Parameter.BaudRate = strBaudRate;
+            Parameter.DataBits = strDataBits;
+            Parameter.Parity = strParity;
+            Parameter.StopBits = strStopBits;
+            Parameter.RetryOpen = strRetryOpen;
+            Parameter.RetryCount = strRetryCount;
+            Parameter.ReadTimeout = strReadTimeout;
+            Parameter.WriteTimeout = strWriteTimeout;
+            Parameter.RetryTimeout = strRetryTimeout;
+        }
+
+        public void SetParameter(string strPort, int nBaudRate, int nDataBits, string strParity, string strStopBits,
+            bool bRetryConnect, int nRetryCount, int nReadTimeout, int nWriteTimeout, int nRetryTimeout)
+        {
+            Parameter.Port = strPort;
+            Parameter.BaudRate = nBaudRate.ToString();
+            Parameter.DataBits = nDataBits.ToString();
+            Parameter.Parity = strParity;
+            Parameter.StopBits = strStopBits;
+            Parameter.RetryOpen = bRetryConnect.ToString();
+            Parameter.RetryCount = nRetryCount.ToString();
+            Parameter.ReadTimeout = nReadTimeout.ToString();
+            Parameter.WriteTimeout = nWriteTimeout.ToString();
+            Parameter.RetryTimeout = nRetryTimeout.ToString();
+        }
+
+        public void LoadParameter()
+        {
+            string strFilePath = Path.Combine(RootDirectory, "Serial.ini");
+            using (YoonIni pIni = new YoonIni(strFilePath))
+            {
+                pIni.LoadFile();
+                Parameter.Port = pIni["Serial"]["Port"].ToString("COM1");
+                Parameter.BaudRate = pIni["Serial"]["BaudRate"].ToString("115200");
+                Parameter.DataBits = pIni["Serial"]["DataBits"].ToString("8");
+                Parameter.Parity = pIni["Serial"]["Parity"].ToString("None");
+                Parameter.StopBits = pIni["Serial"]["StopBits"].ToString("One");
+                Parameter.RetryOpen = pIni["Serial"]["RetryOpen"].ToString("true");
+                Parameter.RetryCount = pIni["Serial"]["RetryCount"].ToString("100");
+                Parameter.ReadTimeout = pIni["Serial"]["ReadTimeout"].ToString("100");
+                Parameter.WriteTimeout = pIni["Serial"]["WriteTimeout"].ToString("100");
+                Parameter.RetryTimeout = pIni["Serial"]["RetryTimeout"].ToString("10000");
+            }
+        }
+
+        public void SaveParameter()
+        {
+            string strFilePath = Path.Combine(RootDirectory, "Serial.ini");
+            using (YoonIni pIni = new YoonIni(strFilePath))
+            {
+                pIni["Serial"]["Port"] = Parameter.Port;
+                pIni["Serial"]["BaudRate"] = Parameter.BaudRate;
+                pIni["Serial"]["DataBits"] = Parameter.DataBits;
+                pIni["Serial"]["Parity"] = Parameter.Parity;
+                pIni["Serial"]["StopBits"] = Parameter.StopBits;
+                pIni["Serial"]["RetryOpen"] = Parameter.RetryOpen;
+                pIni["Serial"]["RetryCount"] = Parameter.RetryCount;
+                pIni["Serial"]["ReadTimeout"] = Parameter.ReadTimeout;
+                pIni["Serial"]["WriteTimeout"] = Parameter.WriteTimeout;
+                pIni["Serial"]["RetryTimeout"] = Parameter.RetryTimeout;
+                pIni.SaveFile();
+            }
+        }
+
+        private Thread _pThreadReceive = null;
 
         public bool Open()
         {
-            // Set-up the parameter of serial communication
-            if(m_pSerial == null)
-                m_pSerial = new SerialPort();
-            m_pSerial.PortName = Port;
-            m_pSerial.BaudRate = 115200;
-            m_pSerial.DataBits = 8;
-            m_pSerial.Parity = Parity.None;
-            m_pSerial.StopBits = StopBits.One;
-            m_pSerial.ReadTimeout = 100;
-            m_pSerial.WriteTimeout = 100;
-            // Open the port for serial communication
             try
             {
-                m_pSerial.Open();
+                if(_pSerial == null)
+                    _pSerial = new SerialPort();
+                // Set-up the parameter of serial communication
+                _pSerial.PortName = Parameter.Port;
+                _pSerial.BaudRate = Convert.ToInt32(Parameter.BaudRate);
+                _pSerial.DataBits = Convert.ToInt32(Parameter.DataBits);
+                _pSerial.Parity = (Parity) Enum.Parse(typeof(Parity), Parameter.Parity);
+                _pSerial.StopBits = (StopBits) Enum.Parse(typeof(Parity), Parameter.StopBits);
+                _pSerial.ReadTimeout = Convert.ToInt32(Parameter.ReadTimeout);
+                _pSerial.WriteTimeout = Convert.ToInt32(Parameter.WriteTimeout);
+                // Open the port for serial communication
+                _pSerial.Open();
             }
             catch
             {
-                Console.Write("Port Open Error!");
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Port Open Error!"));
                 return false;
             }
 
-            if (m_pSerial.IsOpen)
-                Console.Write("Port Open Success : " + m_pSerial.PortName);
+            if (_pSerial.IsOpen)
+            {
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Conform, "Port Open Success : " + _pSerial.PortName));
+                _pThreadReceive = new Thread(ProcessReceive);
+                _pThreadReceive.Start();
+            }
             else
-                Console.Write("Port Open Fail : " + m_pSerial.PortName);
-            return true;
+            {
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Port Open Fail : " + _pSerial.PortName));
+            }
+
+            return _pSerial.IsOpen;
         }
 
         /// <summary>
@@ -101,13 +243,13 @@ namespace YoonFactory.Comm.Serial
         public bool Open(string strPortName)
         {
             // Return false if the port name is invalid
-            if (strPortName == "") return false;
-            int nHeadLength = strPortName.IndexOf("COM", StringComparison.Ordinal);
-            if (nHeadLength <= 0)
+            if (!CommunicationFactory.VerifySerialPort(strPortName))
             {
-                Console.Write("Invalid Port Name : " + strPortName);
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Invalid Port Name : " + strPortName));
                 return false;
             }
+
             Port = strPortName;
             return Open();
         }
@@ -117,74 +259,164 @@ namespace YoonFactory.Comm.Serial
         /// </summary>
         public void Close()
         {
-            if (!m_pSerial.IsOpen) return;
-            m_pSerial.Close();
-            m_pSerial.Dispose();
-            m_pSerial = null;
+            if (_pSerial == null) return;
+            _pSerial.Close();
+            _pSerial = null;
         }
 
+        private Thread _pThreadRetry = null;
+        private readonly Stopwatch _pStopWatch = new Stopwatch();
 
-        public bool Send(string strBuffer)
+        public void OnRetryThreadStart()
         {
-            if (!m_pSerial.IsOpen) return false;
+            if (Parameter.RetryOpen == bool.FalseString)
+                return;
 
-            try
+            _pThreadRetry = new Thread(ProcessRetry);
+            _pThreadRetry.Start();
+        }
+
+        public void OnRetryThreadStop()
+        {
+            if (_pThreadRetry == null) return;
+
+            if (_pThreadRetry.IsAlive)
             {
-                m_pSerial.Write(strBuffer);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                _pThreadRetry.Interrupt();
+                Thread.Sleep(100);
             }
 
-            return false;
+            _pThreadRetry = null;
+        }
+
+        private void ProcessRetry()
+        {
+            _pStopWatch.Stop();
+            _pStopWatch.Reset();
+            _pStopWatch.Start();
+
+            OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, string.Format("Open Retry Start")));
+            int nCount = Convert.ToInt32(Parameter.RetryCount);
+            int nTimeOut = Convert.ToInt32(Parameter.RetryTimeout);
+
+            for (int iRetry = 0; iRetry < nCount; iRetry++)
+            {
+                // Error : Timeout
+                if (_pStopWatch.ElapsedMilliseconds >= nTimeOut)
+                    break;
+
+                // Error : Retry Open is false suddenly
+                if (!IsRetryOpen)
+                    break;
+
+                // success to open
+                if (IsConnected)
+                {
+                    OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Open Retry Success"));
+                    IsRetryOpen = false;
+                    break;
+                }
+
+                Open();
+            }
+
+            _pStopWatch.Stop();
+            _pStopWatch.Reset();
+
+            if (_pSerial == null)
+            {
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Open Retry Failure : Abnormal Serial"));
+                return;
+            }
+
+            if (_pSerial.IsOpen == false)
+            {
+                OnShowMessageEvent?.Invoke(this,
+                    new MessageArgs(eYoonStatus.Error, "Open Retry Failure : Connection Fail"));
+            }
         }
 
         public bool Send(byte[] pBuffer)
         {
-            if (!m_pSerial.IsOpen) return false;
+            if (_pThreadReceive == null || _pThreadReceive.IsAlive)
+                return false;
+            _bPauseReceive = true;
+            Thread.Sleep(1000);
+            IsSend = OnSendEvent(this, new BufferArgs(pBuffer));
+            _bPauseReceive = false;
+            return IsSend;
+        }
 
+        public bool Send(string strBuffer)
+        {
+            if (_pThreadReceive == null || _pThreadReceive.IsAlive)
+                return false;
+
+            _bPauseReceive = true;
+            Thread.Sleep(1000);
+            IsSend = OnSendEvent(this, new BufferArgs(strBuffer));
+            _bPauseReceive = false;
+            return IsSend;
+        }
+
+        private bool OnSendEvent(object sender, BufferArgs e)
+        {
+            if (!IsConnected) return false;
             try
             {
-                m_pSerial.Write(pBuffer, 0, pBuffer.Length);
+                switch (e.Mode)
+                {
+                    case eYoonBufferMode.String:
+                        _pSerial.Write(e.StringData);
+                        break;
+                    case eYoonBufferMode.ByteArray:
+                        _pSerial.Write(e.ArrayData, 0, e.ArrayData.Length);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Debug.WriteLine(ex.ToString());
+                OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Error, "Send Message Fail"));
             }
 
             return false;
         }
 
-        public string Receive(int nWaitTime)
-        {
-            if (m_pSerial.IsOpen == false) return "";
+        private bool _bPauseReceive = false;
 
-            int nReceiveSize = m_pSerial.BytesToRead;
-            byte[] pBufferIncoming = new byte[nReceiveSize];
-            m_pSerial.ReadTimeout = nWaitTime;
-            string strReceiveMessage = "";
-            try
+        private void ProcessReceive()
+        {
+            while (true)
             {
-                if (nReceiveSize != 0)
+                if (!IsConnected) return;
+
+                if (_bPauseReceive) continue;
+
+                if (_pSerial.BytesToRead == 0) continue;
+                byte[] pBufferIncoming = new byte[_pSerial.BytesToRead];
+                string strReceiveMessage = "";
+                try
                 {
-                    m_pSerial.Read(pBufferIncoming, 0, nReceiveSize);
-                    for (int i = 0; i < nReceiveSize; i++)
+                    _pSerial.Read(pBufferIncoming, 0, _pSerial.BytesToRead);
+                    for (int i = 0; i < _pSerial.BytesToRead; i++)
                     {
                         strReceiveMessage += Convert.ToChar(pBufferIncoming[i]);
                     }
 
-                    ReceiveMessage = new StringBuilder(strReceiveMessage);
+                    ReceiveMessage.Append(strReceiveMessage);
+                    OnShowReceiveDataEvent?.Invoke(this, new BufferArgs(strReceiveMessage));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return strReceiveMessage;
         }
     }
 }

@@ -14,6 +14,6 @@ namespace YoonSample.Xamarin
         public static string strYoonFactoryDirectory = Path.Combine(strApplicationDirectory, "YoonFactory");
         // Configurqtion YoonFactory
         public static YoonParameter pConnectManager = new YoonParameter(pParamConnect, typeof(ParameterConnection));
-        public static IYoonTcpIp pTcpIp = null;
+        public static IYoonComm pTcpIp = null;
     }
 }
