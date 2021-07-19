@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenCvSharp;
+using YoonFactory.Files;
 
 namespace YoonFactory.CV
 {
@@ -26,6 +27,15 @@ namespace YoonFactory.CV
         public static CVImage Canny(this CVImage pSourceImage, double dThresholdMin = 100, double dThresholdMax = 200) => Filter.Canny(pSourceImage, dThresholdMin, dThresholdMax);
         public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, bool bWhite) => Fill.FillFlood(pSourceImage, pVector, nThreshold, bWhite);
         public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, Color pFillColor) => Fill.FillFlood(pSourceImage, pVector, nThreshold, pFillColor);
+
+        public static class VideoTransfer
+        {
+            public static void TransferLocal(string strFileName)
+            {
+                if (!FileFactory.VerifyFileExtensions(ref strFileName, "mp4", "avi"))
+                    return;
+            }
+        }
 
         public static class Converter
         {

@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="CVFactory.cs" />
     <Compile Include="CVImage.cs" />
+    <Compile Include="Delegates.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

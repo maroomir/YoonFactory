@@ -31,9 +31,11 @@ namespace YoonFactory.CV
         }
 
         // TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.
-        ~CVImage() {
-           // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
-           Dispose(false);
+        ~CVImage()
+        {
+            // 이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.
+            Dispose(false);
+            GC.SuppressFinalize(this);
         }
         #endregion
 

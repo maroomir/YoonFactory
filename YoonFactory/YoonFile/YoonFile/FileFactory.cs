@@ -77,6 +77,17 @@ namespace YoonFactory.Files
             return false;
         }
 
+        public static bool VerifyFileExtensions(ref string path, params string[] pArgs)
+        {
+            bool bExist = false;
+            foreach (string strExt in pArgs)
+            {
+                bExist = VerifyFileExtension(ref path, strExt, false, false);
+                if (bExist) break;
+            }
+            return bExist;
+        }
+
         public static bool IsFileExist(string filename)
         {
             System.IO.FileInfo fi = new System.IO.FileInfo(filename);
