@@ -28,12 +28,113 @@ namespace YoonFactory.CV
         public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, bool bWhite) => Fill.FillFlood(pSourceImage, pVector, nThreshold, bWhite);
         public static CVImage FillFlood(this CVImage pSourceImage, YoonVector2N pVector, byte nThreshold, Color pFillColor) => Fill.FillFlood(pSourceImage, pVector, nThreshold, pFillColor);
 
-        public static class VideoTransfer
+        public static class VideoProcessor
         {
-            public static void TransferLocal(string strFileName)
+            public static List<CVImage> GetLocalFrames(string strFileName, int nStep = 1)
+            {
+                List<CVImage> pListFrame = new List<CVImage>();
+                using (VideoCapture pVideo = new VideoCapture(strFileName))
+                {
+                    using (Mat pFrame = new Mat())
+                    {
+                        int iCount = 0;
+                        while (pVideo.PosFrames != pVideo.FrameCount)
+                        {
+                            if (!pVideo.Read(pFrame))
+                                Cv2.WaitKey();
+                            if (pFrame.Size().Width > 0 && pFrame.Size().Height > 0)
+                                iCount++;
+                            if (iCount == nStep)
+                            {
+                                pListFrame.Add(new CVImage(pFrame));
+                                iCount = 0;
+                            }
+                            if (Cv2.WaitKey(1) >= 0)
+                                break;
+                        }
+                    }
+                    pVideo.Release();
+                }
+                return pListFrame;
+            }
+
+            public static List<CVImage> GetRTSPFrames(string strAddress, int nStep = 1)
+            {
+                List<CVImage> pListFrame = new List<CVImage>();
+                using (VideoCapture pVideo = new VideoCapture())
+                {
+                    pVideo.Open(strAddress);
+                    using (Mat pFrame = new Mat())
+                    {
+                        int iCount = 0;
+                        while (true)
+                        {
+                            if (!pVideo.Read(pFrame))
+                                Cv2.WaitKey();
+                            if (pFrame.Size().Width > 0 && pFrame.Size().Height > 0)
+                                iCount++;
+                            if (iCount == nStep)
+                            {
+                                pListFrame.Add(new CVImage(pFrame));
+                                iCount = 0;
+                            }
+                            if (Cv2.WaitKey(1) >= 0)
+                                break;
+                        }
+                    }
+                }
+                return pListFrame;
+            }
+
+            public static async Task ReceiveLocalFrameAsync(string strFileName, RecieveFrameCallback pCallback)
             {
                 if (!FileFactory.VerifyFileExtensions(ref strFileName, "mp4", "avi"))
                     return;
+                // 비동기 실행으로 Main Process와 분리해서 Event 처리 가능하도록 조치
+                await Task.Run(new Action(() =>
+                {
+                    using (VideoCapture pVideo = new VideoCapture(strFileName))
+                    {
+                        using (Mat pFrame = new Mat())
+                        {
+                            while (pVideo.PosFrames != pVideo.FrameCount)
+                            {
+                                if (!pVideo.Read(pFrame))
+                                    Cv2.WaitKey();
+                                if (pFrame.Size().Width > 0 && pFrame.Size().Height > 0)
+                                    pCallback?.Invoke(pVideo, new FrameArgs(pFrame));
+                                if (Cv2.WaitKey(1) >= 0)
+                                    break;
+                            }
+                        }
+                        pVideo.Release();
+                    }
+                }));
+            }
+
+            public static async Task ReceiveRTSPFrameAsync(string strAddress, RecieveFrameCallback pCallback)
+            {
+                // 비동기 실행으로 Main Process와 분리해서 Event 처리 가능하도록 조치
+                await Task.Run(new Action(() =>
+                {
+                    using (VideoCapture pVideo = new VideoCapture())
+                    {
+                        pVideo.Open(strAddress);
+                        using (Mat pFrame = new Mat())
+                        {
+                            while (true)
+                            {
+                                if (!pVideo.Read(pFrame))
+                                    Cv2.WaitKey();
+                                if (pFrame.Size().Width > 0 && pFrame.Size().Height > 0)
+                                    pCallback?.Invoke(pVideo, new FrameArgs(pFrame));
+                                if (Cv2.WaitKey(1) >= 0)
+                                    break;
+                            }
+                        }
+                        pVideo.Release();
+                    }
+                }));
             }
         }
 
