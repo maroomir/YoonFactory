@@ -159,39 +159,37 @@ namespace YoonFactory.Comm.Serial
         public void LoadParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "Serial.ini");
-            using (YoonIni pIni = new YoonIni(strFilePath))
-            {
-                pIni.LoadFile();
-                Parameter.Port = pIni["Serial"]["Port"].ToString("COM1");
-                Parameter.BaudRate = pIni["Serial"]["BaudRate"].ToString("115200");
-                Parameter.DataBits = pIni["Serial"]["DataBits"].ToString("8");
-                Parameter.Parity = pIni["Serial"]["Parity"].ToString("None");
-                Parameter.StopBits = pIni["Serial"]["StopBits"].ToString("One");
-                Parameter.RetryOpen = pIni["Serial"]["RetryOpen"].ToString("true");
-                Parameter.RetryCount = pIni["Serial"]["RetryCount"].ToString("100");
-                Parameter.ReadTimeout = pIni["Serial"]["ReadTimeout"].ToString("100");
-                Parameter.WriteTimeout = pIni["Serial"]["WriteTimeout"].ToString("100");
-                Parameter.RetryTimeout = pIni["Serial"]["RetryTimeout"].ToString("10000");
-            }
+            YoonIni pIni = new YoonIni(strFilePath);
+            pIni.LoadFile();
+            Parameter.Port = pIni["Serial"]["Port"].ToString("COM1");
+            Parameter.BaudRate = pIni["Serial"]["BaudRate"].ToString("115200");
+            Parameter.DataBits = pIni["Serial"]["DataBits"].ToString("8");
+            Parameter.Parity = pIni["Serial"]["Parity"].ToString("None");
+            Parameter.StopBits = pIni["Serial"]["StopBits"].ToString("One");
+            Parameter.RetryOpen = pIni["Serial"]["RetryOpen"].ToString("true");
+            Parameter.RetryCount = pIni["Serial"]["RetryCount"].ToString("100");
+            Parameter.ReadTimeout = pIni["Serial"]["ReadTimeout"].ToString("100");
+            Parameter.WriteTimeout = pIni["Serial"]["WriteTimeout"].ToString("100");
+            Parameter.RetryTimeout = pIni["Serial"]["RetryTimeout"].ToString("10000");
+            pIni.Dispose();
         }
 
         public void SaveParameter()
         {
             string strFilePath = Path.Combine(RootDirectory, "Serial.ini");
-            using (YoonIni pIni = new YoonIni(strFilePath))
-            {
-                pIni["Serial"]["Port"] = Parameter.Port;
-                pIni["Serial"]["BaudRate"] = Parameter.BaudRate;
-                pIni["Serial"]["DataBits"] = Parameter.DataBits;
-                pIni["Serial"]["Parity"] = Parameter.Parity;
-                pIni["Serial"]["StopBits"] = Parameter.StopBits;
-                pIni["Serial"]["RetryOpen"] = Parameter.RetryOpen;
-                pIni["Serial"]["RetryCount"] = Parameter.RetryCount;
-                pIni["Serial"]["ReadTimeout"] = Parameter.ReadTimeout;
-                pIni["Serial"]["WriteTimeout"] = Parameter.WriteTimeout;
-                pIni["Serial"]["RetryTimeout"] = Parameter.RetryTimeout;
-                pIni.SaveFile();
-            }
+            YoonIni pIni = new YoonIni(strFilePath);
+            pIni["Serial"]["Port"] = Parameter.Port;
+            pIni["Serial"]["BaudRate"] = Parameter.BaudRate;
+            pIni["Serial"]["DataBits"] = Parameter.DataBits;
+            pIni["Serial"]["Parity"] = Parameter.Parity;
+            pIni["Serial"]["StopBits"] = Parameter.StopBits;
+            pIni["Serial"]["RetryOpen"] = Parameter.RetryOpen;
+            pIni["Serial"]["RetryCount"] = Parameter.RetryCount;
+            pIni["Serial"]["ReadTimeout"] = Parameter.ReadTimeout;
+            pIni["Serial"]["WriteTimeout"] = Parameter.WriteTimeout;
+            pIni["Serial"]["RetryTimeout"] = Parameter.RetryTimeout;
+            pIni.SaveFile();
+            pIni.Dispose();
         }
 
         private Thread _pThreadReceive = null;
@@ -310,7 +308,7 @@ namespace YoonFactory.Comm.Serial
                     break;
 
                 // success to open
-                if (IsConnected)
+                if (_pSerial != null && _pSerial.IsOpen)
                 {
                     OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Open Retry Success"));
                     IsRetryOpen = false;
@@ -339,7 +337,7 @@ namespace YoonFactory.Comm.Serial
 
         public bool Send(byte[] pBuffer)
         {
-            if (_pThreadReceive == null || _pThreadReceive.IsAlive)
+            if (_pThreadReceive == null || !_pThreadReceive.IsAlive)
                 return false;
             _bPauseReceive = true;
             Thread.Sleep(1000);
@@ -350,7 +348,7 @@ namespace YoonFactory.Comm.Serial
 
         public bool Send(string strBuffer)
         {
-            if (_pThreadReceive == null || _pThreadReceive.IsAlive)
+            if (_pThreadReceive == null || !_pThreadReceive.IsAlive)
                 return false;
 
             _bPauseReceive = true;
@@ -362,7 +360,7 @@ namespace YoonFactory.Comm.Serial
 
         private bool OnSendEvent(object sender, BufferArgs e)
         {
-            if (!IsConnected) return false;
+            if (_pSerial == null || !_pSerial.IsOpen) return false;
             try
             {
                 switch (e.Mode)
@@ -394,7 +392,7 @@ namespace YoonFactory.Comm.Serial
         {
             while (true)
             {
-                if (!IsConnected) return;
+                if (_pSerial == null || !_pSerial.IsOpen) return;
 
                 if (_bPauseReceive) continue;
 
