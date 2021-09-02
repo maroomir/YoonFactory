@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using YoonFactory.Image;
-using YoonFactory;
 
 namespace YoonFactory
 {
@@ -22,7 +21,7 @@ namespace YoonFactory
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (this._disposed) return;
             if (disposing)
@@ -42,7 +41,7 @@ namespace YoonFactory
         public int Label { get; set; } = DEFAULT_LABEL;
         public double Score { get; set; } = DEFAULT_SCORE;
         public IYoonFigure Feature { get; set; }
-        public IYoonVector ReferencePosition { get; set; }
+        public IYoonVector Position { get; set; }
         public YoonImage ObjectImage { get; set; }
         public int PixelCount { get; set; } = DEFAULT_PIX_COUNT;
 
@@ -54,37 +53,37 @@ namespace YoonFactory
             ObjectImage = new YoonImage();
             switch (Feature)
             {
-                case YoonRect2N pRect2N:
+                case YoonRect2N:
                     Feature = new YoonRect2N();
-                    ReferencePosition = new YoonVector2N();
+                    Position = new YoonVector2N();
                     break;
-                case YoonRect2D pRect2D:
+                case YoonRect2D:
                     Feature = new YoonRect2D();
-                    ReferencePosition = new YoonVector2D();
+                    Position = new YoonVector2D();
                     break;
-                case YoonRectAffine2D pRectAffine2D:
+                case YoonRectAffine2D:
                     Feature = new YoonRectAffine2D();
-                    ReferencePosition = new YoonVector2D();
+                    Position = new YoonVector2D();
                     break;
-                case YoonLine2N pLine2N:
+                case YoonLine2N:
                     Feature = new YoonLine2N();
-                    ReferencePosition = new YoonVector2N();
+                    Position = new YoonVector2N();
                     break;
-                case YoonLine2D pLine2D:
+                case YoonLine2D:
                     Feature = new YoonLine2D();
-                    ReferencePosition = new YoonVector2D();
+                    Position = new YoonVector2D();
                     break;
-                case YoonVector2N pVector2N:
+                case YoonVector2N:
                     Feature = new YoonVector2N();
-                    ReferencePosition = new YoonVector2N();
+                    Position = new YoonVector2N();
                     break;
-                case YoonVector2D pVector2D:
+                case YoonVector2D:
                     Feature = new YoonVector2D();
-                    ReferencePosition = new YoonVector2D();
+                    Position = new YoonVector2D();
                     break;
                 default:
                     Feature = new YoonRect2N();
-                    ReferencePosition = new YoonVector2N();
+                    Position = new YoonVector2N();
                     break;
             }
         }
@@ -99,43 +98,43 @@ namespace YoonFactory
             {
                 case YoonRect2N pRect2N:
                     Feature = pRect2N.Clone();
-                    ReferencePosition = pRect2N.CenterPos.Clone();
+                    Position = pRect2N.CenterPos.Clone();
                     break;
                 case YoonRect2D pRect2D:
                     Feature = pRect2D.Clone();
-                    ReferencePosition = pRect2D.CenterPos.Clone();
+                    Position = pRect2D.CenterPos.Clone();
                     break;
                 case YoonRectAffine2D pRectAffine2D:
                     Feature = pRectAffine2D.Clone();
-                    ReferencePosition = pRectAffine2D.CenterPos.Clone();
+                    Position = pRectAffine2D.CenterPos.Clone();
                     break;
                 case YoonLine2N pLine2N:
                     Feature = pLine2N.Clone();
-                    ReferencePosition = pLine2N.CenterPos.Clone();
+                    Position = pLine2N.CenterPos.Clone();
                     break;
                 case YoonLine2D pLine2D:
                     Feature = pLine2D.Clone();
-                    ReferencePosition = pLine2D.CenterPos.Clone();
+                    Position = pLine2D.CenterPos.Clone();
                     break;
                 case YoonVector2N pVector2N:
                     Feature = pVector2N.Clone();
-                    ReferencePosition = pVector2N.Clone();
+                    Position = pVector2N.Clone();
                     break;
                 case YoonVector2D pVector2D:
                     Feature = pVector2D.Clone();
-                    ReferencePosition = pVector2D.Clone();
+                    Position = pVector2D.Clone();
                     break;
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage)
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = DEFAULT_PIX_COUNT;
-            ReferencePosition = pPosReference.Clone();
+            Position = pPosCurrent.Clone();
             ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
@@ -163,44 +162,44 @@ namespace YoonFactory
             {
                 case YoonRect2N pRect2N:
                     Feature = pRect2N.Clone();
-                    ReferencePosition = pRect2N.CenterPos.Clone();
+                    Position = pRect2N.CenterPos.Clone();
                     break;
                 case YoonRect2D pRect2D:
                     Feature = pRect2D.Clone();
-                    ReferencePosition = pRect2D.CenterPos.Clone();
+                    Position = pRect2D.CenterPos.Clone();
                     break;
                 case YoonRectAffine2D pRectAffine2D:
                     Feature = pRectAffine2D.Clone();
-                    ReferencePosition = pRectAffine2D.CenterPos.Clone();
+                    Position = pRectAffine2D.CenterPos.Clone();
                     break;
                 case YoonLine2N pLine2N:
                     Feature = pLine2N.Clone();
-                    ReferencePosition = pLine2N.CenterPos.Clone();
+                    Position = pLine2N.CenterPos.Clone();
                     break;
                 case YoonLine2D pLine2D:
                     Feature = pLine2D.Clone();
-                    ReferencePosition = pLine2D.CenterPos.Clone();
+                    Position = pLine2D.CenterPos.Clone();
                     break;
                 case YoonVector2N pVector2N:
                     Feature = pVector2N.Clone();
-                    ReferencePosition = pVector2N.Clone();
+                    Position = pVector2N.Clone();
                     break;
                 case YoonVector2D pVector2D:
                     Feature = pVector2D.Clone();
-                    ReferencePosition = pVector2D.Clone();
+                    Position = pVector2D.Clone();
                     break;
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage,
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage,
             int nCount)
         {
             Label = nLabel;
             Score = DEFAULT_SCORE;
             PixelCount = nCount;
-            ReferencePosition = pPosReference.Clone();
+            Position = pPosCurrent.Clone();
             ObjectImage = pObjectImage.Clone() as YoonImage;
             switch (pFeature)
             {
@@ -228,47 +227,53 @@ namespace YoonFactory
             {
                 case YoonRect2N pRect2N:
                     Feature = pRect2N.Clone();
-                    ReferencePosition = pRect2N.CenterPos.Clone();
+                    Position = pRect2N.CenterPos.Clone();
                     break;
                 case YoonRect2D pRect2D:
                     Feature = pRect2D.Clone();
-                    ReferencePosition = pRect2D.CenterPos.Clone();
+                    Position = pRect2D.CenterPos.Clone();
                     break;
                 case YoonRectAffine2D pRectAffine2D:
                     Feature = pRectAffine2D.Clone();
-                    ReferencePosition = pRectAffine2D.CenterPos.Clone();
+                    Position = pRectAffine2D.CenterPos.Clone();
                     break;
                 case YoonLine2N pLine2N:
                     Feature = pLine2N.Clone();
-                    ReferencePosition = pLine2N.CenterPos.Clone();
+                    Position = pLine2N.CenterPos.Clone();
                     break;
                 case YoonLine2D pLine2D:
                     Feature = pLine2D.Clone();
-                    ReferencePosition = pLine2D.CenterPos.Clone();
+                    Position = pLine2D.CenterPos.Clone();
                     break;
                 case YoonVector2N pVector2N:
                     Feature = pVector2N.Clone();
-                    ReferencePosition = pVector2N.Clone();
+                    Position = pVector2N.Clone();
                     break;
                 case YoonVector2D pVector2D:
                     Feature = pVector2D.Clone();
-                    ReferencePosition = pVector2D.Clone();
+                    Position = pVector2D.Clone();
                     break;
                 default:
                     throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
         }
 
-        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosReference, YoonImage pObjectImage,
+        public YoonObject(int nLabel, IYoonFigure pFeature, IYoonVector pPosCurrent, YoonImage pObjectImage,
             double dScore,
             int nCount)
         {
             Label = nLabel;
             Score = dScore;
             PixelCount = nCount;
-            ReferencePosition = pPosReference.Clone();
+            Position = pPosCurrent.Clone();
             ObjectImage = pObjectImage.Clone() as YoonImage;
-            Feature = pFeature.Clone();
+            Feature = pFeature switch
+            {
+                IYoonRect pRect => pRect.Clone(),
+                IYoonLine pLine => pLine.Clone(),
+                IYoonVector pVector => pVector.Clone(),
+                _ => throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct")
+            };
         }
 
         public void CopyFrom(IYoonParameter pObject)
@@ -279,54 +284,60 @@ namespace YoonFactory
                 Score = pYoonObject.Score;
                 PixelCount = pYoonObject.PixelCount;
                 ObjectImage = pYoonObject.ObjectImage;
-                Feature = pYoonObject.Feature.Clone();
-                ReferencePosition = pYoonObject.ReferencePosition.Clone();
+                Feature = pYoonObject.Feature switch
+                {
+                    IYoonRect pRect => pRect.Clone(),
+                    IYoonLine pLine => pLine.Clone(),
+                    IYoonVector pVector => pVector.Clone(),
+                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct")
+                };
+
+                Position = pYoonObject.Position.Clone();
             }
         }
 
         public IYoonParameter Clone()
         {
-            return new YoonObject(Label, Feature.Clone(), ReferencePosition.Clone(), (YoonImage) ObjectImage.Clone(),
+            return new YoonObject(Label, Feature.Clone(), Position.Clone(), (YoonImage) ObjectImage.Clone(),
                 Score, PixelCount);
         }
 
         public bool Equals(IYoonParameter pObject)
         {
-            if (pObject is YoonObject pYoonObject)
+            if (pObject is not YoonObject pYoonObject) return false;
+            switch (pYoonObject.Feature)
             {
-                switch (pYoonObject.Feature)
-                {
-                    case IYoonRect pRect:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pRect.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    case IYoonLine pLine:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pLine.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    case IYoonVector pVector:
-                        if (pYoonObject.Label == Label &&
-                            pYoonObject.Score == Score &&
-                            pVector.Equals(Feature) &&
-                            pYoonObject.ReferencePosition.Equals(ReferencePosition) &&
-                            pYoonObject.ObjectImage == ObjectImage &&
-                            pYoonObject.PixelCount == PixelCount)
-                            return true;
-                        break;
-                    default:
-                        throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
-                }
+                case IYoonRect pRect:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pRect.Equals(Feature) &&
+                        pYoonObject.Position.Equals(Position) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                case IYoonLine pLine:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pLine.Equals(Feature) &&
+                        pYoonObject.Position.Equals(Position) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                case IYoonVector pVector:
+                    if (pYoonObject.Label == Label &&
+                        pYoonObject.Score == Score &&
+                        pVector.Equals(Feature) &&
+                        pYoonObject.Position.Equals(Position) &&
+                        pYoonObject.ObjectImage == ObjectImage &&
+                        pYoonObject.PixelCount == PixelCount)
+                        return true;
+                    break;
+                default:
+                    throw new FormatException("[YOONIMAGE EXCEPTION] Object format is not correct");
             }
+
             return false;
         }
 
@@ -337,7 +348,7 @@ namespace YoonFactory
             hashCode = hashCode * -1521134295 + Label.GetHashCode();
             hashCode = hashCode * -1521134295 + Score.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<IYoonFigure>.Default.GetHashCode(Feature);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector>.Default.GetHashCode(ReferencePosition);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IYoonVector>.Default.GetHashCode(Position);
             hashCode = hashCode * -1521134295 + EqualityComparer<YoonImage>.Default.GetHashCode(ObjectImage);
             hashCode = hashCode * -1521134295 + PixelCount.GetHashCode();
             return hashCode;
@@ -350,14 +361,14 @@ namespace YoonFactory
                    Label == @object.Label &&
                    Score == @object.Score &&
                    EqualityComparer<IYoonFigure>.Default.Equals(Feature, @object.Feature) &&
-                   EqualityComparer<IYoonVector>.Default.Equals(ReferencePosition, @object.ReferencePosition) &&
+                   EqualityComparer<IYoonVector>.Default.Equals(Position, @object.Position) &&
                    EqualityComparer<YoonImage>.Default.Equals(ObjectImage, @object.ObjectImage) &&
                    PixelCount == @object.PixelCount;
         }
 
         public bool Equals(YoonObject other)
         {
-            return Equals(other);
+            return Equals((object) other);
         }
 
         public static bool operator ==(YoonObject pObjectSource, YoonObject pObjectOther)
