@@ -1,36 +1,10 @@
 ﻿using YoonFactory.Comm;
 
-namespace YoonFactory.Robot.Remote
+namespace YoonFactory.Robot.UniversialRobot
 {
-    public static class URFactory
+    public static class RemoteFactory
     {
-        public static ParameterRemote InitRemoteParameter(eYoonRemoteType nType)
-        {
-            ParameterRemote pParam = new ParameterRemote();
-            switch (nType)
-            {
-                case eYoonRemoteType.Dashboard:
-                    pParam.IPAddress = "192.168.101.101";
-                    pParam.Port = "29999";
-                    pParam.TCPMode = eYoonCommType.TCPClient;
-                    break;
-                case eYoonRemoteType.Script:
-                    pParam.IPAddress = "192.168.101.101";
-                    pParam.Port = "30001";
-                    pParam.TCPMode = eYoonCommType.TCPClient;
-                    break;
-                case eYoonRemoteType.Socket:
-                    pParam.IPAddress = "192.168.101.101";
-                    pParam.Port = "50000";
-                    pParam.TCPMode = eYoonCommType.TCPClient;
-                    break;
-                default:
-                    break;
-            }
-            return pParam;
-        }
-
-        public static string EncodingMessage(eYoonHeadSend nHeader, SendValue pParamData)
+        public static string EncodingMessage(eYoonHeadSend nHeader, ParameterPacket pParamData)
         {
             string strMessage = string.Empty;
 
@@ -78,7 +52,8 @@ namespace YoonFactory.Robot.Remote
 
             return strMessage;
         }
-        public static eYooneHeadReceive DecodingMessage(string strMessage, ref ReceiveValue pParamData)
+
+        public static eYooneHeadReceive DecodingMessage(string strMessage, ref ParameterPacket pParamData)
         {
             eYooneHeadReceive nHeader = eYooneHeadReceive.None;
 
@@ -118,6 +93,93 @@ namespace YoonFactory.Robot.Remote
                 nHeader = eYooneHeadReceive.BreakReleaseOK;
 
             return nHeader;
+        }
+
+        public static eYoonRemoteType GetRemoteCommType(eYoonHeadSend nHeaderData)
+        {
+            switch (nHeaderData)
+            {
+                case eYoonHeadSend.StatusRun:
+                case eYoonHeadSend.StatusServo:
+                case eYoonHeadSend.StatusError:
+                case eYoonHeadSend.StatusSafety:
+                case eYoonHeadSend.Reset:
+                case eYoonHeadSend.Play:
+                case eYoonHeadSend.Pause:
+                case eYoonHeadSend.Stop:
+                case eYoonHeadSend.Quit:
+                case eYoonHeadSend.Shutdown:
+                case eYoonHeadSend.PowerOn:
+                case eYoonHeadSend.PowerOff:
+                case eYoonHeadSend.BreakRelease:
+                    return eYoonRemoteType.Dashboard;
+            }
+            return eYoonRemoteType.None;
+        }
+
+        public static eYoonStatus GetRemoteStatus(eYooneHeadReceive nHeader)
+        {
+            if (nHeader.ToString().Contains("OK"))
+                return eYoonStatus.OK;
+            else if (nHeader.ToString().Contains("NG"))
+                return eYoonStatus.NG;
+            else
+                return eYoonStatus.User;
+        }
+
+        public static string GetRemoteLogFromReceiveHeader(eYooneHeadReceive nHead)
+        {
+            switch (nHead)
+            {
+                case eYooneHeadReceive.StatusServoOK:
+                    return "Servo On";
+                case eYooneHeadReceive.StatusServoNG:
+                    return "Servo Off";
+                case eYooneHeadReceive.StatusErrorOK:
+                    return "Robot Error";
+                case eYooneHeadReceive.StatusErrorNG:
+                    return "Robot Error Clear";
+                case eYooneHeadReceive.StatusRunOK:
+                    return "Robot Running";
+                case eYooneHeadReceive.StatusRunNG:
+                    return "Robot Running Failure";
+                case eYooneHeadReceive.StatusSafetyOK:
+                    return "Workspace Safety";
+                case eYooneHeadReceive.StatusSafetyNG:
+                    return "Workspace Warning";
+                case eYooneHeadReceive.LoadOK:
+                    return "Load Success";
+                case eYooneHeadReceive.LoadNG:
+                    return "Load Failure";
+                case eYooneHeadReceive.ResetOK:
+                    return "Reset Completed";
+                case eYooneHeadReceive.ResetNG:
+                    return "Reset Failure";
+                case eYooneHeadReceive.PlayOK:
+                    return "Play";
+                case eYooneHeadReceive.PlayNG:
+                    return "Play Error";
+                case eYooneHeadReceive.PauseOK:
+                    return "Pause";
+                case eYooneHeadReceive.PauseNG:
+                    return "Pause Error";
+                case eYooneHeadReceive.StopOk:
+                    return "Stop";
+                case eYooneHeadReceive.StopNG:
+                    return "Stop Error";
+                case eYooneHeadReceive.QuitOK:
+                    return "Quit";
+                case eYooneHeadReceive.ShuwdownOK:
+                    return "Quit Error";
+                case eYooneHeadReceive.PowerOnOK:
+                    return "Robot Power On";
+                case eYooneHeadReceive.PowerOffOK:
+                    return "Robot Power Off";
+                case eYooneHeadReceive.BreakReleaseOK:
+                    return "Break Release";
+                default:
+                    return string.Empty;
+            }
         }
     }
 }
