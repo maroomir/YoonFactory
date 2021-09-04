@@ -7,18 +7,18 @@ namespace YoonFactory.Calibration
     {
         public eYoonDir2D GrapDirection;
         public eYoonDir2DMode DirectionMode;
-        public YoonCartD Pose;
-        public CalibPoseArgs(eYoonDir2D nDir, YoonCartD pPos)
+        public YoonCartesianD Pose;
+        public CalibPoseArgs(eYoonDir2D nDir, YoonCartesianD pPos)
         {
             GrapDirection = nDir;
             DirectionMode = eYoonDir2DMode.Fixed;
-            Pose = pPos.Clone() as YoonCartD;
+            Pose = pPos.Clone() as YoonCartesianD;
         }
-        public CalibPoseArgs(eYoonDir2D nDir, eYoonDir2DMode nRot, YoonCartD pPos)
+        public CalibPoseArgs(eYoonDir2D nDir, eYoonDir2DMode nRot, YoonCartesianD pPos)
         {
             GrapDirection = nDir;
             DirectionMode = nRot;
-            Pose = pPos.Clone() as YoonCartD;
+            Pose = pPos.Clone() as YoonCartesianD;
         }
     }
 

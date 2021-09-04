@@ -92,7 +92,7 @@ namespace YoonFactory.Calibration
         private const double INVALID_NUM = -10000.0;
         // Point 설정 Param
         private Dictionary<eYoonDir2D, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDir2D, bool>();
-        private YoonCartD m_pPoseRequest = new YoonCartD();
+        private YoonCartesianD m_pPoseRequest = new YoonCartesianD();
         // Align Calibration을 위한 Class
         private Thread m_pThread = null;
         private YoonTransform m_pGCT = new YoonTransform();
@@ -159,7 +159,7 @@ namespace YoonFactory.Calibration
             pVecRealPos.Y *= ((IsReverseCoordinateY) ? -1 : 1);
         }
 
-        public void InitRealPosition(YoonCartD pRealPos, YoonVector2D vecPixelSize)
+        public void InitRealPosition(YoonCartesianD pRealPos, YoonVector2D vecPixelSize)
         {
             //// 사전 Data 입력 확인
             if (CameraPixelWidth <= 0 || CameraPixelHeight <= 0 || vecPixelSize.X <= 0 || vecPixelSize.Y <= 0) return;
@@ -206,7 +206,7 @@ namespace YoonFactory.Calibration
             eStepYoonCalibration nJobStep = eStepYoonCalibration.Init;
             eStepYoonCalibration nJobStepBK = eStepYoonCalibration.Wait;
             YoonVector2D vecCameraCenter = new YoonVector2D(CameraPixelWidth / 2, CameraPixelHeight / 2);
-            YoonCartD cartPosOrigin = null;
+            YoonCartesianD cartPosOrigin = null;
             bool bPlay = true;
             bool bCheckError = false;
 
@@ -295,7 +295,7 @@ namespace YoonFactory.Calibration
                         ReverseCoordinate(ref vecMovementToCenter);
                         //// 이동위치 산출
                         m_pPoseRequest += vecMovementToCenter; // 초기 -> 원점위치로 변경
-                        cartPosOrigin = m_pPoseRequest.Clone() as YoonCartD; // 원점 위치 복사해놓기
+                        cartPosOrigin = m_pPoseRequest.Clone() as YoonCartesianD; // 원점 위치 복사해놓기
                         OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
@@ -444,7 +444,7 @@ namespace YoonFactory.Calibration
                         YoonVector2D vdFOV = new YoonVector2D(CameraPixelWidth, CameraPixelHeight);
                         m_pGCT.SetCameraSetting(vdFOV, m_vecInitPixelSize);
                         //// 저장된 원점으로 Turn Back (이동)
-                        m_pPoseRequest = cartPosOrigin.Clone() as YoonCartD;    // 원점으로 재변경
+                        m_pPoseRequest = cartPosOrigin.Clone() as YoonCartesianD;    // 원점으로 재변경
                         OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
@@ -588,7 +588,7 @@ namespace YoonFactory.Calibration
         private const double INVALID_NUM = -10000.0;
         // Point 설정 Param
         private Dictionary<eYoonDir2D, bool> m_pDicCurrentReceiveFlag = new Dictionary<eYoonDir2D, bool>();
-        private YoonCartD m_pPoseRequest = new YoonCartD();
+        private YoonCartesianD m_pPoseRequest = new YoonCartesianD();
         // Align Calibration을 위한 Class
         private Thread m_pThread = null;
         private YoonTransform m_pGCT = new YoonTransform();
@@ -658,7 +658,7 @@ namespace YoonFactory.Calibration
             pVecRealPos.Y *= ((IsReverseCoordinateY) ? -1 : 1);
         }
 
-        public void InitRealPosition(YoonCartD pRealPos, YoonVector2D vecPixelSize)
+        public void InitRealPosition(YoonCartesianD pRealPos, YoonVector2D vecPixelSize)
         {
             //// 사전 Data 입력 확인
             if (CameraPixelWidth <= 0 || CameraPixelHeight <= 0 || vecPixelSize.X <= 0 || vecPixelSize.Y <= 0) return;
@@ -702,7 +702,7 @@ namespace YoonFactory.Calibration
             eStepYoonCalibration nJobStep = eStepYoonCalibration.Init;
             eStepYoonCalibration nJobStepBK = eStepYoonCalibration.Wait;
             YoonVector2D vecCameraCenter = new YoonVector2D(CameraPixelWidth / 2, CameraPixelHeight / 2);
-            YoonCartD cartPosOrigin = null;
+            YoonCartesianD cartPosOrigin = null;
             bool bPlay = true;
             bool bCheckError = false;
 
@@ -797,7 +797,7 @@ namespace YoonFactory.Calibration
                         FlipCoordinate(ref vecMovementToCenter);
                         ReverseCoordinate(ref vecMovementToCenter);
                         m_pPoseRequest += vecMovementToCenter; // 초기 -> 원점위치로 변경
-                        cartPosOrigin = m_pPoseRequest.Clone() as YoonCartD; // 원점 위치 복사해놓기
+                        cartPosOrigin = m_pPoseRequest.Clone() as YoonCartesianD; // 원점 위치 복사해놓기
                         OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인
@@ -958,7 +958,7 @@ namespace YoonFactory.Calibration
                         YoonVector2D vdFOV = new YoonVector2D(CameraPixelWidth, CameraPixelHeight);
                         m_pGCT.SetCameraSetting(vdFOV, m_vecInitPixelSize);
                         //// 저장된 원점으로 Turn Back (이동)
-                        m_pPoseRequest = cartPosOrigin.Clone() as YoonCartD;    // 원점으로 재변경
+                        m_pPoseRequest = cartPosOrigin.Clone() as YoonCartesianD;    // 원점으로 재변경
                         OnMovementPoseSendEvent(this, new CalibPoseArgs(eYoonDir2D.Center, m_pPoseRequest)); // 이동
                         Thread.Sleep(500);
                         OnGrapRequestEvent(this, new CalibGrapArgs(eYoonDir2D.Center)); // 촬상 및 위치 확인

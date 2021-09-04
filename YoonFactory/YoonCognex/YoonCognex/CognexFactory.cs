@@ -186,7 +186,7 @@ namespace YoonFactory.Cognex
                     pObject.Label = 0;
                     pObject.Feature = pRect.Clone() as YoonRect2D;
                     pObject.ObjectImage = pSourceImage.CropImage(pRect);
-                    pObject.ReferencePosition = pRect.CenterPos.Clone();
+                    pObject.Position = pRect.CenterPos.Clone();
                 }
                 return pObject;
             }
@@ -198,7 +198,7 @@ namespace YoonFactory.Cognex
                     pObject.Label = 0;
                     pObject.Feature = pRect.Clone() as YoonRect2D;
                     pObject.ObjectImage = pSourceImage.CropImage(pRect);
-                    pObject.ReferencePosition = pOriginPos.Clone();
+                    pObject.Position = pOriginPos.Clone();
                 }
                 return pObject;
             }
@@ -308,7 +308,7 @@ namespace YoonFactory.Cognex
                 {
                     //////  Parameter 가져오기
                     CognexImage pPatternImage = pPatternObject.ObjectImage as CognexImage;
-                    YoonVector2D pOriginPos = pPatternObject.ReferencePosition as YoonVector2D;
+                    YoonVector2D pOriginPos = pPatternObject.Position as YoonVector2D;
                     //////  Pattern 설정
                     cogPatternParam.TrainImage = pPatternImage.CogImage;
                     cogPatternParam.TrainRegion = null;  // 전체 영역

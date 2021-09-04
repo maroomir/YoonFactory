@@ -49,7 +49,7 @@ namespace YoonFactory.Cognex.Result
                 {
                     pObject.Label = pResult.ID;
                     pObject.Feature = new YoonRect2D(pCogRect.CenterX - pCogRect.SideXLength / 2, pCogRect.CenterY - pCogRect.SideYLength / 2, pCogRect.SideXLength, pCogRect.SideYLength);
-                    pObject.ReferencePosition = new YoonVector2D(pCogRect.CenterX, pCogRect.CenterY);
+                    pObject.Position = new YoonVector2D(pCogRect.CenterX, pCogRect.CenterY);
                     pObject.ObjectImage = pImageResult.CropImage(pCogRect.ToYoonRectAffine());
                     pObject.PixelCount = (int)pResult.Area;
                 }
@@ -68,7 +68,7 @@ namespace YoonFactory.Cognex.Result
                 pObject.Label = 0;
                 YoonLine2D pObjectLine = new YoonLine2D(new YoonVector2D(pLine.StartX, pLine.StartY), new YoonVector2D(pLine.EndX, pLine.EndY));
                 pObject.Feature = pObjectLine.Clone();
-                pObject.ReferencePosition = pObjectLine.CenterPos.Clone();
+                pObject.Position = pObjectLine.CenterPos.Clone();
                 pObject.ObjectImage = pImageResult.CropImage(pObjectLine.Area);
                 pObject.PixelCount = (int)pObjectLine.Length;
             }
@@ -103,7 +103,7 @@ namespace YoonFactory.Cognex.Result
                 pObject.Label = 0;
                 YoonRectAffine2D pRectAffine = new YoonRectAffine2D(vecFeature, dWidth, dHeight, pResult.Rotation);
                 pObject.Feature = pRectAffine.Clone();
-                pObject.ReferencePosition = vecFeature.Clone();
+                pObject.Position = vecFeature.Clone();
                 pObject.ObjectImage = pImageResult.CropImage(pRectAffine);
                 pObject.Score = dScore * 100;
             }

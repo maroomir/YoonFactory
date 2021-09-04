@@ -8,7 +8,7 @@ namespace YoonFactory.Robot.Remote
         public string ProgramName;  // UR
 
         public YoonJointD JointPos;  // UR, TM (J1 ~ J6)
-        public YoonCartD CartPos;    // UR, TM (X, Y, Z, RX, R
+        public YoonCartesianD CartPos;    // UR, TM (X, Y, Z, RX, R
 
         public int VelocityPercent;
 
@@ -18,7 +18,7 @@ namespace YoonFactory.Robot.Remote
     public struct ReceiveValue
     {
         public YoonJointD JointPos;   // UR, TM
-        public YoonCartD CartPos;     // UR, TM
+        public YoonCartesianD CartPos;     // UR, TM
     }
 
     public class ResultArgs : EventArgs
@@ -53,7 +53,7 @@ namespace YoonFactory.Robot.Remote
                 if (pDataReceive.JointPos != null)
                     ReceiveData.JointPos = pDataReceive.JointPos.Clone() as YoonJointD;
                 if (pDataReceive.CartPos != null)
-                    ReceiveData.CartPos = pDataReceive.CartPos.Clone() as YoonCartD;
+                    ReceiveData.CartPos = pDataReceive.CartPos.Clone() as YoonCartesianD;
             }
         }
 

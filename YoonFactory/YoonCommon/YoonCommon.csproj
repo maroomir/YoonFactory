@@ -85,7 +85,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="MathFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="YoonCart.cs" />
+    <Compile Include="YoonCartesian.cs" />
     <Compile Include="YoonJoint.cs" />
     <Compile Include="YoonMatrix.cs" />
     <Compile Include="YoonRect.cs" />

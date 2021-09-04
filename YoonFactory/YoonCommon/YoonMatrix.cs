@@ -11,40 +11,28 @@ namespace YoonFactory
         {
             get => Array[0, 0];
 
-            set
-            {
-                Array[0, 0] = value;
-            }
+            set => Array[0, 0] = value;
         }
 
         public int matrix_12
         {
             get => Array[0, 1];
 
-            set
-            {
-                Array[0, 1] = value;
-            }
+            set => Array[0, 1] = value;
         }
 
         public int matrix_21
         {
             get => Array[1, 0];
 
-            set
-            {
-                Array[1, 0] = value;
-            }
+            set => Array[1, 0] = value;
         }
 
         public int matrix_22
         {
             get => Array[1, 1];
 
-            set
-            {
-                Array[1, 1] = value;
-            }
+            set => Array[1, 1] = value;
         }
 
         public YoonMatrix2X2Int()
@@ -60,29 +48,24 @@ namespace YoonFactory
 
         public int[,] Array { get; set; } = new int[2, 2];
 
-        public int Determinant
-        {
-            get => matrix_11 * matrix_22 - matrix_12 * matrix_21;
-        }
+        public int Determinant => matrix_11 * matrix_22 - matrix_12 * matrix_21;
 
         public IYoonMatrix Clone()
         {
-            YoonMatrix2X2Int pMatrix = new YoonMatrix2X2Int();
-            pMatrix.matrix_11 = matrix_11;
-            pMatrix.matrix_12 = matrix_12;
-            pMatrix.matrix_21 = matrix_21;
-            pMatrix.matrix_22 = matrix_22;
-            return pMatrix;
+            return new YoonMatrix2X2Int
+            {
+                matrix_11 = matrix_11, matrix_12 = matrix_12, matrix_21 = matrix_21, matrix_22 = matrix_22
+            };
         }
 
-        public void CopyFrom(IYoonMatrix m)
+        public void CopyFrom(IYoonMatrix pMatrix)
         {
-            if (m is YoonMatrix2X2Int pMatrix)
+            if (pMatrix is YoonMatrix2X2Int pMatrixInt)
             {
-                matrix_11 = pMatrix.matrix_11;
-                matrix_12 = pMatrix.matrix_12;
-                matrix_21 = pMatrix.matrix_21;
-                matrix_22 = pMatrix.matrix_22;
+                matrix_11 = pMatrixInt.matrix_11;
+                matrix_12 = pMatrixInt.matrix_12;
+                matrix_21 = pMatrixInt.matrix_21;
+                matrix_22 = pMatrixInt.matrix_22;
             }
         }
 
@@ -90,19 +73,19 @@ namespace YoonFactory
         {
             if (Determinant == 0) return Unit();
 
-            YoonMatrix2X2Int m = new YoonMatrix2X2Int(this);
-            matrix_11 = m.matrix_22 / m.Determinant;
-            matrix_12 = -m.matrix_12 / m.Determinant;
-            matrix_21 = -m.matrix_21 / m.Determinant;
-            matrix_22 = m.matrix_11 / m.Determinant;
+            YoonMatrix2X2Int pMatrix = new YoonMatrix2X2Int(this);
+            matrix_11 = pMatrix.matrix_22 / pMatrix.Determinant;
+            matrix_12 = -pMatrix.matrix_12 / pMatrix.Determinant;
+            matrix_21 = -pMatrix.matrix_21 / pMatrix.Determinant;
+            matrix_22 = pMatrix.matrix_11 / pMatrix.Determinant;
             return this;
         }
 
         public IYoonMatrix Transpose()
         {
-            YoonMatrix2X2Int m = new YoonMatrix2X2Int(this);
-            matrix_12 = m.matrix_21;
-            matrix_21 = m.matrix_12;
+            YoonMatrix2X2Int pMatrix = new YoonMatrix2X2Int(this);
+            matrix_12 = pMatrix.matrix_21;
+            matrix_21 = pMatrix.matrix_12;
             return this;
         }
 
@@ -143,67 +126,67 @@ namespace YoonFactory
             return hashCode;
         }
 
-        public static YoonMatrix2X2Int operator *(int a, YoonMatrix2X2Int b)
+        public static YoonMatrix2X2Int operator *(int nNum, YoonMatrix2X2Int pMatrix)
         {
-            YoonMatrix2X2Int m = new YoonMatrix2X2Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Int pResultMatrix = new YoonMatrix2X2Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a * b.Array[i, j];
+                    pResultMatrix.Array[i, j] = nNum * pMatrix.Array[i, j];
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static YoonMatrix2X2Int operator /(YoonMatrix2X2Int a, int b)
+        public static YoonMatrix2X2Int operator /(YoonMatrix2X2Int pMatrix, int nNum)
         {
-            YoonMatrix2X2Int m = new YoonMatrix2X2Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Int pResultMatrix = new YoonMatrix2X2Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a.Array[i, j] / b;
+                    pResultMatrix.Array[i, j] = pMatrix.Array[i, j] / nNum;
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static YoonMatrix2X2Int operator *(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
+        public static YoonMatrix2X2Int operator *(YoonMatrix2X2Int nNum, YoonMatrix2X2Int pMatrix)
         {
-            YoonMatrix2X2Int m = new YoonMatrix2X2Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Int pResultMatrix = new YoonMatrix2X2Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = 0;
-                    for (int kValue = 0; kValue < m.Length; kValue++)
-                        m.Array[i, j] += (a.Array[i, kValue] * b.Array[kValue, j]);
+                    pResultMatrix.Array[i, j] = 0;
+                    for (int kValue = 0; kValue < pResultMatrix.Length; kValue++)
+                        pResultMatrix.Array[i, j] += (nNum.Array[i, kValue] * pMatrix.Array[kValue, j]);
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static bool operator ==(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
+        public static bool operator ==(YoonMatrix2X2Int pMatrixSource, YoonMatrix2X2Int pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return false;
                 }
             }
             return true;
         }
 
-        public static bool operator !=(YoonMatrix2X2Int a, YoonMatrix2X2Int b)
+        public static bool operator !=(YoonMatrix2X2Int pMatrixSource, YoonMatrix2X2Int pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return true;
                 }
             }
@@ -219,40 +202,28 @@ namespace YoonFactory
         {
             get => Array[0, 0];
 
-            set
-            {
-                Array[0, 0] = value;
-            }
+            set => Array[0, 0] = value;
         }
 
         public double matrix_12
         {
             get => Array[0, 1];
 
-            set
-            {
-                Array[0, 1] = value;
-            }
+            set => Array[0, 1] = value;
         }
 
         public double matrix_21
         {
             get => Array[1, 0];
 
-            set
-            {
-                Array[1, 0] = value;
-            }
+            set => Array[1, 0] = value;
         }
 
         public double matrix_22
         {
             get => Array[1, 1];
 
-            set
-            {
-                Array[1, 1] = value;
-            }
+            set => Array[1, 1] = value;
         }
 
         public YoonMatrix2X2Double()
@@ -268,36 +239,30 @@ namespace YoonFactory
 
         public double[,] Array { get; set; } = new double[2, 2];
 
-        public double Determinant
-        {
-            get => matrix_11 * matrix_22 - matrix_12 * matrix_21;
-        }
+        public double Determinant => matrix_11 * matrix_22 - matrix_12 * matrix_21;
 
         public IYoonMatrix Clone()
         {
-            YoonMatrix2X2Double pMatrix = new YoonMatrix2X2Double();
-            pMatrix.matrix_11 = matrix_11;
-            pMatrix.matrix_12 = matrix_12;
-            pMatrix.matrix_21 = matrix_21;
-            pMatrix.matrix_22 = matrix_22;
-            return pMatrix;
+            return new YoonMatrix2X2Double
+            {
+                matrix_11 = matrix_11, matrix_12 = matrix_12, matrix_21 = matrix_21, matrix_22 = matrix_22
+            };
         }
 
-        public void CopyFrom(IYoonMatrix m)
+        public void CopyFrom(IYoonMatrix pMatrix)
         {
-            if (m is YoonMatrix2X2Double pMatrix)
+            if (pMatrix is YoonMatrix2X2Double pMatrixDouble)
             {
-                matrix_11 = pMatrix.matrix_11;
-                matrix_12 = pMatrix.matrix_12;
-                matrix_21 = pMatrix.matrix_21;
-                matrix_22 = pMatrix.matrix_22;
+                matrix_11 = pMatrixDouble.matrix_11;
+                matrix_12 = pMatrixDouble.matrix_12;
+                matrix_21 = pMatrixDouble.matrix_21;
+                matrix_22 = pMatrixDouble.matrix_22;
             }
         }
 
         public IYoonMatrix Inverse()
         {
             if (Determinant == 0) return Unit();
-
             YoonMatrix2X2Double m = new YoonMatrix2X2Double(this);
             matrix_11 = m.matrix_22 / m.Determinant;
             matrix_12 = -m.matrix_12 / m.Determinant;
@@ -351,45 +316,48 @@ namespace YoonFactory
             return hashCode;
         }
 
-        public static YoonMatrix2X2Double operator *(double a, YoonMatrix2X2Double b)
+        public static YoonMatrix2X2Double operator *(double dNum, YoonMatrix2X2Double pMatrix)
         {
-            YoonMatrix2X2Double m = new YoonMatrix2X2Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Double pResultMatrix = new YoonMatrix2X2Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a * b.Array[i, j];
+                    pResultMatrix.Array[i, j] = dNum * pMatrix.Array[i, j];
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static YoonMatrix2X2Double operator /(YoonMatrix2X2Double a, double b)
+        public static YoonMatrix2X2Double operator /(YoonMatrix2X2Double pMatrix, double dNum)
         {
-            YoonMatrix2X2Double m = new YoonMatrix2X2Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Double pResultMatrix = new YoonMatrix2X2Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a.Array[i, j] / b;
+                    pResultMatrix.Array[i, j] = pMatrix.Array[i, j] / dNum;
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static YoonMatrix2X2Double operator *(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
+        public static YoonMatrix2X2Double operator *(YoonMatrix2X2Double dNum, YoonMatrix2X2Double pMatrix)
         {
-            YoonMatrix2X2Double m = new YoonMatrix2X2Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix2X2Double pResultMatrix = new YoonMatrix2X2Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = 0;
-                    for (int kValue = 0; kValue < m.Length; kValue++)
-                        m.Array[i, j] += (a.Array[i, kValue] * b.Array[kValue, j]);
+                    pResultMatrix.Array[i, j] = 0;
+                    for (int kValue = 0; kValue < pResultMatrix.Length; kValue++)
+                        pResultMatrix.Array[i, j] += (dNum.Array[i, kValue] * pMatrix.Array[kValue, j]);
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
         public static bool operator ==(YoonMatrix2X2Double a, YoonMatrix2X2Double b)
@@ -402,6 +370,7 @@ namespace YoonFactory
                         return false;
                 }
             }
+
             return true;
         }
 
@@ -415,6 +384,7 @@ namespace YoonFactory
                         return true;
                 }
             }
+
             return false;
         }
     }
@@ -427,90 +397,63 @@ namespace YoonFactory
         {
             get => Array[0, 0];
 
-            set
-            {
-                Array[0, 0] = value;
-            }
+            set => Array[0, 0] = value;
         }
 
         public int matrix_12
         {
             get => Array[0, 1];
 
-            set
-            {
-                Array[0, 1] = value;
-            }
+            set => Array[0, 1] = value;
         }
 
         public int matrix_13
         {
             get => Array[0, 2];
 
-            set
-            {
-                Array[0, 2] = value;
-            }
+            set => Array[0, 2] = value;
         }
 
         public int matrix_21
         {
             get => Array[1, 0];
 
-            set
-            {
-                Array[1, 0] = value;
-            }
+            set => Array[1, 0] = value;
         }
 
         public int matrix_22
         {
             get => Array[1, 1];
 
-            set
-            {
-                Array[1, 1] = value;
-            }
+            set => Array[1, 1] = value;
         }
 
         public int matrix_23
         {
             get => Array[1, 2];
 
-            set
-            {
-                Array[1, 2] = value;
-            }
+            set => Array[1, 2] = value;
         }
 
         public int matrix_31
         {
             get => Array[2, 0];
 
-            set
-            {
-                Array[2, 0] = value;
-            }
+            set => Array[2, 0] = value;
         }
 
         public int matrix_32
         {
             get => Array[2, 1];
 
-            set
-            {
-                Array[2, 1] = value;
-            }
+            set => Array[2, 1] = value;
         }
 
         public int matrix_33
         {
             get => Array[2, 2];
 
-            set
-            {
-                Array[2, 2] = value;
-            }
+            set => Array[2, 2] = value;
         }
 
         public YoonMatrix3X3Int()
@@ -519,9 +462,9 @@ namespace YoonFactory
             matrix_12 = matrix_13 = matrix_21 = matrix_23 = matrix_31 = matrix_32 = 0;
         }
 
-        public YoonMatrix3X3Int(IYoonMatrix m)
+        public YoonMatrix3X3Int(IYoonMatrix pMatrix)
         {
-            this.CopyFrom(m);
+            this.CopyFrom(pMatrix);
         }
 
         public int[,] Array { get; set; } = new int[3, 3];
@@ -543,38 +486,39 @@ namespace YoonFactory
 
         public IYoonMatrix Clone()
         {
-            YoonMatrix3X3Int pMatrix = new YoonMatrix3X3Int();
-            pMatrix.matrix_11 = matrix_11;
-            pMatrix.matrix_12 = matrix_12;
-            pMatrix.matrix_13 = matrix_13;
-            pMatrix.matrix_21 = matrix_21;
-            pMatrix.matrix_22 = matrix_22;
-            pMatrix.matrix_23 = matrix_23;
-            pMatrix.matrix_31 = matrix_31;
-            pMatrix.matrix_32 = matrix_32;
-            pMatrix.matrix_33 = matrix_33;
-            return pMatrix;
+            return new YoonMatrix3X3Int
+            {
+                matrix_11 = matrix_11,
+                matrix_12 = matrix_12,
+                matrix_13 = matrix_13,
+                matrix_21 = matrix_21,
+                matrix_22 = matrix_22,
+                matrix_23 = matrix_23,
+                matrix_31 = matrix_31,
+                matrix_32 = matrix_32,
+                matrix_33 = matrix_33
+            };
         }
 
-        public void CopyFrom(IYoonMatrix m)
+        public void CopyFrom(IYoonMatrix pMatrix)
         {
-            if (m is YoonMatrix3X3Int pMatrix)
+            if (pMatrix is YoonMatrix3X3Int pMatrixInt)
             {
-                matrix_11 = pMatrix.matrix_11;
-                matrix_12 = pMatrix.matrix_12;
-                matrix_13 = pMatrix.matrix_13;
-                matrix_21 = pMatrix.matrix_21;
-                matrix_22 = pMatrix.matrix_22;
-                matrix_23 = pMatrix.matrix_23;
-                matrix_31 = pMatrix.matrix_31;
-                matrix_32 = pMatrix.matrix_32;
-                matrix_33 = pMatrix.matrix_33;
+                matrix_11 = pMatrixInt.matrix_11;
+                matrix_12 = pMatrixInt.matrix_12;
+                matrix_13 = pMatrixInt.matrix_13;
+                matrix_21 = pMatrixInt.matrix_21;
+                matrix_22 = pMatrixInt.matrix_22;
+                matrix_23 = pMatrixInt.matrix_23;
+                matrix_31 = pMatrixInt.matrix_31;
+                matrix_32 = pMatrixInt.matrix_32;
+                matrix_33 = pMatrixInt.matrix_33;
             }
         }
 
         public int Cofactor(int nRow, int nCol)
         {
-            return (int)(Math.Pow(-1, nRow + nCol) * (GetMinorMatrix(nRow, nCol) as YoonMatrix2X2Int).Determinant);
+            return (int)(Math.Pow(-1, nRow + nCol) * ((YoonMatrix2X2Int) GetMinorMatrix(nRow, nCol)).Determinant);
         }
 
         public IYoonMatrix GetMinorMatrix(int nRow, int nCol)
@@ -596,9 +540,8 @@ namespace YoonFactory
                 }
                 iCount++;
             }
-            YoonMatrix2X2Int pMatrix = new YoonMatrix2X2Int();
-            pMatrix.Array = pArray;
-            return pMatrix;
+
+            return new YoonMatrix2X2Int {Array = pArray};
         }
 
         public IYoonMatrix GetAdjointMatrix()
@@ -620,20 +563,20 @@ namespace YoonFactory
         {
             if (Determinant == 0) return Unit();
 
-            YoonMatrix3X3Int m = new YoonMatrix3X3Int(this);
-            CopyFrom((m.GetAdjointMatrix() as YoonMatrix3X3Int) / m.Determinant);
+            YoonMatrix3X3Int pMatrix = new YoonMatrix3X3Int(this);
+            CopyFrom((pMatrix.GetAdjointMatrix() as YoonMatrix3X3Int) / pMatrix.Determinant);
             return this;
         }
 
         public IYoonMatrix Transpose()
         {
-            YoonMatrix3X3Int m = new YoonMatrix3X3Int(this);
-            matrix_12 = m.matrix_21;
-            matrix_13 = m.matrix_31;
-            matrix_21 = m.matrix_12;
-            matrix_23 = m.matrix_32;
-            matrix_31 = m.matrix_13;
-            matrix_32 = m.matrix_23;
+            YoonMatrix3X3Int pMatrix = new YoonMatrix3X3Int(this);
+            matrix_12 = pMatrix.matrix_21;
+            matrix_13 = pMatrix.matrix_31;
+            matrix_21 = pMatrix.matrix_12;
+            matrix_23 = pMatrix.matrix_32;
+            matrix_31 = pMatrix.matrix_13;
+            matrix_32 = pMatrix.matrix_23;
             return this;
         }
 
@@ -684,67 +627,67 @@ namespace YoonFactory
             return hashCode;
         }
 
-        public static YoonMatrix3X3Int operator *(int a, YoonMatrix3X3Int b)
+        public static YoonMatrix3X3Int operator *(int nNum, YoonMatrix3X3Int pMatrix)
         {
-            YoonMatrix3X3Int m = new YoonMatrix3X3Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Int pResultMatrix = new YoonMatrix3X3Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a * b.Array[i, j];
+                    pResultMatrix.Array[i, j] = nNum * pMatrix.Array[i, j];
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static YoonMatrix3X3Int operator /(YoonMatrix3X3Int a, int b)
+        public static YoonMatrix3X3Int operator /(YoonMatrix3X3Int pMatrix, int nNum)
         {
-            YoonMatrix3X3Int m = new YoonMatrix3X3Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Int pResultMatrix = new YoonMatrix3X3Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a.Array[i, j] / b;
+                    pResultMatrix.Array[i, j] = pMatrix.Array[i, j] / nNum;
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static YoonMatrix3X3Int operator *(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
+        public static YoonMatrix3X3Int operator *(YoonMatrix3X3Int nNum, YoonMatrix3X3Int pMatrix)
         {
-            YoonMatrix3X3Int m = new YoonMatrix3X3Int();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Int pResultMatrix = new YoonMatrix3X3Int();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = 0;
-                    for (int kValue = 0; kValue < m.Length; kValue++)
-                        m.Array[i, j] += (a.Array[i, kValue] * b.Array[kValue, j]);
+                    pResultMatrix.Array[i, j] = 0;
+                    for (int kValue = 0; kValue < pResultMatrix.Length; kValue++)
+                        pResultMatrix.Array[i, j] += (nNum.Array[i, kValue] * pMatrix.Array[kValue, j]);
                 }
             }
-            return m;
+            return pResultMatrix;
         }
 
-        public static bool operator ==(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
+        public static bool operator ==(YoonMatrix3X3Int pMatrixSource, YoonMatrix3X3Int pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return false;
                 }
             }
             return true;
         }
 
-        public static bool operator !=(YoonMatrix3X3Int a, YoonMatrix3X3Int b)
+        public static bool operator !=(YoonMatrix3X3Int pMatrixSource, YoonMatrix3X3Int pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return true;
                 }
             }
@@ -760,90 +703,63 @@ namespace YoonFactory
         {
             get => Array[0, 0];
 
-            set
-            {
-                Array[0, 0] = value;
-            }
+            set => Array[0, 0] = value;
         }
 
         public double matrix_12
         {
             get => Array[0, 1];
 
-            set
-            {
-                Array[0, 1] = value;
-            }
+            set => Array[0, 1] = value;
         }
 
         public double matrix_13
         {
             get => Array[0, 2];
 
-            set
-            {
-                Array[0, 2] = value;
-            }
+            set => Array[0, 2] = value;
         }
 
         public double matrix_21
         {
             get => Array[1, 0];
 
-            set
-            {
-                Array[1, 0] = value;
-            }
+            set => Array[1, 0] = value;
         }
 
         public double matrix_22
         {
             get => Array[1, 1];
 
-            set
-            {
-                Array[1, 1] = value;
-            }
+            set => Array[1, 1] = value;
         }
 
         public double matrix_23
         {
             get => Array[1, 2];
 
-            set
-            {
-                Array[1, 2] = value;
-            }
+            set => Array[1, 2] = value;
         }
 
         public double matrix_31
         {
             get => Array[2, 0];
 
-            set
-            {
-                Array[2, 0] = value;
-            }
+            set => Array[2, 0] = value;
         }
 
         public double matrix_32
         {
             get => Array[2, 1];
 
-            set
-            {
-                Array[2, 1] = value;
-            }
+            set => Array[2, 1] = value;
         }
 
         public double matrix_33
         {
             get => Array[2, 2];
 
-            set
-            {
-                Array[2, 2] = value;
-            }
+            set => Array[2, 2] = value;
         }
 
         public YoonMatrix3X3Double()
@@ -852,9 +768,9 @@ namespace YoonFactory
             matrix_12 = matrix_13 = matrix_21 = matrix_23 = matrix_31 = matrix_32 = 0;
         }
 
-        public YoonMatrix3X3Double(IYoonMatrix m)
+        public YoonMatrix3X3Double(IYoonMatrix pMatrix)
         {
-            this.CopyFrom(m);
+            this.CopyFrom(pMatrix);
         }
 
         public double[,] Array { get; set; } = new double[3, 3];
@@ -876,32 +792,33 @@ namespace YoonFactory
 
         public IYoonMatrix Clone()
         {
-            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double();
-            pMatrix.matrix_11 = matrix_11;
-            pMatrix.matrix_12 = matrix_12;
-            pMatrix.matrix_13 = matrix_13;
-            pMatrix.matrix_21 = matrix_21;
-            pMatrix.matrix_22 = matrix_22;
-            pMatrix.matrix_23 = matrix_23;
-            pMatrix.matrix_31 = matrix_31;
-            pMatrix.matrix_32 = matrix_32;
-            pMatrix.matrix_33 = matrix_33;
-            return pMatrix;
+            return new YoonMatrix3X3Double
+            {
+                matrix_11 = matrix_11,
+                matrix_12 = matrix_12,
+                matrix_13 = matrix_13,
+                matrix_21 = matrix_21,
+                matrix_22 = matrix_22,
+                matrix_23 = matrix_23,
+                matrix_31 = matrix_31,
+                matrix_32 = matrix_32,
+                matrix_33 = matrix_33
+            };
         }
 
-        public void CopyFrom(IYoonMatrix m)
+        public void CopyFrom(IYoonMatrix pMatrix)
         {
-            if (m is YoonMatrix3X3Double pMatrix)
+            if (pMatrix is YoonMatrix3X3Double pMatrixDouble)
             {
-                matrix_11 = pMatrix.matrix_11;
-                matrix_12 = pMatrix.matrix_12;
-                matrix_13 = pMatrix.matrix_13;
-                matrix_21 = pMatrix.matrix_21;
-                matrix_22 = pMatrix.matrix_22;
-                matrix_23 = pMatrix.matrix_23;
-                matrix_31 = pMatrix.matrix_31;
-                matrix_32 = pMatrix.matrix_32;
-                matrix_33 = pMatrix.matrix_33;
+                matrix_11 = pMatrixDouble.matrix_11;
+                matrix_12 = pMatrixDouble.matrix_12;
+                matrix_13 = pMatrixDouble.matrix_13;
+                matrix_21 = pMatrixDouble.matrix_21;
+                matrix_22 = pMatrixDouble.matrix_22;
+                matrix_23 = pMatrixDouble.matrix_23;
+                matrix_31 = pMatrixDouble.matrix_31;
+                matrix_32 = pMatrixDouble.matrix_32;
+                matrix_33 = pMatrixDouble.matrix_33;
             }
         }
 
@@ -927,11 +844,11 @@ namespace YoonFactory
                     pArray[iCount, jCount] = Array[i, j];
                     jCount++;
                 }
+
                 iCount++;
             }
-            YoonMatrix2X2Double pMatrix = new YoonMatrix2X2Double();
-            pMatrix.Array = pArray;
-            return pMatrix;
+
+            return new YoonMatrix2X2Double {Array = pArray};
         }
 
         public IYoonMatrix GetAdjointMatrix()
@@ -944,8 +861,8 @@ namespace YoonFactory
                     pArray[i, j] = Cofactor(i, j);
                 }
             }
-            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double();
-            pMatrix.Array = pArray;
+
+            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double {Array = pArray};
             return pMatrix.Transpose();
         }
 
@@ -953,20 +870,20 @@ namespace YoonFactory
         {
             if (Determinant == 0) return Unit();
 
-            YoonMatrix3X3Double m = new YoonMatrix3X3Double(this);
-            CopyFrom((m.GetAdjointMatrix() as YoonMatrix3X3Double) / m.Determinant);
+            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double(this);
+            CopyFrom((pMatrix.GetAdjointMatrix() as YoonMatrix3X3Double) / pMatrix.Determinant);
             return this;
         }
 
         public IYoonMatrix Transpose()
         {
-            YoonMatrix3X3Double m = new YoonMatrix3X3Double(this);
-            matrix_12 = m.matrix_21;
-            matrix_13 = m.matrix_31;
-            matrix_21 = m.matrix_12;
-            matrix_23 = m.matrix_32;
-            matrix_31 = m.matrix_13;
-            matrix_32 = m.matrix_23;
+            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double(this);
+            matrix_12 = pMatrix.matrix_21;
+            matrix_13 = pMatrix.matrix_31;
+            matrix_21 = pMatrix.matrix_12;
+            matrix_23 = pMatrix.matrix_32;
+            matrix_31 = pMatrix.matrix_13;
+            matrix_32 = pMatrix.matrix_23;
             return this;
         }
 
@@ -1017,108 +934,113 @@ namespace YoonFactory
             return hashCode;
         }
 
-        public static YoonMatrix3X3Double operator *(double a, YoonMatrix3X3Double b)
+        public static YoonMatrix3X3Double operator *(double dNum, YoonMatrix3X3Double pMatrix)
         {
-            YoonMatrix3X3Double m = new YoonMatrix3X3Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Double pReesultMatrix = new YoonMatrix3X3Double();
+            for (int i = 0; i < pReesultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pReesultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a * b.Array[i, j];
+                    pReesultMatrix.Array[i, j] = dNum * pMatrix.Array[i, j];
                 }
             }
-            return m;
+
+            return pReesultMatrix;
         }
 
-        public static YoonMatrix3X3Double operator /(YoonMatrix3X3Double a, double b)
+        public static YoonMatrix3X3Double operator /(YoonMatrix3X3Double pMatrix, double dNum)
         {
-            YoonMatrix3X3Double m = new YoonMatrix3X3Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Double pResultMatrix = new YoonMatrix3X3Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a.Array[i, j] / b;
+                    pResultMatrix.Array[i, j] = pMatrix.Array[i, j] / dNum;
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static YoonMatrix3X3Double operator *(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
+        public static YoonMatrix3X3Double operator *(YoonMatrix3X3Double dNum, YoonMatrix3X3Double pMatrix)
         {
-            YoonMatrix3X3Double m = new YoonMatrix3X3Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix3X3Double pResultMatrix = new YoonMatrix3X3Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = 0;
-                    for (int kValue = 0; kValue < m.Length; kValue++)
-                        m.Array[i, j] += (a.Array[i, kValue] * b.Array[kValue, j]);
+                    pResultMatrix.Array[i, j] = 0;
+                    for (int kValue = 0; kValue < pResultMatrix.Length; kValue++)
+                        pResultMatrix.Array[i, j] += (dNum.Array[i, kValue] * pMatrix.Array[kValue, j]);
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static bool operator ==(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
+        public static bool operator ==(YoonMatrix3X3Double pMatrixSource, YoonMatrix3X3Double pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return false;
                 }
             }
+
             return true;
         }
 
-        public static bool operator !=(YoonMatrix3X3Double a, YoonMatrix3X3Double b)
+        public static bool operator !=(YoonMatrix3X3Double pMatrixSource, YoonMatrix3X3Double pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return true;
                 }
             }
+
             return false;
         }
     }
 
     /// <summary>
-    /// 2차원 동차변환 행렬 (int, 연산이 있으므로 제너릭 사용 불가)
+    /// Equal Transformation Matrix (for integer)
     /// </summary>
     public class YoonMatrix2N : YoonMatrix3X3Int, IYoonMatrix2D<int>
     {
-        public IYoonMatrix SetScaleUnit(int sx, int sy)
+        public IYoonMatrix SetScaleUnit(int scaleX, int scaleY)
         {
             Unit();
-            matrix_11 *= sx;
-            matrix_22 *= sy;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(int dx, int dy)
+        public IYoonMatrix SetMovementUnit(int moveX, int moveY)
         {
             Unit();
-            matrix_13 += dx;
-            matrix_23 += dy;
+            matrix_13 += moveX;
+            matrix_23 += moveY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(IYoonVector2D<int> v)
+        public IYoonMatrix SetMovementUnit(IYoonVector2D<int> pVector)
         {
             Unit();
-            matrix_13 += v.X;
-            matrix_23 += v.Y;
+            matrix_13 += pVector.X;
+            matrix_23 += pVector.Y;
             return this;
         }
 
-        public IYoonMatrix SetRotateUnit(double angle)
+        public IYoonMatrix SetRotateUnit(double dAngle)
         {
             Unit();
-            int cosT = (int)Math.Cos(angle);
-            int sinT = (int)Math.Sin(angle);
+            int cosT = (int)Math.Cos(dAngle);
+            int sinT = (int)Math.Sin(dAngle);
             matrix_11 = cosT;
             matrix_12 = -sinT;
             matrix_21 = sinT;
@@ -1128,40 +1050,40 @@ namespace YoonFactory
     }
 
     /// <summary>
-    /// 2차원 동차변환 행렬 (double, 연산이 있으므로 제너릭 사용 불가)
+    /// Equal Transformation Matrix (for double)
     /// </summary>
     public class YoonMatrix2D : YoonMatrix3X3Double, IYoonMatrix2D<double>
     {
 
-        public IYoonMatrix SetScaleUnit(double sx, double sy)
+        public IYoonMatrix SetScaleUnit(double scaleX, double scaleY)
         {
             Unit();
-            matrix_11 *= sx;
-            matrix_22 *= sy;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(double dx, double dy)
+        public IYoonMatrix SetMovementUnit(double moveX, double moveY)
         {
             Unit();
-            matrix_13 += dx;
-            matrix_23 += dy;
+            matrix_13 += moveX;
+            matrix_23 += moveY;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(IYoonVector2D<double> v)
+        public IYoonMatrix SetMovementUnit(IYoonVector2D<double> pVector)
         {
             Unit();
-            matrix_13 += v.X;
-            matrix_23 += v.Y;
+            matrix_13 += pVector.X;
+            matrix_23 += pVector.Y;
             return this;
         }
 
-        public IYoonMatrix SetRotateUnit(double angle)
+        public IYoonMatrix SetRotateUnit(double dAngle)
         {
             Unit();
-            double cosT = Math.Cos(angle);
-            double sinT = Math.Sin(angle);
+            double cosT = Math.Cos(dAngle);
+            double sinT = Math.Sin(dAngle);
             matrix_11 = cosT;
             matrix_12 = -sinT;
             matrix_21 = sinT;
@@ -1171,7 +1093,7 @@ namespace YoonFactory
 
     }
 
-    public class YoonMatrix4X4Double : IYoonMatrix, IYoonMatrix<double>, IEquatable<YoonMatrix4X4Double>
+    public class YoonMatrix4X4Double : IYoonMatrix<double>, IEquatable<YoonMatrix4X4Double>
     {
         public int Length { get; set; } = 4;
 
@@ -1179,120 +1101,84 @@ namespace YoonFactory
         {
             get => Array[0, 0];
 
-            set
-            {
-                Array[0, 0] = value;
-            }
+            set => Array[0, 0] = value;
         }
 
         public double matrix_12
         {
             get => Array[0, 1];
 
-            set
-            {
-                Array[0, 1] = value;
-            }
+            set => Array[0, 1] = value;
         }
 
         public double matrix_13
         {
             get => Array[0, 2];
 
-            set
-            {
-                Array[0, 2] = value;
-            }
+            set => Array[0, 2] = value;
         }
 
         public double matrix_14
         {
             get => Array[0, 3];
 
-            set
-            {
-                Array[0, 3] = value;
-            }
+            set => Array[0, 3] = value;
         }
 
         public double matrix_21
         {
             get => Array[1, 0];
 
-            set
-            {
-                Array[1, 0] = value;
-            }
+            set => Array[1, 0] = value;
         }
 
         public double matrix_22
         {
             get => Array[1, 1];
 
-            set
-            {
-                Array[1, 1] = value;
-            }
+            set => Array[1, 1] = value;
         }
 
         public double matrix_23
         {
             get => Array[1, 2];
 
-            set
-            {
-                Array[1, 2] = value;
-            }
+            set => Array[1, 2] = value;
         }
 
         public double matrix_24
         {
             get => Array[1, 3];
 
-            set
-            {
-                Array[1, 3] = value;
-            }
+            set => Array[1, 3] = value;
         }
 
         public double matrix_31
         {
             get => Array[2, 0];
 
-            set
-            {
-                Array[2, 0] = value;
-            }
+            set => Array[2, 0] = value;
         }
 
         public double matrix_32
         {
             get => Array[2, 1];
 
-            set
-            {
-                Array[2, 1] = value;
-            }
+            set => Array[2, 1] = value;
         }
 
         public double matrix_33
         {
             get => Array[2, 2];
 
-            set
-            {
-                Array[2, 2] = value;
-            }
+            set => Array[2, 2] = value;
         }
 
         public double matrix_34
         {
             get => Array[2, 3];
 
-            set
-            {
-                Array[2, 3] = value;
-            }
+            set => Array[2, 3] = value;
         }
 
 
@@ -1300,51 +1186,40 @@ namespace YoonFactory
         {
             get => Array[3, 0];
 
-            set
-            {
-                Array[3, 0] = value;
-            }
+            set => Array[3, 0] = value;
         }
 
         public double matrix_42
         {
             get => Array[3, 1];
 
-            set
-            {
-                Array[3, 1] = value;
-            }
+            set => Array[3, 1] = value;
         }
 
         public double matrix_43
         {
             get => Array[3, 2];
 
-            set
-            {
-                Array[3, 2] = value;
-            }
+            set { Array[3, 2] = value; }
         }
 
         public double matrix_44
         {
             get => Array[3, 3];
 
-            set
-            {
-                Array[3, 3] = value;
-            }
+            set => Array[3, 3] = value;
         }
 
         public YoonMatrix4X4Double()
         {
             matrix_11 = matrix_22 = matrix_33 = matrix_44 = 1;
-            matrix_12 = matrix_13 = matrix_14 = matrix_21 = matrix_23 = matrix_24 = matrix_31 = matrix_32 = matrix_34 = matrix_41 = matrix_42 = matrix_43 = 0;
+            matrix_12 = matrix_13 = matrix_14 = matrix_21 = matrix_23 =
+                matrix_24 = matrix_31 = matrix_32 = matrix_34 = matrix_41 = matrix_42 = matrix_43 = 0;
         }
 
-        public YoonMatrix4X4Double(IYoonMatrix m)
+        public YoonMatrix4X4Double(IYoonMatrix pMatrix)
         {
-            this.CopyFrom(m);
+            this.CopyFrom(pMatrix);
         }
 
         public double[,] Array { get; set; } = new double[4, 4];
@@ -1372,52 +1247,53 @@ namespace YoonFactory
 
         public IYoonMatrix Clone()
         {
-            YoonMatrix4X4Double pMatrix = new YoonMatrix4X4Double();
-            pMatrix.matrix_11 = matrix_11;
-            pMatrix.matrix_12 = matrix_12;
-            pMatrix.matrix_13 = matrix_13;
-            pMatrix.matrix_14 = matrix_14;
-            pMatrix.matrix_21 = matrix_21;
-            pMatrix.matrix_22 = matrix_22;
-            pMatrix.matrix_23 = matrix_23;
-            pMatrix.matrix_24 = matrix_24;
-            pMatrix.matrix_31 = matrix_31;
-            pMatrix.matrix_32 = matrix_32;
-            pMatrix.matrix_33 = matrix_33;
-            pMatrix.matrix_34 = matrix_34;
-            pMatrix.matrix_41 = matrix_41;
-            pMatrix.matrix_42 = matrix_42;
-            pMatrix.matrix_43 = matrix_43;
-            pMatrix.matrix_44 = matrix_44;
-            return pMatrix;
+            return new YoonMatrix4X4Double
+            {
+                matrix_11 = matrix_11,
+                matrix_12 = matrix_12,
+                matrix_13 = matrix_13,
+                matrix_14 = matrix_14,
+                matrix_21 = matrix_21,
+                matrix_22 = matrix_22,
+                matrix_23 = matrix_23,
+                matrix_24 = matrix_24,
+                matrix_31 = matrix_31,
+                matrix_32 = matrix_32,
+                matrix_33 = matrix_33,
+                matrix_34 = matrix_34,
+                matrix_41 = matrix_41,
+                matrix_42 = matrix_42,
+                matrix_43 = matrix_43,
+                matrix_44 = matrix_44
+            };
         }
 
-        public void CopyFrom(IYoonMatrix m)
+        public void CopyFrom(IYoonMatrix pMatrix)
         {
-            if (m is YoonMatrix4X4Double pMatrix)
+            if (pMatrix is YoonMatrix4X4Double pMatrixDouble)
             {
-                matrix_11 = pMatrix.matrix_11;
-                matrix_12 = pMatrix.matrix_12;
-                matrix_13 = pMatrix.matrix_13;
-                matrix_14 = pMatrix.matrix_14;
-                matrix_21 = pMatrix.matrix_21;
-                matrix_22 = pMatrix.matrix_22;
-                matrix_23 = pMatrix.matrix_23;
-                matrix_24 = pMatrix.matrix_24;
-                matrix_31 = pMatrix.matrix_31;
-                matrix_32 = pMatrix.matrix_32;
-                matrix_33 = pMatrix.matrix_33;
-                matrix_34 = pMatrix.matrix_34;
-                matrix_41 = pMatrix.matrix_41;
-                matrix_42 = pMatrix.matrix_42;
-                matrix_43 = pMatrix.matrix_43;
-                matrix_44 = pMatrix.matrix_44;
+                matrix_11 = pMatrixDouble.matrix_11;
+                matrix_12 = pMatrixDouble.matrix_12;
+                matrix_13 = pMatrixDouble.matrix_13;
+                matrix_14 = pMatrixDouble.matrix_14;
+                matrix_21 = pMatrixDouble.matrix_21;
+                matrix_22 = pMatrixDouble.matrix_22;
+                matrix_23 = pMatrixDouble.matrix_23;
+                matrix_24 = pMatrixDouble.matrix_24;
+                matrix_31 = pMatrixDouble.matrix_31;
+                matrix_32 = pMatrixDouble.matrix_32;
+                matrix_33 = pMatrixDouble.matrix_33;
+                matrix_34 = pMatrixDouble.matrix_34;
+                matrix_41 = pMatrixDouble.matrix_41;
+                matrix_42 = pMatrixDouble.matrix_42;
+                matrix_43 = pMatrixDouble.matrix_43;
+                matrix_44 = pMatrixDouble.matrix_44;
             }
         }
 
         public double Cofactor(int nRow, int nCol)
         {
-            return Math.Pow(-1, nRow + nCol) * (GetMinorMatrix(nRow, nCol) as YoonMatrix3X3Double).Determinant;
+            return Math.Pow(-1, nRow + nCol) * ((YoonMatrix3X3Double) GetMinorMatrix(nRow, nCol)).Determinant;
         }
 
         public IYoonMatrix GetMinorMatrix(int nRow, int nCol)
@@ -1437,12 +1313,11 @@ namespace YoonFactory
                     pArray[iCount, jCount] = Array[i, j];
                     jCount++;
                 }
+
                 iCount++;
             }
 
-            YoonMatrix3X3Double pMatrix = new YoonMatrix3X3Double();
-            pMatrix.Array = pArray;
-            return pMatrix;
+            return new YoonMatrix3X3Double {Array = pArray};
         }
 
         public IYoonMatrix GetAdjointMatrix()
@@ -1455,8 +1330,8 @@ namespace YoonFactory
                     pArray[i, j] = Cofactor(i, j);
                 }
             }
-            YoonMatrix4X4Double pMatrix = new YoonMatrix4X4Double();
-            pMatrix.Array = pArray;
+
+            YoonMatrix4X4Double pMatrix = new YoonMatrix4X4Double {Array = pArray};
             return pMatrix.Transpose();
         }
 
@@ -1464,8 +1339,8 @@ namespace YoonFactory
         {
             if (Determinant == 0) return Unit();
 
-            YoonMatrix4X4Double m = new YoonMatrix4X4Double(this);
-            CopyFrom((m.GetAdjointMatrix() as YoonMatrix4X4Double) / m.Determinant);
+            YoonMatrix4X4Double pMatrix = new YoonMatrix4X4Double(this);
+            CopyFrom((pMatrix.GetAdjointMatrix() as YoonMatrix4X4Double) / pMatrix.Determinant);
             return this;
         }
 
@@ -1490,7 +1365,8 @@ namespace YoonFactory
         public IYoonMatrix Unit()
         {
             matrix_11 = matrix_22 = matrix_33 = matrix_44 = 1;
-            matrix_12 = matrix_13 = matrix_14 = matrix_21 = matrix_23 = matrix_24 = matrix_31 = matrix_32 = matrix_34 = matrix_41 = matrix_42 = matrix_43 = 0;
+            matrix_12 = matrix_13 = matrix_14 = matrix_21 = matrix_23 =
+                matrix_24 = matrix_31 = matrix_32 = matrix_34 = matrix_41 = matrix_42 = matrix_43 = 0;
             return this;
         }
 
@@ -1548,111 +1424,117 @@ namespace YoonFactory
             return hashCode;
         }
 
-        public static YoonMatrix4X4Double operator *(double a, YoonMatrix4X4Double b)
+        public static YoonMatrix4X4Double operator *(double dNum, YoonMatrix4X4Double pMatrix)
         {
-            YoonMatrix4X4Double m = new YoonMatrix4X4Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix4X4Double pResultMatrix = new YoonMatrix4X4Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a * b.Array[i, j];
+                    pResultMatrix.Array[i, j] = dNum * pMatrix.Array[i, j];
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static YoonMatrix4X4Double operator /(YoonMatrix4X4Double a, double b)
+        public static YoonMatrix4X4Double operator /(YoonMatrix4X4Double pMatrix, double dNum)
         {
-            YoonMatrix4X4Double m = new YoonMatrix4X4Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix4X4Double pResultMatrix = new YoonMatrix4X4Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = a.Array[i, j] / b;
+                    pResultMatrix.Array[i, j] = pMatrix.Array[i, j] / dNum;
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static YoonMatrix4X4Double operator *(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
+        public static YoonMatrix4X4Double operator *(YoonMatrix4X4Double pMatrixSource,
+            YoonMatrix4X4Double pMatrixObject)
         {
-            YoonMatrix4X4Double m = new YoonMatrix4X4Double();
-            for (int i = 0; i < m.Length; i++)
+            YoonMatrix4X4Double pResultMatrix = new YoonMatrix4X4Double();
+            for (int i = 0; i < pResultMatrix.Length; i++)
             {
-                for (int j = 0; j < m.Length; j++)
+                for (int j = 0; j < pResultMatrix.Length; j++)
                 {
-                    m.Array[i, j] = 0;
-                    for (int kValue = 0; kValue < m.Length; kValue++)
-                        m.Array[i, j] += (a.Array[i, kValue] * b.Array[kValue, j]);
+                    pResultMatrix.Array[i, j] = 0;
+                    for (int kValue = 0; kValue < pResultMatrix.Length; kValue++)
+                        pResultMatrix.Array[i, j] += (pMatrixSource.Array[i, kValue] * pMatrixObject.Array[kValue, j]);
                 }
             }
-            return m;
+
+            return pResultMatrix;
         }
 
-        public static bool operator ==(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
+        public static bool operator ==(YoonMatrix4X4Double pMatrixSource, YoonMatrix4X4Double pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return false;
                 }
             }
+
             return true;
         }
 
-        public static bool operator !=(YoonMatrix4X4Double a, YoonMatrix4X4Double b)
+        public static bool operator !=(YoonMatrix4X4Double pMatrixSource, YoonMatrix4X4Double pMatrixObject)
         {
-            for (int i = 0; i < a?.Length; i++)
+            for (int i = 0; i < pMatrixSource?.Length; i++)
             {
-                for (int j = 0; j < a?.Length; j++)
+                for (int j = 0; j < pMatrixSource?.Length; j++)
                 {
-                    if (a?.Array[i, j] != b?.Array[i, j])
+                    if (pMatrixSource?.Array[i, j] != pMatrixObject?.Array[i, j])
                         return true;
                 }
             }
+
             return false;
         }
     }
 
     /// <summary>
-    /// 3차원 동차변환 행렬 (double, 연산이 있으므로 제너릭 사용 불가)
+    /// Three-Dimensional Coversive Matrix (to double)
     /// </summary>
     public class YoonMatrix3D : YoonMatrix4X4Double, IYoonMatrix3D<double>
     {
-        public IYoonMatrix SetScaleUnit(double sx, double sy, double sz)
+        public IYoonMatrix SetScaleUnit(double scaleX, double scaleY, double scaleZ)
         {
             Unit();
-            matrix_11 *= sx;
-            matrix_22 *= sy;
-            matrix_33 *= sz;
+            matrix_11 *= scaleX;
+            matrix_22 *= scaleY;
+            matrix_33 *= scaleZ;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(double dx, double dy, double dz)
+        public IYoonMatrix SetMovementUnit(double moveX, double moveY, double moveZ)
         {
             Unit();
-            matrix_14 += dx;
-            matrix_24 += dy;
-            matrix_34 += dz;
+            matrix_14 += moveX;
+            matrix_24 += moveY;
+            matrix_34 += moveZ;
             return this;
         }
 
-        public IYoonMatrix SetMovementUnit(IYoonVector3D<double> v)
+        public IYoonMatrix SetMovementUnit(IYoonVector3D<double> pVector)
         {
             Unit();
-            matrix_14 += v.X;
-            matrix_24 += v.Y;
-            matrix_34 += v.Z;
+            matrix_14 += pVector.X;
+            matrix_24 += pVector.Y;
+            matrix_34 += pVector.Z;
             return this;
         }
 
-        public IYoonMatrix SetRotateXUnit(double angle)
+        public IYoonMatrix SetRotateXUnit(double dAngle)
         {
             Unit();
-            double cosT = Math.Cos(angle);
-            double sinT = Math.Sin(angle);
+            double cosT = Math.Cos(dAngle);
+            double sinT = Math.Sin(dAngle);
             matrix_22 = cosT;
             matrix_23 = -sinT;
             matrix_32 = sinT;
@@ -1660,11 +1542,11 @@ namespace YoonFactory
             return this;
         }
 
-        public IYoonMatrix SetRotateYUnit(double angle)
+        public IYoonMatrix SetRotateYUnit(double dAngle)
         {
             Unit();
-            double cosT = Math.Cos(angle);
-            double sinT = Math.Sin(angle);
+            double cosT = Math.Cos(dAngle);
+            double sinT = Math.Sin(dAngle);
             matrix_11 = cosT;
             matrix_13 = sinT;
             matrix_31 = -sinT;
@@ -1672,11 +1554,11 @@ namespace YoonFactory
             return this;
         }
 
-        public IYoonMatrix SetRotateZUnit(double angle)
+        public IYoonMatrix SetRotateZUnit(double dAngle)
         {
             Unit();
-            double cosT = Math.Cos(angle);
-            double sinT = Math.Sin(angle);
+            double cosT = Math.Cos(dAngle);
+            double sinT = Math.Sin(dAngle);
             matrix_11 = cosT;
             matrix_12 = -sinT;
             matrix_21 = sinT;

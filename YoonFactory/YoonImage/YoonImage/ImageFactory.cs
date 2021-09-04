@@ -700,18 +700,25 @@ namespace YoonFactory.Image
                 if (pSourceImage.Format != PixelFormat.Format8bppIndexed)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
 
-                YoonLine2N pLine = nScanDir switch
+                YoonLine2N pLine;
+                switch (nScanDir)
                 {
-                    eYoonDir2D.Left => FindLeft(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Right => FindRight(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Top => FindTop(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Bottom => FindBottom(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
-                        pSourceImage.Height, nDiffThreshold, 10, bWhite),
-                    _ => new YoonLine2N()
-                };
+                    case eYoonDir2D.Left:
+                        pLine = FindLeft(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Right:
+                        pLine = FindRight(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Top:
+                        pLine = FindTop(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Bottom:
+                        pLine = FindBottom(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    default:
+                        pLine = new YoonLine2N();
+                        break;
+                }
                 return new YoonObject(0, pLine, pLine.CenterPos, pSourceImage.Clone() as YoonImage);
             }
 
@@ -722,18 +729,25 @@ namespace YoonFactory.Image
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
 
                 YoonImage pScanImage = pSourceImage.CropImage(pScanArea);
-                YoonLine2N pLine = nScanDir switch
+                YoonLine2N pLine;
+                switch (nScanDir)
                 {
-                    eYoonDir2D.Left => FindLeft(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Right => FindRight(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Top => FindTop(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height,
-                        nDiffThreshold, 10, bWhite),
-                    eYoonDir2D.Bottom => FindBottom(pScanImage.GetGrayBuffer(), pScanImage.Width,
-                        pScanImage.Height, nDiffThreshold, 10, bWhite),
-                    _ => new YoonLine2N()
-                };
+                    case eYoonDir2D.Left:
+                        pLine = FindLeft(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Right:
+                        pLine = FindRight(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Top:
+                        pLine = FindTop(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    case eYoonDir2D.Bottom:
+                        pLine = FindBottom(pScanImage.GetGrayBuffer(), pScanImage.Width, pScanImage.Height, nDiffThreshold, 10, bWhite);
+                        break;
+                    default:
+                        pLine = new YoonLine2N();
+                        break;
+                }
                 return new YoonObject(0, pLine, pLine.CenterPos, pScanImage.Clone() as YoonImage);
             }
 
@@ -1536,16 +1550,19 @@ namespace YoonFactory.Image
         {
             public static YoonImage FillBound(YoonImage pSourceImage, int nValue)
             {
-                return pSourceImage.Channel switch
+                switch (pSourceImage.Channel)
                 {
-                    1 => new YoonImage(
-                        FillBound(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte) nValue),
-                        pSourceImage.Width, pSourceImage.Height, 1),
-                    4 => new YoonImage(
+                    case 1:
+                        return new YoonImage(
+                        FillBound(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, (byte)nValue),
+                        pSourceImage.Width, pSourceImage.Height, 1);
+                    case 4:
+                        return new YoonImage(
                         FillBound(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, nValue),
-                        pSourceImage.Width, pSourceImage.Height, 4),
-                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
-                };
+                        pSourceImage.Width, pSourceImage.Height, 4);
+                    default:
+                        throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                }
             }
 
             public static int[] FillBound(int[] pBuffer, int nWidth, int nHeight, int nValue)
@@ -1689,17 +1706,20 @@ namespace YoonFactory.Image
             public static YoonImage FillInside1D(YoonImage pSourceImage, int nThreshold = 128, bool bFillWhite = true,
                 int nSize = 5)
             {
-                return pSourceImage.Channel switch
+                switch (pSourceImage.Channel)
                 {
-                    1 => new YoonImage(
+                    case 1:
+                        return new YoonImage(
                         FillInside1D(pSourceImage.GetGrayBuffer(), pSourceImage.Width * pSourceImage.Height,
-                            (byte) nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
-                        PixelFormat.Format32bppArgb),
-                    4 => new YoonImage(
+                            (byte)nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                        PixelFormat.Format32bppArgb);
+                    case 4:
+                        return new YoonImage(
                         FillInside1D(pSourceImage.GetARGBBuffer(), pSourceImage.Width * pSourceImage.Height, nThreshold,
-                            bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb),
-                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
-                };
+                            bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height, PixelFormat.Format32bppArgb);
+                    default:
+                        throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                }
             }
 
             public static int[] FillInside1D(int[] pBuffer, int nBufferSize, int nThreshold, bool bWhite, int nSize)
@@ -1844,34 +1864,40 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Channel == 1)
                 {
-                    return nDirMode switch
+                    switch (nDirMode)
                     {
-                        eYoonDir2DMode.AxisX => new YoonImage(
+                        case eYoonDir2DMode.AxisX:
+                            return new YoonImage(
                             FillHorizontal(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea,
-                                (byte) nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
-                            PixelFormat.Format32bppArgb),
-                        eYoonDir2DMode.AxisY => new YoonImage(
-                            FillVertical(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, (byte) nThreshold,
+                                (byte)nThreshold, bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
+                            PixelFormat.Format32bppArgb);
+                        case eYoonDir2DMode.AxisY:
+                            return new YoonImage(
+                            FillVertical(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pScanArea, (byte)nThreshold,
                                 bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
-                            PixelFormat.Format32bppArgb),
-                        _ => throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct")
-                    };
+                            PixelFormat.Format32bppArgb);
+                        default:
+                            throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct");
+                    }
                 }
 
                 if (pSourceImage.Channel == 4)
                 {
-                    return nDirMode switch
+                    switch (nDirMode)
                     {
-                        eYoonDir2DMode.AxisX => new YoonImage(
+                        case eYoonDir2DMode.AxisX:
+                            return new YoonImage(
                             FillHorizontal(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pScanArea, nThreshold,
                                 bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
-                            PixelFormat.Format32bppArgb),
-                        eYoonDir2DMode.AxisY => new YoonImage(
+                            PixelFormat.Format32bppArgb);
+                        case eYoonDir2DMode.AxisY:
+                            return new YoonImage(
                             FillVertical(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pScanArea, nThreshold,
                                 bFillWhite, nSize), pSourceImage.Width, pSourceImage.Height,
-                            PixelFormat.Format32bppArgb),
-                        _ => throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct")
-                    };
+                            PixelFormat.Format32bppArgb);
+                        default:
+                            throw new ArgumentException("[YOONIMAGE EXCEPTION] Direction of filling is not correct");
+                    }
                 }
 
                 throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
@@ -3359,34 +3385,44 @@ namespace YoonFactory.Image
             {
                 if (pSourceImage.Channel == 1)
                 {
-                    return nDir switch
+                    switch (nDir)
                     {
-                        eYoonDir2D.Top => ScanTop(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
-                            pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Bottom => ScanBottom(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Left => ScanLeft(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Right => ScanRight(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        _ => throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Scan direction is not correct")
-                    };
+                        case eYoonDir2D.Top:
+                            return ScanTop(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                            pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Bottom:
+                            return ScanBottom(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Left:
+                            return ScanLeft(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Right:
+                            return ScanRight(pSourceImage.GetGrayBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        default:
+                            throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Scan direction is not correct");
+                    }
                 }
 
                 if (pSourceImage.Channel == 4)
                 {
-                    return nDir switch
+                    switch (nDir)
                     {
-                        eYoonDir2D.Top => ScanTop(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
-                            pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Bottom => ScanBottom(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Left => ScanLeft(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        eYoonDir2D.Right => ScanRight(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
-                            pSourceImage.Height, pStartVector, (byte) threshold, isWhite),
-                        _ => throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Scan direction is not correct")
-                    };
+                        case eYoonDir2D.Top:
+                            return ScanTop(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
+                            pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Bottom:
+                            return ScanBottom(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Left:
+                            return ScanLeft(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        case eYoonDir2D.Right:
+                            return ScanRight(pSourceImage.GetARGBBuffer(), pSourceImage.Width,
+                            pSourceImage.Height, pStartVector, (byte)threshold, isWhite);
+                        default:
+                            throw new InvalidOperationException("[YOONIMAGE EXCEPTION] Scan direction is not correct");
+                    }
                 }
                 else
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
@@ -3596,14 +3632,17 @@ namespace YoonFactory.Image
             public static IYoonVector Scan2D(YoonImage pSourceImage, YoonVector2N pStartVector, int threshold = 128,
                 bool isWhite = false)
             {
-                return pSourceImage.Channel switch
+                switch (pSourceImage.Channel)
                 {
-                    1 => Scan2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height, pStartVector,
-                        (byte) threshold, isWhite),
-                    4 => Scan2D(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height, pStartVector,
-                        threshold, isWhite),
-                    _ => throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct")
-                };
+                    case 1:
+                        return Scan2D(pSourceImage.GetGrayBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        pStartVector, (byte)threshold, isWhite);
+                    case 4:
+                        return Scan2D(pSourceImage.GetARGBBuffer(), pSourceImage.Width, pSourceImage.Height,
+                        pStartVector, threshold, isWhite);
+                    default:
+                        throw new FormatException("[YOONIMAGE EXCEPTION] Image format is not correct");
+                }
             }
 
             public static IYoonVector Scan2D(byte[] pBuffer, int nWidth, int nHeight, YoonVector2N pStartVector,
@@ -3721,7 +3760,7 @@ namespace YoonFactory.Image
                     for (int j = scanArea.Top; j < scanArea.Bottom; j++)
                     {
                         int nValue = pBuffer[j * imageWidth + i];
-                        if (nValue is > 255 or < 0)
+                        if (nValue > 255 || nValue < 0)
                             continue;
                         pHistogram[nValue]++;
                     }
@@ -3748,7 +3787,7 @@ namespace YoonFactory.Image
                 for (int i = 0; i < nSize; i++)
                 {
                     int nValue = pBuffer[i];
-                    if (nValue is > 255 or < 0)
+                    if (nValue > 255 || nValue < 0)
                         continue;
                     pHistogram[nValue]++;
                 }

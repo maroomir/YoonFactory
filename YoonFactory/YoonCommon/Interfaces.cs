@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YoonFactory
 {
@@ -14,34 +11,34 @@ namespace YoonFactory
         IYoonMatrix Inverse();
         IYoonMatrix Transpose();
         IYoonMatrix Unit();
-        void CopyFrom(IYoonMatrix m);
+        void CopyFrom(IYoonMatrix pMatrix);
     }
-
+    
     public interface IYoonMatrix<T> : IYoonMatrix where T : IComparable, IComparable<T>
     {
         T[,] Array { get; set; }
-        T Determinant { get; }  // 행렬식
+        T Determinant { get; } // 행렬식
         T Cofactor(int nRow, int nCol); // 여인자
         IYoonMatrix GetMinorMatrix(int nRow, int nCol); // 소행렬
-        IYoonMatrix GetAdjointMatrix();    // 수반행렬
+        IYoonMatrix GetAdjointMatrix(); // 수반행렬
     }
 
     public interface IYoonMatrix2D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T sx, T sy);
-        IYoonMatrix SetMovementUnit(T dx, T dy);
-        IYoonMatrix SetMovementUnit(IYoonVector2D<T> v);
-        IYoonMatrix SetRotateUnit(double angle);
+        IYoonMatrix SetScaleUnit(T scaleX, T scaleY);
+        IYoonMatrix SetMovementUnit(T moveX, T moveY);
+        IYoonMatrix SetMovementUnit(IYoonVector2D<T> pVector);
+        IYoonMatrix SetRotateUnit(double dAngle);
     }
 
     public interface IYoonMatrix3D<T> : IYoonMatrix<T> where T : IComparable, IComparable<T>
     {
-        IYoonMatrix SetScaleUnit(T sx, T sy, T sz);
-        IYoonMatrix SetMovementUnit(T dx, T dy, T dz);
-        IYoonMatrix SetMovementUnit(IYoonVector3D<T> v);
-        IYoonMatrix SetRotateXUnit(double angle);
-        IYoonMatrix SetRotateYUnit(double angle);
-        IYoonMatrix SetRotateZUnit(double angle);
+        IYoonMatrix SetScaleUnit(T scaleX, T scaleY, T scaleZ);
+        IYoonMatrix SetMovementUnit(T moveX, T moveY, T moveZ);
+        IYoonMatrix SetMovementUnit(IYoonVector3D<T> pVector);
+        IYoonMatrix SetRotateXUnit(double dAngle);
+        IYoonMatrix SetRotateYUnit(double dAngle);
+        IYoonMatrix SetRotateZUnit(double dAngle);
     }
 
     public interface IYoonFigure
@@ -68,22 +65,26 @@ namespace YoonFactory
         T X { get; set; }
         T Y { get; set; }
         T[] Array { get; set; }
-        double Angle2D(IYoonVector pVector);
+        double Angle2D(IYoonVector pObjectVector);
         eYoonDir2D Direction { get; set; }
-        IYoonCart<T> Cartesian { get; set; }
-        eYoonDir2D DirectionTo(IYoonVector pVector);
-        IYoonVector GetScaleVector(T sx, T sy);
-        IYoonVector GetNextVector(T dx, T dy);
-        IYoonVector GetNextVector(IYoonVector v);
-        IYoonVector GetNextVector(eYoonDir2D dir);
-        IYoonVector GetRotateVector(double angle);
-        IYoonVector GetRotateVector(IYoonVector center, double angle);
-        void Scale(T sx, T sy);
-        void Move(T dx, T dy);
-        void Move(IYoonVector v);
-        void Move(eYoonDir2D dir);
-        void Rotate(double angle);
-        void Rotate(IYoonVector center, double angle);
+        IYoonCartesian<T> Cartesian { get; set; }
+        eYoonDir2D DirectionTo(IYoonVector pObjectVector);
+        void SetMinValue(T minX, T minY);
+        void SetMaxValue(T maxX, T maxY);
+        void SetMinMaxValue(T minX, T minY, T maxX, T maxY);
+        bool VerifyMinMax(T minX, T minY, T maxX, T maxY);
+        IYoonVector GetScaleVector(T scaleX, T scaleY);
+        IYoonVector GetNextVector(T moveX, T moveY);
+        IYoonVector GetNextVector(IYoonVector pVector);
+        IYoonVector GetNextVector(eYoonDir2D nDir);
+        IYoonVector GetRotateVector(double dAngle);
+        IYoonVector GetRotateVector(IYoonVector pVectorCenter, double dAngle);
+        void Scale(T nScaleX, T nScaleY);
+        void Move(T nMoveX, T nMoveY);
+        void Move(IYoonVector pVector);
+        void Move(eYoonDir2D nDir);
+        void Rotate(double dAngle);
+        void Rotate(IYoonVector pVectorCenter, double dAngle);
     }
 
     public interface IYoonVector3D<T> : IYoonVector where T : IComparable, IComparable<T>
@@ -96,22 +97,22 @@ namespace YoonFactory
         double AngleX(IYoonVector pVector);
         double AngleY(IYoonVector pVector);
         double AngleZ(IYoonVector pVector);
-        IYoonCart<T> Cartesian { get; set; }
-        IYoonVector GetScaleVector(T sx, T sy, T sz);
-        IYoonVector GetNextVector(T dx, T dy, T dz);
-        IYoonVector GetNextVector(IYoonVector v);
-        void Scale(T sx, T sy, T sz);
-        void Move(T dx, T dy, T dz);
-        void Move(IYoonVector v);
-        void RotateX(double angle);
-        void RotateY(double angle);
-        void RotateZ(double angle);
+        IYoonCartesian<T> Cartesian { get; set; }
+        IYoonVector GetScaleVector(T dScaleX, T dScaleY, T dScaleZ);
+        IYoonVector GetNextVector(T dMoveX, T dMoveY, T dMoveZ);
+        IYoonVector GetNextVector(IYoonVector pVector);
+        void Scale(T dScaleX, T dScaleY, T dScaleZ);
+        void Move(T dX, T dY, T dZ);
+        void Move(IYoonVector pVector);
+        void RotateX(double dAngle);
+        void RotateY(double dAngle);
+        void RotateZ(double dAngle);
     }
 
     public interface IYoonJoint
     {
         IYoonJoint Clone();
-        void CopyFrom(IYoonJoint j);
+        void CopyFrom(IYoonJoint pJoint);
     }
 
     public interface IYoonJoint<T> : IYoonJoint where T : IComparable, IComparable<T>
@@ -127,13 +128,13 @@ namespace YoonFactory
         void Zero();
     }
 
-    public interface IYoonCart
+    public interface IYoonCartesian
     {
-        IYoonCart Clone();
-        void CopyFrom(IYoonCart c);
+        IYoonCartesian Clone();
+        void CopyFrom(IYoonCartesian pCart);
     }
 
-    public interface IYoonCart<T> : IYoonCart where T : IComparable, IComparable<T>
+    public interface IYoonCartesian<T> : IYoonCartesian where T : IComparable, IComparable<T>
     {
         T X { get; set; }
         T Y { get; set; }
@@ -150,6 +151,8 @@ namespace YoonFactory
     public interface IYoonLine : IYoonFigure
     {
         double Length { get; }
+        double Slope { get; }
+        double Constant { get; }
 
         new IYoonLine Clone();
         void CopyFrom(IYoonLine pLine);
@@ -167,6 +170,7 @@ namespace YoonFactory
 
         T X(T valueY);
         T Y(T valueX);
+        IYoonVector2D<T> Intersection(IYoonLine pLine);
     }
 
     public interface IYoonRect : IYoonFigure
@@ -194,13 +198,15 @@ namespace YoonFactory
         IYoonVector2D<T> BottomLeft { get; }
         IYoonVector2D<T> BottomRight { get; }
 
+        void SetVerifiedArea(T minX, T minY, T maxX, T maxY);
+        void SetVerifiedArea(IYoonVector2D<T> pMinVector, IYoonVector2D<T> pMaxVector);
         IYoonVector2D<T> GetPosition(eYoonDir2D nDir);
     }
 
     public interface IYoonTriangle : IYoonFigure
     {
         new IYoonTriangle Clone();
-        void CopyFrom(IYoonTriangle t);
+        void CopyFrom(IYoonTriangle pTriangle);
     }
 
     public interface IYoonTriangle2D<T> : IYoonTriangle where T : IComparable, IComparable<T>
@@ -223,7 +229,7 @@ namespace YoonFactory
         List<IYoonVector> PixelPoints { get; set; }
 
         void SetReferencePosition(IYoonVector vecPixelPos, IYoonVector vecRealPos);
-        IYoonVector GetPixelResolution(IYoonVector vecPixelPos);   // mm/pixel
+        IYoonVector GetPixelResolution(IYoonVector vecPixelPos); // mm/pixel
 
         IYoonVector ToPixel(IYoonVector vecRealPos);
         IYoonVector ToReal(IYoonVector vecPixelPos);

@@ -88,7 +88,7 @@ namespace YoonFactory.CV
 
             public static async Task ReceiveLocalFrameAsync(string strFileName, RecieveFrameCallback pCallback)
             {
-                if (!FileFactory.VerifyFileExtensions(ref strFileName, "mp4", "avi"))
+                if (!FileFactory.VerifyFileExtensions(strFileName, "mp4", "avi"))
                     return;
                 // 비동기 실행으로 Main Process와 분리해서 Event 처리 가능하도록 조치
                 await Task.Run(new Action(() =>
@@ -463,7 +463,7 @@ namespace YoonFactory.CV
         {
             public static CVImage DetectHSV(CVImage pSourceImage, byte nHue, byte nSaturation, byte nValue)
             {
-                if(pSourceImage.Plane != 3)
+                if(pSourceImage.Channel != 3)
                     throw new FormatException("[YOONIMAGE EXCEPTION] Image arguments is not 8bit format");
                 return new CVImage(DetectHSV(pSourceImage.Matrix, nHue, nSaturation, nValue));
             }

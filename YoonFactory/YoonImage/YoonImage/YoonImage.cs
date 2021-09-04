@@ -61,33 +61,43 @@ namespace YoonFactory.Image
         {
             get
             {
-                return Bitmap.PixelFormat switch
+                switch(Bitmap.PixelFormat)
                 {
-                    PixelFormat.Format8bppIndexed => 1,
-                    PixelFormat.Format16bppArgb1555 => 2,
-                    PixelFormat.Format16bppGrayScale => 2,
-                    PixelFormat.Format16bppRgb555 => 2,
-                    PixelFormat.Format16bppRgb565 => 2,
-                    PixelFormat.Format1bppIndexed => 2,
-                    PixelFormat.Format24bppRgb => 3,
-                    PixelFormat.Format32bppArgb => 4,
-                    PixelFormat.Format32bppPArgb => 4,
-                    PixelFormat.Format32bppRgb => 4,
-                    _ => 0
-                };
+                    case PixelFormat.Format8bppIndexed:
+                        return 1;
+                    case PixelFormat.Format16bppArgb1555:
+                    case PixelFormat.Format16bppGrayScale:
+                    case PixelFormat.Format16bppRgb555:
+                    case PixelFormat.Format16bppRgb565:
+                    case PixelFormat.Format1bppIndexed:
+                        return 2;
+                    case PixelFormat.Format24bppRgb:
+                        return 3;
+                    case PixelFormat.Format32bppArgb:
+                    case PixelFormat.Format32bppPArgb:
+                    case PixelFormat.Format32bppRgb:
+                        return 4;
+                    default:
+                        return 0;
+                }
             }
         }
 
         private PixelFormat GetDefaultFormat(int nPlane)
         {
-            return nPlane switch
+            switch (nPlane)
             {
-                1 => PixelFormat.Format8bppIndexed,
-                2 => PixelFormat.Format16bppGrayScale,
-                3 => PixelFormat.Format24bppRgb,
-                4 => PixelFormat.Format32bppArgb,
-                _ => PixelFormat.DontCare
-            };
+                case 1:
+                    return PixelFormat.Format8bppIndexed;
+                case 2:
+                    return PixelFormat.Format16bppGrayScale;
+                case 3:
+                    return PixelFormat.Format24bppRgb;
+                case 4:
+                    return PixelFormat.Format32bppArgb;
+                default:
+                    return PixelFormat.DontCare;
+            }
         }
 
 

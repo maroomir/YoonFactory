@@ -37,7 +37,7 @@ namespace YoonFactory.Files
             if (!FileFactory.VerifyDirectory(DirectoryPath))
                 return;
 
-            List<string> fListFile = FileFactory.GetFileListInDir(DirectoryPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFilePaths(DirectoryPath);
             using (FileStream fs = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive zipArchive = new ZipArchive(fs, ZipArchiveMode.Create))
@@ -56,7 +56,7 @@ namespace YoonFactory.Files
             if (!FileFactory.VerifyDirectory(strDirPath))
                 return;
 
-            List<string> fListFile = FileFactory.GetFileListInDir(strDirPath, new List<String>());
+            List<string> fListFile = FileFactory.GetFilePaths(strDirPath);
             using (FileStream fs = new FileStream(ZipFilePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 using (ZipArchive za = new ZipArchive(fs, ZipArchiveMode.Create))

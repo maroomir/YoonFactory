@@ -7560,3 +7560,8 @@
 /.vs/VSWorkspaceState.json
 /.vs/slnx.sqlite
 /.vs
+/.Transform/SentechFactory.cs
+/.Transform/FastechFactory.cs
+/.Transform/desktop.ini
+/.Transform/DaekhonTBDFactory.cs
+/.Transform

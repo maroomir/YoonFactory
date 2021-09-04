@@ -211,7 +211,7 @@ namespace YoonSample.CognexInspector
 
         public static CognexImage SetPatternMatchResultOverlap(CognexImage pImageSource, params eLabelInspect[] pArrayInspLabel)
         {
-            if (pImageSource.Plane != 1) return null;
+            if (pImageSource.Channel != 1) return null;
 
             CognexImage pImageResult = null;
             for (int iTool = 0; iTool < pArrayInspLabel.Length; iTool++)

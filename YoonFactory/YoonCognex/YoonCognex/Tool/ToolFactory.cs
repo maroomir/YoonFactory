@@ -221,7 +221,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool SobelEdge(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogSobelEdgeTool) || !(pSourceImage.Plane == 1))
+            if (!(pCogTool is CogSobelEdgeTool) || !(pSourceImage.Channel == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -254,7 +254,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool ImageSharpness(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogImageSharpnessTool) || !(pSourceImage.Plane == 1))
+            if (!(pCogTool is CogImageSharpnessTool) || !(pSourceImage.Channel == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -320,7 +320,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool Blob(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogBlobTool) || !(pSourceImage.Plane == 1))
+            if (!(pCogTool is CogBlobTool) || !(pSourceImage.Channel == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -361,7 +361,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool ColorSegment(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogColorSegmenterTool) || !(pSourceImage.Plane == 3))
+            if (!(pCogTool is CogColorSegmenterTool) || !(pSourceImage.Channel == 3))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -394,7 +394,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool ColorExtract(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogColorExtractorTool) || !(pSourceImage.Plane == 3))
+            if (!(pCogTool is CogColorExtractorTool) || !(pSourceImage.Channel == 3))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -427,7 +427,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool FindLine(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogFindLineTool) || !(pSourceImage.Plane == 1))
+            if (!(pCogTool is CogFindLineTool) || !(pSourceImage.Channel == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;
@@ -468,7 +468,7 @@ namespace YoonFactory.Cognex.Tool
 
         public static bool PMAlign(ICogTool pCogTool, CognexImage pSourceImage, ref string strErrorMessage, ref CognexResult pResult)
         {
-            if (!(pCogTool is CogPMAlignTool) || !(pSourceImage.Plane == 1))
+            if (!(pCogTool is CogPMAlignTool) || !(pSourceImage.Channel == 1))
             {
                 strErrorMessage = "Input Parameter Error";
                 return false;

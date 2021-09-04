@@ -2,32 +2,26 @@
 
 namespace YoonFactory
 {
-    public class YoonTriangle2N : IYoonTriangle, IYoonTriangle2D<int>
+    public class YoonTriangle2N : IYoonTriangle2D<int>
     {
         public IYoonTriangle Clone()
         {
-            YoonTriangle2N t = new YoonTriangle2N();
-            t.X = this.X;
-            t.Y = this.Y;
-            t.Height = this.Height;
-            return t;
+            return new YoonTriangle2N {X = this.X, Y = this.Y, Height = this.Height};
         }
-        public void CopyFrom(IYoonTriangle t)
+
+        public void CopyFrom(IYoonTriangle pTriangle)
         {
-            if (t is YoonTriangle2N trg)
+            if (pTriangle is YoonTriangle2N pTriangle2N)
             {
-                X = trg.X;
-                Y = trg.Y;
-                Height = trg.Height;
+                X = pTriangle2N.X;
+                Y = pTriangle2N.Y;
+                Height = pTriangle2N.Height;
             }
         }
 
-        [XmlAttribute]
-        public int X { get; set; }
-        [XmlAttribute]
-        public int Y { get; set; }
-        [XmlAttribute]
-        public int Height { get; set; }
+        [XmlAttribute] public int X { get; set; }
+        [XmlAttribute] public int Y { get; set; }
+        [XmlAttribute] public int Height { get; set; }
 
         public YoonTriangle2N()
         {
@@ -35,12 +29,14 @@ namespace YoonFactory
             Y = 0;
             Height = 0;
         }
-        public YoonTriangle2N(int dx, int dy, int dh)
+
+        public YoonTriangle2N(int nX, int nY, int nHeight)
         {
-            X = dx;
-            Y = dy;
-            Height = dh;
+            X = nX;
+            Y = nY;
+            Height = nHeight;
         }
+
         public int Area()
         {
             return X * Y / 2;
@@ -56,28 +52,22 @@ namespace YoonFactory
     {
         public IYoonTriangle Clone()
         {
-            YoonTriangle2D t = new YoonTriangle2D();
-            t.X = this.X;
-            t.Y = this.Y;
-            t.Height = this.Height;
-            return t;
+            return new YoonTriangle2D {X = this.X, Y = this.Y, Height = this.Height};
         }
-        public void CopyFrom(IYoonTriangle t)
+
+        public void CopyFrom(IYoonTriangle pTriangle)
         {
-            if (t is YoonTriangle2D trg)
+            if (pTriangle is YoonTriangle2D pTriangle2D)
             {
-                X = trg.X;
-                Y = trg.Y;
-                Height = trg.Height;
+                X = pTriangle2D.X;
+                Y = pTriangle2D.Y;
+                Height = pTriangle2D.Height;
             }
         }
 
-        [XmlAttribute]
-        public double X { get; set; }
-        [XmlAttribute]
-        public double Y { get; set; }
-        [XmlAttribute]
-        public double Height { get; set; }
+        [XmlAttribute] public double X { get; set; }
+        [XmlAttribute] public double Y { get; set; }
+        [XmlAttribute] public double Height { get; set; }
 
         public YoonTriangle2D()
         {
@@ -85,11 +75,12 @@ namespace YoonFactory
             Y = 0;
             Height = 0;
         }
-        public YoonTriangle2D(double dx, double dy, double dh)
+
+        public YoonTriangle2D(double dX, double dY, double dHeight)
         {
-            X = dx;
-            Y = dy;
-            Height = dh;
+            X = dX;
+            Y = dY;
+            Height = dHeight;
         }
 
         public double Area()
