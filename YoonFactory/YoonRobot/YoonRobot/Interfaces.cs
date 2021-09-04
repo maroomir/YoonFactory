@@ -10,12 +10,21 @@ namespace YoonFactory.Robot
         event RecieveDataCallback OnShowReceiveDataEvent;
 
         string RootDirectory { get; }
-        
+        IYoonParameter ConnectionParameter { get; }
+        IYoonParameter PacketParameter { get; }
 
         void CopyFrom(IYoonRemote pRemote);
         IYoonRemote Clone();
 
-        bool Open();
-        bool Close();
+        bool OpenConnect();
+        bool CloseConnect();
+        bool StartRobot();
+        bool StopRobot();
+        bool ResetRobot();
+        bool SendSocket(string strMessage);
+        bool SendSocket(string[] pMessage);
+
+        void LoadParameter();
+        void SaveParameter();
     }
 }

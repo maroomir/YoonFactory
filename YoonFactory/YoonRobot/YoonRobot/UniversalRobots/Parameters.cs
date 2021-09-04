@@ -31,7 +31,16 @@ namespace YoonFactory.Robot.UniversialRobot
 
         public void CopyFrom(IYoonParameter pParam)
         {
-            throw new NotImplementedException();
+            if (pParam is ParameterConnect pParamConnect)
+            {
+                IPAddress = pParamConnect.IPAddress;
+                DashboardControlPort = pParamConnect.DashboardControlPort;
+                ScriptControlPort = pParamConnect.ScriptControlPort;
+                SocketPort = pParamConnect.SocketPort;
+                DashboardMode = pParamConnect.DashboardMode;
+                ScriptMode = pParamConnect.ScriptMode;
+                SocketMode = pParamConnect.SocketMode;
+            }
         }
 
         public bool Equals(IYoonParameter pParam)
