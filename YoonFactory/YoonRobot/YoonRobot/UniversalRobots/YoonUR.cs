@@ -57,9 +57,31 @@ namespace YoonFactory.Robot.UniversialRobot
 
         public string RootDirectory { get; private set; } = Path.Combine(Directory.GetCurrentDirectory(), @"YoonFactory", @"YoonUR");
 
-        public IYoonParameter ConnectionParameter => m_pConnectManager.Parameter;
+        public IYoonParameter ConnectionParameter
+        {
+            get => m_pConnectManager.Parameter;
 
-        public IYoonParameter PacketParameter => m_pPacketManager.Parameter;
+            set
+            {
+                if (value is ParameterConnect pParam)
+                {
+                    m_pConnectManager.SetParameter(pParam, typeof(ParameterConnect));
+                }
+            }
+        }
+
+        public IYoonParameter PacketParameter
+        {
+            get => m_pPacketManager.Parameter;
+
+            set
+            {
+                if (value is ParameterPacket pParam)
+                {
+                    m_pPacketManager.SetParameter(pParam, typeof(ParameterPacket));
+                }
+            }
+        }
 
         public event ShowMessageCallback OnShowMessageEvent;
         public event RecieveDataCallback OnShowReceiveDataEvent;
@@ -107,8 +129,7 @@ namespace YoonFactory.Robot.UniversialRobot
             m_pPacketManager = new YoonParameter(pRemote.PacketParameter, typeof(ParameterPacket));
             m_pConnectManager.RootDirectory = RootDirectory;
             m_pPacketManager.RootDirectory = RootDirectory;
-            m_pConnectManager.LoadParameter(false);
-            m_pPacketManager.LoadParameter(false);
+            LoadParameter();
         }
 
         public YoonUR(string strRootDir)
@@ -130,8 +151,7 @@ namespace YoonFactory.Robot.UniversialRobot
             m_pPacketManager = new YoonParameter(pParamPacket, typeof(ParameterPacket));
             m_pConnectManager.RootDirectory = RootDirectory;
             m_pPacketManager.RootDirectory = RootDirectory;
-            m_pConnectManager.LoadParameter(true);
-            m_pPacketManager.LoadParameter(true);
+            LoadParameter();
         }
 
         public IYoonRemote Clone()
@@ -148,8 +168,7 @@ namespace YoonFactory.Robot.UniversialRobot
                 m_pPacketManager = new YoonParameter(pRemote.PacketParameter, typeof(ParameterPacket));
                 m_pConnectManager.RootDirectory = RootDirectory;
                 m_pPacketManager.RootDirectory = RootDirectory;
-                m_pConnectManager.LoadParameter(false);
-                m_pPacketManager.LoadParameter(false);
+                LoadParameter();
             }
         }
 
@@ -190,12 +209,14 @@ namespace YoonFactory.Robot.UniversialRobot
 
         public void LoadParameter()
         {
-            throw new NotImplementedException();
+            m_pConnectManager.LoadParameter();
+            m_pPacketManager.LoadParameter();
         }
 
         public void SaveParameter()
         {
-            throw new NotImplementedException();
+            m_pConnectManager.SaveParameter();
+            m_pPacketManager.SaveParameter();
         }
 
         private string EncodingMessage(eYoonHeadSend nHeader)
