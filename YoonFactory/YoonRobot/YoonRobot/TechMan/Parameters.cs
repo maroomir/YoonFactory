@@ -8,11 +8,27 @@ namespace YoonFactory.Robot.TechMan
 {
     public class ParameterConnect : IYoonParameter
     {
-        public string IPAddress = "192.168.101.102";
-        public string ScriptControlPort = "5890";
-        public string SocketPort = "30000";
-        public eYoonCommType ScriptMode = eYoonCommType.TCPClient;
-        public eYoonCommType SocketMode = eYoonCommType.TCPClient;
+        public string IPAddress { get; set; } = "192.168.101.102";
+        public string ScriptControlPort { get; set; } = "5890";
+        public string SocketPort { get; set; } = "30000";
+        public eYoonCommType ScriptMode { get; set; } = eYoonCommType.TCPClient;
+        public eYoonCommType SocketMode { get; set; } = eYoonCommType.TCPClient;
+
+        public int GetLength()
+        {
+            return typeof(ParameterConnect).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength())
+                return;
+            IPAddress = pArgs[0];
+            ScriptControlPort = pArgs[1];
+            SocketPort = pArgs[2];
+            ScriptMode = (eYoonCommType)Enum.Parse(typeof(eYoonCommType), pArgs[3]);
+            SocketMode = (eYoonCommType)Enum.Parse(typeof(eYoonCommType), pArgs[4]);
+        }
 
         public IYoonParameter Clone()
         {
@@ -38,18 +54,18 @@ namespace YoonFactory.Robot.TechMan
 
     public class ParameterPacket : IYoonParameter
     {
-        public double Joint1;
-        public double Joint2;
-        public double Joint3;
-        public double Joint4;
-        public double Joint5;
-        public double Joint6;
-        public double CartX;
-        public double CartY;
-        public double CartZ;
-        public double CartRX;
-        public double CartRY;
-        public double CartRZ;
+        public double Joint1 { get; set; }
+        public double Joint2 { get; set; }
+        public double Joint3 { get; set; }
+        public double Joint4 { get; set; }
+        public double Joint5 { get; set; }
+        public double Joint6 { get; set; }
+        public double CartX { get; set; }
+        public double CartY { get; set; }
+        public double CartZ { get; set; }
+        public double CartRX { get; set; }
+        public double CartRY { get; set; }
+        public double CartRZ { get; set; }
 
         public IYoonParameter Clone()
         {
@@ -62,6 +78,16 @@ namespace YoonFactory.Robot.TechMan
         }
 
         public bool Equals(IYoonParameter pParam)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetLength()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Set(params string[] pArgs)
         {
             throw new NotImplementedException();
         }

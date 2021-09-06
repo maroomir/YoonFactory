@@ -15,14 +15,14 @@ namespace YoonFactory.Robot
 
         void CopyFrom(IYoonRemote pRemote);
         IYoonRemote Clone();
+        void CloseAll();
+        bool Open(eYoonRemoteType nType);
+        void Close(eYoonRemoteType nType);
 
-        bool OpenConnect();
-        bool CloseConnect();
         bool StartRobot();
         bool StopRobot();
         bool ResetRobot();
         bool SendSocket(string strMessage);
-        bool SendSocket(string[] pMessage);
 
         void LoadParameter();
         void SaveParameter();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using YoonFactory.Param;
 using YoonFactory.Comm;
@@ -22,15 +23,17 @@ namespace YoonFactory.Robot.UniversialRobot
                 if (disposing)
                 {
                     // TODO: 관리되는 상태(관리되는 개체)를 삭제합니다.
-                    CloseConnect();
-                    m_pTcpServer?.Dispose();
-                    m_pTcpClient?.Dispose();
+                    CloseAll();
+                    m_pDashboardComm?.Dispose();
+                    m_pScriptComm?.Dispose();
+                    m_pSocketComm?.Dispose();
                 }
 
                 // TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.
                 // TODO: 큰 필드를 null로 설정합니다.
-                m_pTcpServer = null;
-                m_pTcpClient = null;
+                m_pDashboardComm = null;
+                m_pScriptComm = null;
+                m_pSocketComm = null;
                 m_pConnectManager = null;
                 m_pPacketManager = null;
 
@@ -86,21 +89,25 @@ namespace YoonFactory.Robot.UniversialRobot
         public event ShowMessageCallback OnShowMessageEvent;
         public event RecieveDataCallback OnShowReceiveDataEvent;
 
-        private YoonServer m_pTcpServer = null;
-        private YoonClient m_pTcpClient = null;
+        private IYoonComm m_pDashboardComm = null;
+        private IYoonComm m_pScriptComm = null;
+        private IYoonComm m_pSocketComm = null;
         private YoonParameter m_pConnectManager = null;
         private YoonParameter m_pPacketManager = null;
+        private eYoonRemoteType m_nActiveFlag = eYoonRemoteType.None;
 
         public YoonUR()
         {
-            // 서버용 구독 초기화
-            m_pTcpClient = new YoonClient();
-            m_pTcpClient.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpClient.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
-            // 클라이언트용 구독 초기화
-            m_pTcpServer = new YoonServer();
-            m_pTcpServer.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpServer.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+            // 이벤트 구독 초기화
+            m_pScriptComm = new YoonClient();
+            m_pScriptComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pScriptComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+            m_pDashboardComm = new YoonClient();
+            m_pDashboardComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pDashboardComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+            m_pSocketComm = new YoonClient();
+            m_pSocketComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pSocketComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // Parameter 초기화하기
             ParameterConnect pParamConnect = new ParameterConnect();
             ParameterPacket pParamPacket = new ParameterPacket();
@@ -116,14 +123,6 @@ namespace YoonFactory.Robot.UniversialRobot
         {
             RootDirectory = pRemote.RootDirectory;
 
-            // 서버용 구독 초기화
-            m_pTcpClient = new YoonClient();
-            m_pTcpClient.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpClient.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
-            // 클라이언트용 구독 초기화
-            m_pTcpServer = new YoonServer();
-            m_pTcpServer.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpServer.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // Parameter 초기화하기
             m_pConnectManager = new YoonParameter(pRemote.ConnectionParameter, typeof(ParameterConnect));
             m_pPacketManager = new YoonParameter(pRemote.PacketParameter, typeof(ParameterPacket));
@@ -137,13 +136,13 @@ namespace YoonFactory.Robot.UniversialRobot
             RootDirectory = strRootDir;
 
             // 서버용 구독 초기화
-            m_pTcpClient = new YoonClient();
-            m_pTcpClient.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpClient.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+            m_pScriptComm = new YoonClient();
+            m_pScriptComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pScriptComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // 클라이언트용 구독 초기화
-            m_pTcpServer = new YoonServer();
-            m_pTcpServer.OnShowMessageEvent += OnShowMessageEvent;
-            m_pTcpServer.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+            m_pDashboardComm = new YoonServer();
+            m_pDashboardComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pDashboardComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // Parameter 초기화하기
             ParameterConnect pParamConnect = new ParameterConnect();
             ParameterPacket pParamPacket = new ParameterPacket();
@@ -172,45 +171,174 @@ namespace YoonFactory.Robot.UniversialRobot
             }
         }
 
-        public bool OpenConnect()
+        public bool Open(eYoonRemoteType nType)
         {
-            throw new NotImplementedException();
+            switch (nType)
+            {
+                case eYoonRemoteType.Dashboard:
+                    if (!m_pDashboardComm.Open())
+                    {
+                        m_pDashboardComm.OnRetryThreadStart();
+                        Thread.Sleep(500);
+                    }
+                    return m_pDashboardComm.IsConnected;
+                case eYoonRemoteType.Script:
+                    if (!m_pScriptComm.Open())
+                    {
+                        m_pScriptComm.OnRetryThreadStart();
+                        Thread.Sleep(500);
+                    }
+                    return m_pScriptComm.IsConnected;
+                case eYoonRemoteType.Socket:
+                    if (!m_pSocketComm.Open())
+                    {
+                        m_pSocketComm.OnRetryThreadStart();
+                        Thread.Sleep(500);
+                    }
+                    return m_pSocketComm.IsConnected;
+                default:
+                    return false;
+            }
         }
 
-        public bool CloseConnect()
+        public void Close(eYoonRemoteType nType)
         {
-            throw new NotImplementedException();
+            switch (nType)
+            {
+                case eYoonRemoteType.Dashboard:
+                    m_pDashboardComm.Close();
+                    break;
+                case eYoonRemoteType.Script:
+                    m_pScriptComm.Close();
+                    break;
+                case eYoonRemoteType.Socket:
+                    m_pSocketComm.Close();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void InitAll()
+        {
+            CloseAll();
+
+            ParameterConnect pParam = m_pConnectManager.Parameter as ParameterConnect;
+            m_pDashboardComm?.Dispose();
+            if (pParam.DashboardMode == eYoonCommType.TCPServer)
+                m_pDashboardComm = new YoonServer();
+            else m_pDashboardComm = new YoonClient();
+            m_pDashboardComm.RootDirectory = RootDirectory;
+            m_pDashboardComm.Address = pParam.IPAddress;
+            m_pDashboardComm.Port = pParam.DashboardControlPort;
+            m_pDashboardComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pDashboardComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+
+            m_pScriptComm?.Dispose();
+            if (pParam.ScriptMode == eYoonCommType.TCPServer)
+                m_pScriptComm = new YoonServer();
+            else m_pScriptComm = new YoonServer();
+            m_pScriptComm.RootDirectory = RootDirectory;
+            m_pScriptComm.Address = pParam.IPAddress;
+            m_pScriptComm.Port = pParam.ScriptControlPort;
+            m_pScriptComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pScriptComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+
+            m_pSocketComm?.Dispose();
+            if (pParam.SocketMode == eYoonCommType.TCPServer)
+                m_pSocketComm = new YoonServer();
+            else m_pSocketComm = new YoonServer();
+            m_pSocketComm.RootDirectory = RootDirectory;
+            m_pSocketComm.Address = pParam.IPAddress;
+            m_pSocketComm.Port = pParam.SocketPort;
+            m_pSocketComm.OnShowMessageEvent += OnShowMessageEvent;
+            m_pSocketComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
+        }
+
+        public void CloseAll()
+        {
+            m_pDashboardComm?.Close();
+            m_pScriptComm?.Close();
+            m_pSocketComm?.Close();
         }
 
         public bool StartRobot()
         {
-            throw new NotImplementedException();
+            if(m_nActiveFlag != eYoonRemoteType.Dashboard)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Dashboard;
+                Open(m_nActiveFlag);
+            }
+            string strMessage = EncodingMessage(eYoonHeadSend.Play);
+            return m_pDashboardComm.Send(strMessage);
         }
 
         public bool StopRobot()
         {
-            throw new NotImplementedException();
+            if(m_nActiveFlag != eYoonRemoteType.Dashboard)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Dashboard;
+                Open(m_nActiveFlag);
+            }
+            string strMessage = EncodingMessage(eYoonHeadSend.Stop);
+            return m_pDashboardComm.Send(strMessage);
         }
 
         public bool ResetRobot()
         {
-            throw new NotImplementedException();
+            if (m_nActiveFlag != eYoonRemoteType.Dashboard)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Dashboard;
+                Open(m_nActiveFlag);
+            }
+            string strMessage = EncodingMessage(eYoonHeadSend.Reset);
+            return m_pDashboardComm.Send(strMessage);
+        }
+
+        public bool PowerOnRobot()
+        {
+            if (m_nActiveFlag != eYoonRemoteType.Dashboard)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Dashboard;
+                Open(m_nActiveFlag);
+            }
+            string strMessage = EncodingMessage(eYoonHeadSend.PowerOn);
+            return m_pDashboardComm.Send(strMessage);
+        }
+
+        public bool PowerOffRobot()
+        {
+            if (m_nActiveFlag != eYoonRemoteType.Dashboard)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Dashboard;
+                Open(m_nActiveFlag);
+            }
+            string strMessage = EncodingMessage(eYoonHeadSend.PowerOff);
+            return m_pDashboardComm.Send(strMessage);
         }
 
         public bool SendSocket(string strMessage)
         {
-            throw new NotImplementedException();
-        }
-
-        public bool SendSocket(string[] pMessage)
-        {
-            throw new NotImplementedException();
+            if (m_nActiveFlag != eYoonRemoteType.Socket)
+            {
+                Close(m_nActiveFlag);
+                m_nActiveFlag = eYoonRemoteType.Socket;
+                Open(m_nActiveFlag);
+            }
+            return m_pSocketComm.Send(strMessage);
         }
 
         public void LoadParameter()
         {
             m_pConnectManager.LoadParameter();
             m_pPacketManager.LoadParameter();
+
+            InitAll();
         }
 
         public void SaveParameter()

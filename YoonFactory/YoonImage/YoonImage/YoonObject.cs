@@ -4,7 +4,7 @@ using YoonFactory.Image;
 
 namespace YoonFactory
 {
-    public class YoonObject : IYoonParameter, IEquatable<YoonObject>
+    public class YoonObject : IEquatable<YoonObject>
     {
         #region Supported IDisposable Pattern
 
@@ -283,7 +283,7 @@ namespace YoonFactory
             }
         }
 
-        public void CopyFrom(IYoonParameter pObject)
+        public void CopyFrom(YoonObject pObject)
         {
             if (pObject is YoonObject pYoonObject)
             {
@@ -310,13 +310,13 @@ namespace YoonFactory
             }
         }
 
-        public IYoonParameter Clone()
+        public YoonObject Clone()
         {
             return new YoonObject(Label, Feature.Clone(), Position.Clone(), (YoonImage) ObjectImage.Clone(),
                 Score, PixelCount);
         }
 
-        public bool Equals(IYoonParameter pObject)
+        public bool Equals(YoonObject pObject)
         {
             if (pObject is YoonObject pYoonObject)
             {
@@ -380,11 +380,6 @@ namespace YoonFactory
                    EqualityComparer<IYoonVector>.Default.Equals(Position, @object.Position) &&
                    EqualityComparer<YoonImage>.Default.Equals(ObjectImage, @object.ObjectImage) &&
                    PixelCount == @object.PixelCount;
-        }
-
-        public bool Equals(YoonObject other)
-        {
-            return Equals((object) other);
         }
 
         public static bool operator ==(YoonObject pObjectSource, YoonObject pObjectOther)

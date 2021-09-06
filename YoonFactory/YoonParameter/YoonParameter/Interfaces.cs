@@ -9,6 +9,7 @@ namespace YoonFactory
 
     public interface IYoonParameter
     {
+        int GetLength();
         void Set(params string[] pArgs);
 
         bool Equals(IYoonParameter pParam);
@@ -18,7 +19,7 @@ namespace YoonFactory
 
     public interface IYoonResult
     {
-        void Set(params string[] pArgs);
+        int GetLength();
         
         string Combine(string strDelimiter);
         bool Insert(string strCombineResult, string strDelimiter);
