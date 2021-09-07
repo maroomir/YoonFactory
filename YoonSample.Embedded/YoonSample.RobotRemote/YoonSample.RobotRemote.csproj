@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A39DAB5A-AED6-4F94-B301-1E125443D452}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>YoonSample.RobotRemote</RootNamespace>
+    <AssemblyName>YoonSample.RobotRemote</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="gtk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="gdk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glib-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="glade-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="pango-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="atk-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Mono.Posix" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="gtk-gui\gui.stetic">
+      <LogicalName>gui.stetic</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="gtk-gui\generated.cs" />
+    <Compile Include="MainWindow.cs" />
+    <Compile Include="gtk-gui\MainWindow.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ParameterClass.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\YoonFactory\YoonLog\YoonLog\YoonLog.csproj">
+      <Project>{C347EBD9-6691-43F6-A83E-97EBAB6988E8}</Project>
+      <Name>YoonLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFactory\YoonRobot\YoonRobot\YoonRobot.csproj">
+      <Project>{2CC24821-5B04-47F4-BC75-B7CFB6818BAA}</Project>
+      <Name>YoonRobot</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFactory\YoonFile\YoonFile\YoonFile.csproj">
+      <Project>{93428CEA-A460-47A6-AE13-50C17EA6727F}</Project>
+      <Name>YoonFile</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFactory\YoonParameter\YoonParameter\YoonParameter.csproj">
+      <Project>{6CE26E92-3505-4992-B407-577A0BE69E82}</Project>
+      <Name>YoonParameter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFactory\YoonCommon\YoonCommon.csproj">
+      <Project>{1F8E210E-2C3B-4084-AF34-855673EFEFC0}</Project>
+      <Name>YoonCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\YoonFactory\YoonComm\YoonComm\YoonComm.csproj">
+      <Project>{CB506015-8250-4E52-B9D3-D7F9620F4CB9}</Project>
+      <Name>YoonComm</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
