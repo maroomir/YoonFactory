@@ -23,6 +23,21 @@ namespace YoonSample.CognexInspector
         [Browsable(false)]
         public bool IsPassRecently { get; set; } = true;
 
+        public int GetLength()
+        {
+            return typeof(ParameterInspectionPreprocessing).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            IsUse = Boolean.Parse(pArgs[0]);
+            IsUseImageConvert = Boolean.Parse(pArgs[1]);
+            IsUseSobelEdge = Boolean.Parse(pArgs[2]);
+            IsUseImageFilter = Boolean.Parse(pArgs[3]);
+            IsPassRecently = Boolean.Parse(pArgs[4]);
+        }
+
         public bool Equals(IYoonParameter pParam)
         {
             if(pParam is ParameterInspectionPreprocessing pParamPre)
@@ -99,6 +114,17 @@ namespace YoonSample.CognexInspector
         public double OffsetT { get; set; } = 100.0;
         [CategoryAttribute("Align"), DescriptionAttribute("Handling NG Condition with 'OR' component (true/false)")]
         public bool IsAlignCheckWithOR { get; set; } = true;
+
+        public int GetLength()
+        {
+            return typeof(ParameterInspectionPatternMatching).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            throw new NotSupportedException("[Parameter] Forbidden to Direct Setting");
+        }
 
         public bool Equals(IYoonParameter pParam)
         {
@@ -203,6 +229,17 @@ namespace YoonSample.CognexInspector
         [Browsable(false)]
         public eTypeInspect SelectedColorSegmentImageType { get; set; } = eTypeInspect.None;
 
+        public int GetLength()
+        {
+            return typeof(ParameterInspectionObjectExtract).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            throw new NotSupportedException("[Parameter] Forbidden to Direct Setting");
+        }
+
         public bool Equals(IYoonParameter pParam)
         {
             if (pParam is ParameterInspectionObjectExtract pParamObjExtract)
@@ -280,6 +317,17 @@ namespace YoonSample.CognexInspector
         public int SelectedObjectNo { get; set; } = 0;
         [Browsable(false)]
         public eTypeInspect SelectedObjectType { get; set; } = eTypeInspect.None;
+
+        public int GetLength()
+        {
+            return typeof(ParameterInspectionCombine).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            throw new NotSupportedException("[Parameter] Forbidden to Direct Setting");
+        }
 
         public bool Equals(IYoonParameter pParam)
         {

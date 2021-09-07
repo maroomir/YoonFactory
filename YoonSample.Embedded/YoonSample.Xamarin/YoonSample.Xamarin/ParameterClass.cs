@@ -1,4 +1,5 @@
-﻿using YoonFactory;
+﻿using System;
+using YoonFactory;
 using YoonFactory.Comm;
 
 namespace YoonSample.Xamarin
@@ -8,6 +9,19 @@ namespace YoonSample.Xamarin
         public eYoonCommType Type { get; set; } = eYoonCommType.TCPClient;
         public string IPAddress { get; set; } = "192.168.71.1";
         public int Port { get; set; } = 5000;
+
+        public int GetLength()
+        {
+            return typeof(eYoonCommType).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            Type = (eYoonCommType)Enum.Parse(typeof(ParameterConnection), pArgs[0]);
+            IPAddress = pArgs[1];
+            Port = Int32.Parse(pArgs[2]);
+        }
 
         public bool Equals(IYoonParameter pComparison)
         {

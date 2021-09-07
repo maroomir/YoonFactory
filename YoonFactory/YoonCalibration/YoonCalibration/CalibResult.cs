@@ -16,6 +16,11 @@ namespace YoonFactory.Calibration
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
         }
 
+        public int GetLength()
+        {
+            return AverageResolution.Count + Enum.GetValues(typeof(eYoonDir2D)).Length + DeviceCenterPos.Count;
+        }
+
         public string Combine(string strDelimiter)
         {
             return AverageResolution.X.ToString() + strDelimiter +
@@ -84,6 +89,11 @@ namespace YoonFactory.Calibration
         {
             foreach (eYoonDir2D nDir in Enum.GetValues(typeof(eYoonDir2D)))
                 ResolutionOfParts.Add(nDir, new YoonVector2D());
+        }
+
+        public int GetLength()
+        {
+            return typeof(StaticCalibResult).GetProperties().Length;
         }
 
         public string Combine(string strDelimiter)

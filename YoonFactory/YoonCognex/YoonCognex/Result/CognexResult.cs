@@ -14,6 +14,12 @@ namespace YoonFactory.Cognex.Result
         public YoonDataset ObjectDataset { get; private set; } = new YoonDataset();
         public double TotalScore { get; private set; } = 0.0;
 
+
+        public int GetLength()
+        {
+            return typeof(CognexResult).GetProperties().Length;
+        }
+
         public CognexResult(eYoonCognexType nType)
         {
             ToolType = nType;

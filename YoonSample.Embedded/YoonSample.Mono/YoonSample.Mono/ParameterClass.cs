@@ -9,6 +9,19 @@ namespace YoonSample.Mono
         public string IPAddress { get; set; } = "192.168.71.1";
         public int Port { get; set; } = 5000;
 
+        public int GetLength()
+        {
+            return typeof(ParameterConnection).GetProperties().Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            Type = (eCommType)Enum.Parse(typeof(eCommType), pArgs[0]);
+            IPAddress = pArgs[1];
+            Port = Int32.Parse(pArgs[2]);
+        }
+
         public bool Equals(IYoonParameter pComparison)
         {
             if(pComparison is ParameterConnection pParamConnection)
@@ -47,6 +60,18 @@ namespace YoonSample.Mono
         { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"};
         public string[] ActionValues { get; set; } = new string[CommonClass.MAX_ACTION_NUM]
         { "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value", "Value"};
+
+        public int GetLength()
+        {
+            return ActionNames.Length + ActionValues.Length;
+        }
+
+        public void Set(params string[] pArgs)
+        {
+            if (pArgs.Length != GetLength()) return;
+            Array.Copy(pArgs, 0, ActionNames, 0, ActionNames.Length);
+            Array.Copy(pArgs, ActionNames.Length, ActionValues, 0, ActionValues.Length);
+        }
 
         public bool Equals(IYoonParameter pComparision)
         {

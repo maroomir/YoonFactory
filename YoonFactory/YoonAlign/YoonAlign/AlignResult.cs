@@ -11,6 +11,11 @@ namespace YoonFactory.Align
         public double Y { get; set; }
         public double Theta { get; set; }
 
+        public int GetLength()
+        {
+            return typeof(AlignResult).GetProperties().Length;
+        }
+
         public AlignResult()
         {
             X = 0.0;
