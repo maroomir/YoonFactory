@@ -58,7 +58,7 @@ namespace YoonFactory.Files
 
         public YoonXml(string strPath)
         {
-            if (!FileFactory.VerifyFileExtension(ref strPath, ".xml", false, false))
+            if (FileFactory.VerifyFileExtension(ref strPath, ".xml", false, false))
                 FilePath = strPath;
             else
                 FilePath = Path.Combine(Directory.GetCurrentDirectory(), "YoonXml.xml");

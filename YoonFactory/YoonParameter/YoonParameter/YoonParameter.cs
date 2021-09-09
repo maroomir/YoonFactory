@@ -73,7 +73,7 @@ namespace YoonFactory.Param
             string strFilePath = Path.Combine(RootDirectory, string.Format(@"{0}.xml", strFileName));
             IYoonParameter pParamBk = Parameter.Clone();
             YoonXml pXml = new YoonXml(strFilePath);
-            if (!pXml.LoadFile(out pParam, ParameterType))
+            if (pXml.LoadFile(out pParam, ParameterType))
             {
                 Parameter = pParam as IYoonParameter;
                 if (Parameter != null)

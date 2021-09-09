@@ -229,7 +229,7 @@ namespace YoonFactory.Comm.TCP
                     _pClientSocket.BeginConnect(new IPEndPoint(pIpAddress, int.Parse(Parameter.Port)), null, null);
                 if (pResult.AsyncWaitHandle.WaitOne(100, false))
                 {
-                    _pClientSocket.EndConnect(pResult);
+                    _pClientSocket?.EndConnect(pResult);
                 }
                 else
                 {
@@ -238,7 +238,7 @@ namespace YoonFactory.Comm.TCP
                         OnShowMessageEvent?.Invoke(this,
                             new MessageArgs(eYoonStatus.Error, "Connection Failure : Client Connecting delay"));
                     if (_pClientSocket == null) return false;
-                    _pClientSocket.Close();
+                    _pClientSocket?.Close();
                     _pClientSocket = null;
 
                     return false;
@@ -252,7 +252,7 @@ namespace YoonFactory.Comm.TCP
                     OnShowMessageEvent?.Invoke(this,
                         new MessageArgs(eYoonStatus.Error, "Connection Failure : Socket Error"));
                 if (_pClientSocket == null) return false;
-                _pClientSocket.Close();
+                _pClientSocket?.Close();
                 _pClientSocket = null;
                 return false;
             }
@@ -263,7 +263,7 @@ namespace YoonFactory.Comm.TCP
             try
             {
                 // Receive the incoming data asynchronously
-                _pClientSocket.BeginReceive(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, _pReceiveHandler, ao);
+                _pClientSocket?.BeginReceive(ao.Buffer, 0, ao.Buffer.Length, SocketFlags.None, _pReceiveHandler, ao);
             }
             catch (Exception ex)
             {
@@ -273,7 +273,7 @@ namespace YoonFactory.Comm.TCP
             }
 
 
-            if (_pClientSocket.Connected != true) return _pClientSocket.Connected;
+            if (_pClientSocket?.Connected != true) return false;
             IsRetryOpen = false;
             OnShowMessageEvent?.Invoke(this, new MessageArgs(eYoonStatus.Info, "Connection Success"));
             SaveParameter();

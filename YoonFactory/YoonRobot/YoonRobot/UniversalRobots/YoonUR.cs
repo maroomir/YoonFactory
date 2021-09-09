@@ -98,16 +98,6 @@ namespace YoonFactory.Robot.UniversialRobot
 
         public YoonUR()
         {
-            // 이벤트 구독 초기화
-            m_pScriptComm = new YoonClient();
-            m_pScriptComm.OnShowMessageEvent += OnShowMessageEvent;
-            m_pScriptComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
-            m_pDashboardComm = new YoonClient();
-            m_pDashboardComm.OnShowMessageEvent += OnShowMessageEvent;
-            m_pDashboardComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
-            m_pSocketComm = new YoonClient();
-            m_pSocketComm.OnShowMessageEvent += OnShowMessageEvent;
-            m_pSocketComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // Parameter 초기화하기
             ParameterConnect pParamConnect = new ParameterConnect();
             ParameterPacket pParamPacket = new ParameterPacket();
@@ -117,6 +107,7 @@ namespace YoonFactory.Robot.UniversialRobot
             m_pPacketManager.RootDirectory = RootDirectory;
             m_pConnectManager.LoadParameter(true);
             m_pPacketManager.LoadParameter(true);
+            InitAll();
         }
 
         public YoonUR(YoonUR pRemote)
@@ -135,14 +126,6 @@ namespace YoonFactory.Robot.UniversialRobot
         {
             RootDirectory = strRootDir;
 
-            // 서버용 구독 초기화
-            m_pScriptComm = new YoonClient();
-            m_pScriptComm.OnShowMessageEvent += OnShowMessageEvent;
-            m_pScriptComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
-            // 클라이언트용 구독 초기화
-            m_pDashboardComm = new YoonServer();
-            m_pDashboardComm.OnShowMessageEvent += OnShowMessageEvent;
-            m_pDashboardComm.OnShowReceiveDataEvent += OnShowReceiveDataEvent;
             // Parameter 초기화하기
             ParameterConnect pParamConnect = new ParameterConnect();
             ParameterPacket pParamPacket = new ParameterPacket();
@@ -237,7 +220,7 @@ namespace YoonFactory.Robot.UniversialRobot
             m_pScriptComm?.Dispose();
             if (pParam.ScriptMode == eYoonCommType.TCPServer)
                 m_pScriptComm = new YoonServer();
-            else m_pScriptComm = new YoonServer();
+            else m_pScriptComm = new YoonClient();
             m_pScriptComm.RootDirectory = RootDirectory;
             m_pScriptComm.Address = pParam.IPAddress;
             m_pScriptComm.Port = pParam.ScriptControlPort;
@@ -247,7 +230,7 @@ namespace YoonFactory.Robot.UniversialRobot
             m_pSocketComm?.Dispose();
             if (pParam.SocketMode == eYoonCommType.TCPServer)
                 m_pSocketComm = new YoonServer();
-            else m_pSocketComm = new YoonServer();
+            else m_pSocketComm = new YoonClient();
             m_pSocketComm.RootDirectory = RootDirectory;
             m_pSocketComm.Address = pParam.IPAddress;
             m_pSocketComm.Port = pParam.SocketPort;
