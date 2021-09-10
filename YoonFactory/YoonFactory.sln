@@ -520,6 +520,6 @@ Global
 		SolutionGuid = {250FCC7F-F0E8-4357-8527-D0B5531183AF}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		BaseDirectory = ../Build/
+		BaseDirectory = .
 	EndGlobalSection
 EndGlobal
