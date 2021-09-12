@@ -33,7 +33,7 @@ namespace YoonFactory.Files
             {
                 if (!pFile.Exists)
                 {
-                    if (!bCreateFile) return false;
+                    if (!bCreateFile) return true;
                     FileStream pStream = pFile.Create();
                     pStream.Close();
                     return true;

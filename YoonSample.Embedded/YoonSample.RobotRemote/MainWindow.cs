@@ -59,7 +59,6 @@ public partial class MainWindow : Gtk.Window
 
     private void OnPowerButtonClick(object sender, EventArgs e)
     {
-        pRemote.PowerOnRobot();
         if (pRemote.PowerOffRobot())
             pCLM.Write("[SEND] Power Off");
     }

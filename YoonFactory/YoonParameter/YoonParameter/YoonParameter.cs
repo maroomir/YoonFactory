@@ -78,10 +78,10 @@ namespace YoonFactory.Param
                 Parameter = pParam as IYoonParameter;
                 if (Parameter != null)
                     return true;
-                Parameter = pParamBk;
-                if (bSaveIfFalse) SaveParameter();
             }
-            return false;
+            Parameter = pParamBk;
+            if (bSaveIfFalse) SaveParameter();
+            return true;
         }
     }
 }
